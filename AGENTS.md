@@ -24,11 +24,27 @@ What is ported from where, so a change here can be checked against the original:
   `Resources/gem_{vertices,indices,normals}.txt`. Those indices are 1-based.
   Regenerate it rather than editing it by hand.
 
-The game gets its neon from a SceneKit bloom pass, which has no cheap WebGL
-equivalent here. Two places compensate deliberately and will look wrong if
-"corrected" back to the literal values: glow alpha falls off with how squarely a
-facet faces the camera, and the gem hull gets a second additive pass on top of
-its 10%-opaque shell.
+`design/swipe_tutorial_capture.jpg` in the game repo is a real screen capture
+and the best ground truth for judging the banner. Sample it rather than
+eyeballing: the gem body there is median luminance 5, as dark as the
+background, with only its top tenth of pixels lit, and the loop lines peak
+near white rather than at flat palette colour.
+
+Four things about this renderer are deliberate and will look wrong if
+"simplified":
+
+- The gem is black because of Fresnel, not because it is unlit. A near-black
+  albedo is also a metal's normal-incidence reflectance, so facets facing the
+  camera reflect almost nothing and only grazing ones light up.
+- Which cubemap face lands on those rims depends on where the camera is. The
+  lookup is rotated into the game's camera frame, at (4,4,0), or every rim on
+  screen comes out pink.
+- The shaders write their own colour-space conversion and derive alpha from
+  their own output. A flat alpha makes the scene canvas opaque and hides the
+  grid canvas behind it.
+- The gem shell is deeper than the game's literal 0.1 opacity, and glow falloff
+  is baked into the material rather than coming from a bloom pass. Both
+  compensate for a lit grid backdrop and the absence of SceneKit bloom.
 
 ## Review before shipping
 
