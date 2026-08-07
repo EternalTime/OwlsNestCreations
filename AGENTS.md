@@ -57,6 +57,13 @@ Four things about this renderer are deliberate and will look wrong if
   is baked into the material rather than coming from a bloom pass. Both
   compensate for a lit grid backdrop and the absence of SceneKit bloom.
 
+Depth in the WebGL half is render order alone - every material has depth test
+and depth write off, because the additive glows need them off. three.js sorts
+on a group's `renderOrder` first and takes it from the *nearest enclosing*
+group, so a nested group with its own `renderOrder` silently resets the sort
+key for every mesh under it. Keep all groups at zero and order the meshes
+(`ORDER` in `voidflux-scene.js`).
+
 ## Review before shipping
 
 Visual changes are reviewed by the captain on a running `bundle exec jekyll
