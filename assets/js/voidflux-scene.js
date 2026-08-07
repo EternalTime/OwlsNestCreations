@@ -91,6 +91,11 @@ const GEMS = [
 // 0.030 world units against a gem of radius kGemScale * 1.202, so it scales
 // with each gem here rather than being copied literally.
 const GEM_DRIFT_AMP = 0.03 / (0.15 * 1.202);
+// Gem sizing shares `REF_WIDTH` with the loop chain, so the two halves of the
+// banner shrink together. Below these visible widths a gem drops out entirely.
+const GEM_MIN_FIT = 0.55;
+const GEM_FOUR_WIDTH = 12;
+const GEM_THREE_WIDTH = 7;
 const GEM_TILT_CONE = (30 * Math.PI) / 180;
 const GEM_LEAD_IN = 1.0;
 // Where reduced motion parks the scene: far enough in that the lead-in has
@@ -647,8 +652,8 @@ function animateGem(gem, t) {
 // Gem size and count follow the visible width: on a phone slice, four gems at
 // full size would pile on top of one another.
 function layoutGems(gems, camera, worldWidth) {
-  const fit = Math.min(1, Math.max(0.55, worldWidth / 14));
-  const count = worldWidth >= 12 ? 4 : worldWidth >= 7 ? 3 : 2;
+  const fit = Math.min(1, Math.max(GEM_MIN_FIT, worldWidth / REF_WIDTH));
+  const count = worldWidth >= GEM_FOUR_WIDTH ? 4 : worldWidth >= GEM_THREE_WIDTH ? 3 : 2;
   gems.forEach((gem, i) => {
     gem.pivot.visible = i < count;
     if (i >= count) return;

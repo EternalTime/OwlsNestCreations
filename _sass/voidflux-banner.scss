@@ -16,20 +16,12 @@
   display: block;
   padding: 0;
   min-height: clamp(30rem, 62vh, 44rem);
+  // The field is voidBlack and nothing else. Glow belongs to the geometry - the
+  // thin grid lines and the small charge cores - never to the canvas, so there
+  // is no ambient wash here. The grid canvas is 2D and draws even without
+  // WebGL, so it is the fallback rather than a painted-on gradient.
   background: var(--vf-void);
   color: #fff;
-}
-
-// The field is voidBlack and nothing else. Glow belongs to the geometry - the
-// thin grid lines and the small charge cores - never to the canvas, so there is
-// no ambient wash here. The grid canvas is 2D and draws even without WebGL, so
-// it is the fallback rather than a painted-on gradient.
-.vf-banner::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -3;
-  background: var(--vf-void);
 }
 
 .vf-grid,

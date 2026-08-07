@@ -163,12 +163,15 @@ function drawLayer(w, h, dpr, layer) {
   return canvas;
 }
 
-function drawGrid(canvas) {
-  const w = canvas.clientWidth;
-  const h = canvas.clientHeight;
-  if (w === 0 || h === 0) return;
+function gridMetrics(canvas) {
+  return {
+    w: canvas.clientWidth,
+    h: canvas.clientHeight,
+    dpr: Math.min(window.devicePixelRatio || 1, MAX_DPR),
+  };
+}
 
-  const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+function drawGrid(canvas, { w, h, dpr }) {
   canvas.width = Math.round(w * dpr);
   canvas.height = Math.round(h * dpr);
 
@@ -187,15 +190,43 @@ function init(banner) {
   const gridCanvas = banner.querySelector('.vf-grid');
   if (!gridCanvas || !gridCanvas.getContext) return;
 
-  const redraw = () => drawGrid(gridCanvas);
-  redraw();
-  new ResizeObserver(redraw).observe(banner);
+  // A drag-resize ticks the observer every frame, and each draw builds two
+  // full-size shadow-blurred offscreen canvases, so ticks are coalesced into one
+  // frame and a tick that leaves the pixel geometry unchanged does nothing.
+  let frame = 0;
+  let drawn = null;
+  const redraw = () => {
+    frame = 0;
+    const metrics = gridMetrics(gridCanvas);
+    if (metrics.w === 0 || metrics.h === 0) return;
+    if (drawn && drawn.w === metrics.w && drawn.h === metrics.h && drawn.dpr === metrics.dpr) {
+      return;
+    }
+    drawGrid(gridCanvas, metrics);
+    drawn = metrics;
+  };
 
-  import('./voidflux-scene.js')
-    .then((m) => m.mount(banner))
-    .catch(() => {
-      // Grid-only is a complete composition; nothing further to do.
-    });
+  // The observer delivers an initial observation of its own, which is the first
+  // paint.
+  new ResizeObserver(() => {
+    if (frame === 0) frame = requestAnimationFrame(redraw);
+  }).observe(banner);
+
+  // The scene module carries a vendored three.js, so it is only fetched once the
+  // banner is near the viewport. The grid above has already painted, so a
+  // visitor who never reaches the banner pays nothing and still loses nothing.
+  new IntersectionObserver(
+    (entries, observer) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      observer.disconnect();
+      import('./voidflux-scene.js')
+        .then((m) => m.mount(banner))
+        .catch(() => {
+          // Grid-only is a complete composition; nothing further to do.
+        });
+    },
+    { rootMargin: '400px' }
+  ).observe(banner);
 }
 
 document.querySelectorAll('[data-vf-banner]').forEach(init);
