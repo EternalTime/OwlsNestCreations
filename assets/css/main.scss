@@ -1,0 +1,12 @@
+---
+---
+@use "tokens";
+@use "base";
+@use "home";
+@use "game";
+
+@font-face {
+  font-family: 'Paytone One';
+  src: url('{{ "/assets/fonts/PaytoneOne-Regular.ttf" | relative_url }}') format('truetype');
+  font-display: swap;
+}

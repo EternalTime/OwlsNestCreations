@@ -1,0 +1,32 @@
+---
+layout: default
+---
+<section class="hero">
+  <h1>We make games out of <span class="hero-accent">physics</span>.</h1>
+  <p>{{ site.description | strip_newlines | strip }}</p>
+</section>
+
+<div id="games">
+  {% assign published_games = site.games | where: "published_on_site", true | sort: "order" %}
+  {% for game in published_games %}
+  <section class="game-block" style="--g-from: {{ game.gradient_from }}; --g-mid: {{ game.gradient_mid }}; --g-to: {{ game.gradient_to }}; --g-cta-bg: {{ game.cta_bg }}; --g-cta-text: {{ game.cta_text }};">
+    <img class="game-icon" src="{{ game.icon | relative_url }}" alt="{{ game.title }} icon">
+    <div class="game-blurb">
+      <h2 class="game-title" style="font-family: {{ game.title_font }};">{{ game.title }}</h2>
+      <div class="game-tag">{{ game.tagline }}</div>
+      <p class="game-desc">{{ game.teaser }}</p>
+      <a class="game-cta" href="{{ game.url | relative_url }}">More about {{ game.title }}</a>
+    </div>
+  </section>
+  {% endfor %}
+</div>
+
+<section class="nest-section">
+  <h2>More hatching in the nest</h2>
+  <p>New experiments are incubating. Announcements when they're ready.</p>
+  <div class="eggs">
+    <div class="egg"></div>
+    <div class="egg"></div>
+    <div class="egg"></div>
+  </div>
+</section>

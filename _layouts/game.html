@@ -1,0 +1,16 @@
+---
+layout: default
+---
+<article class="game-page" style="--g-from: {{ page.gradient_from }}; --g-mid: {{ page.gradient_mid }}; --g-to: {{ page.gradient_to }}; --g-cta-bg: {{ page.cta_bg }}; --g-cta-text: {{ page.cta_text }};">
+  <section class="game-hero">
+    <img class="game-icon" src="{{ page.icon | relative_url }}" alt="{{ page.title }} icon">
+    <div class="game-hero-text">
+      <h1 class="game-title" style="font-family: {{ page.title_font }};">{{ page.title }}</h1>
+      <div class="game-tag">{{ page.tagline }}</div>
+      <div class="game-status">{{ page.status }}</div>
+    </div>
+  </section>
+  <section class="game-body">
+    {{ content }}
+  </section>
+</article>

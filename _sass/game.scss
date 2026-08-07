@@ -1,0 +1,55 @@
+// ---- Individual game pages ----
+
+.game-hero {
+  background: linear-gradient(160deg, var(--g-from) 0%, var(--g-mid) 45%, var(--g-to) 100%);
+  color: #fff;
+  padding: 10vh 5vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5vw;
+  flex-wrap: wrap;
+}
+
+.game-hero .game-icon {
+  width: min(280px, 60vw);
+  border-radius: 22%;
+  box-shadow: 0 30px 80px rgba(4, 4, 14, 0.45);
+}
+
+.game-hero .game-title {
+  font-size: clamp(3rem, 8vw, 6rem);
+  line-height: 1;
+  text-shadow: 0 4px 0 rgba(4, 4, 14, 0.25);
+}
+
+.game-status {
+  display: inline-block;
+  margin-top: 1.2rem;
+  background: var(--g-cta-bg);
+  color: var(--g-cta-text);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.5rem 1.2rem;
+  border-radius: 999px;
+}
+
+.game-body {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 4rem 5vw 6rem;
+}
+
+.game-body h2 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 2rem 0 0.8rem;
+}
+
+.game-body p {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.game-body a { color: var(--accent); font-weight: 600; }

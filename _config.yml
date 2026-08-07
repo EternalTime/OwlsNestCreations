@@ -1,0 +1,29 @@
+title: Owl's Nest Creations
+description: >-
+  Owl's Nest Creations turns real equations into puzzles you can hold
+  in one hand. The studio of Damian Sowinski, research physicist and
+  game designer.
+url: "https://owlsnestcreations.com"
+email: hello@owlsnestcreations.com
+
+collections:
+  games:
+    output: true
+    permalink: /games/:name/
+
+defaults:
+  - scope:
+      path: ""
+      type: games
+    values:
+      layout: game
+
+sass:
+  style: compressed
+  quiet_deps: true
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - vendor
