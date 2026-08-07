@@ -20,9 +20,12 @@ What is ported from where, so a change here can be checked against the original:
   horizon sits at a fixed pixel offset rather than a fraction of the banner.
 - `Game/SceneBuilder.swift` - the gem material, `makeChargeNodes`, and
   `makeGemIdleFloatAction`.
-- `assets/data/voidflux-gem.json` is generated from the game's
-  `Resources/gem_{vertices,indices,normals}.txt`. Those indices are 1-based.
-  Regenerate it rather than editing it by hand.
+- `assets/data/voidflux-gem.json` was converted once, by hand, from
+  `~/firstmate/projects/VoidFlux/VoidFlux/Resources/gem_vertices.txt`,
+  `gem_indices.txt` and `gem_normals.txt`. Nothing in this repo reproduces it.
+  Those indices are 1-based - the game's own parser subtracts 1
+  (`Game/GameSceneBuilder.swift`). To change the mesh, redo that conversion
+  rather than hand-editing the JSON.
 
 Two real screen captures in the game repo are the ground truth, and they are
 not interchangeable. Sample them rather than eyeballing.
