@@ -1,7 +1,7 @@
 // VoidFlux home-page banner: the game's void-black field, its perspective
 // grid, its glowing flux loops and its real gem mesh.
 //
-// The grid is a 2D-canvas port of `PerspectiveGrid` / `TitleBackdrop`
+// The grid is a 2D-canvas port of `TitleBackdrop` / `PerspectiveGrid`
 // (VoidFlux/App/TitleView.swift). It renders on its own, so the banner is
 // never a blank black box even when WebGL is unavailable.
 
@@ -15,44 +15,64 @@ const GRID = {
   delta: 40,
   M: 25,
   C: 300,
-  // Wider than the game's 60: the dark band around the horizon is a large part
-  // of why the game's frame reads as black.
-  strip: 95,
-  lineWidth: 1,
-  baseGlow: 2,
 };
 
-// The shape is scaled about the horizon rather than the frame centre, so the
-// cells come out as fine as the game's while the vanishing point stays put.
-const GRID_SCALE = 0.62;
-// The grid is depth, not decoration. It sits close to the black instead of
-// shouting over the geometry in front of it.
-const GRID_ALPHA = 0.4;
-// Above the horizon the game is essentially dark, so the mirrored half falls
-// away to nothing over this many pixels.
-const GRID_CEILING_FADE = 150;
+const VANISHING_Y = 105 - Math.tan(GRID.theta);
+
+// TitleBackdrop draws two grids. The far one is thinner, dimmer, runs its
+// gradient the other way up and offsets its fan by half a step so its lines
+// interleave with the near one's instead of hiding behind them.
+const FAR_LAYER = {
+  strip: 132,
+  fanOffset: 0.5,
+  lineWidth: 1,
+  top: Palette.cyanBright,
+  bottom: Palette.pinkBright,
+  opacity: 0.45,
+  glows: [{ color: Palette.pinkBright, alpha: 0.2, radius: 4 }],
+};
+
+const NEAR_LAYER = {
+  strip: 60,
+  fanOffset: 0,
+  lineWidth: 2,
+  top: Palette.pinkBright,
+  bottom: Palette.cyanBright,
+  opacity: 1,
+  glows: [
+    { color: Palette.pinkBright, alpha: 0.3, radius: 4 * 1.8 },
+    { color: Palette.cyanBright, alpha: 0.5, radius: 4 },
+  ],
+};
+
+// Both layers are masked so the grid dies away to almost nothing as it
+// approaches the vanishing point and returns to full strength near the viewer.
+// Without this the grid is densest and brightest exactly where it converges,
+// which reads as a wall of neon rather than as depth.
+const FADE_MIN_OPACITY = 0.05;
+const FADE_RAMP_LENGTH = 300;
 
 const MAX_DPR = 2;
 
 function horizonY(h) {
-  return h / 2 - (105 - Math.tan(GRID.theta)) * GRID_SCALE;
+  return h / 2 - VANISHING_Y;
 }
 
-function gridPath(w, h) {
-  const { theta, H, delta, M, C, strip } = GRID;
+function gridPath(w, h, strip, fanOffset) {
+  const { theta, H, delta, M, C } = GRID;
   const midX = w / 2;
-  const vy = 105 - Math.tan(theta);
+  const midY = h / 2;
+  const vy = VANISHING_Y;
   const loY = vy - strip;
   const hiY = vy + strip;
   const g = H / (delta * Math.cos(theta));
-  const xExtent = (w * 2) / GRID_SCALE;
-  const yExtent = (h * 2) / GRID_SCALE;
-  const hy = horizonY(h);
+  const xExtent = w * 2;
+  const yExtent = h * 2;
 
   const path = new Path2D();
-  // Shape space is y-up, scaled about the vanishing point.
-  const moveTo = (x, y) => path.moveTo(midX + x * GRID_SCALE, hy - (y - vy) * GRID_SCALE);
-  const lineTo = (x, y) => path.lineTo(midX + x * GRID_SCALE, hy - (y - vy) * GRID_SCALE);
+  // Shape space is y-up centred on the rect, matching `toScreen`.
+  const moveTo = (x, y) => path.moveTo(midX + x, midY - y);
+  const lineTo = (x, y) => path.lineTo(midX + x, midY - y);
 
   // Horizontal depth rows: y_k = vy - g*C/k, bunching toward the horizon.
   for (let k = -M; k <= M; k++) {
@@ -63,16 +83,20 @@ function gridPath(w, h) {
     lineTo(xExtent, yk);
   }
 
-  // Centre line at x = 0, clipped to the strip in y.
-  moveTo(0, -yExtent);
-  lineTo(0, loY);
-  moveTo(0, hiY);
-  lineTo(0, yExtent);
+  // Centre line at x = 0, clipped to the strip in y. The offset layer has no
+  // line at x = 0, which is what staggers the two fans.
+  if (fanOffset === 0) {
+    moveTo(0, -yExtent);
+    lineTo(0, loY);
+    moveTo(0, hiY);
+    lineTo(0, yExtent);
+  }
 
   // Fan lines: straight, through the vanishing point, both halves.
   for (let j = -M; j <= M; j++) {
-    if (j === 0) continue;
-    const slope = g / j;
+    const denom = j + fanOffset;
+    if (denom === 0) continue;
+    const slope = g / denom;
     const y = (x) => vy + slope * x;
     const xEdge = Math.abs(strip / slope);
     moveTo(-xExtent, y(-xExtent));
@@ -82,6 +106,61 @@ function gridPath(w, h) {
   }
 
   return path;
+}
+
+function fadeGradient(ctx, h, strip) {
+  const horizon = horizonY(h);
+  const at = (px) => Math.min(1, Math.max(0, px / h));
+  const solid = 'rgba(255,255,255,1)';
+  const faded = `rgba(255,255,255,${FADE_MIN_OPACITY})`;
+  const gradient = ctx.createLinearGradient(0, 0, 0, h);
+  gradient.addColorStop(0, solid);
+  gradient.addColorStop(at(horizon - strip - FADE_RAMP_LENGTH), solid);
+  gradient.addColorStop(at(horizon - strip), faded);
+  gradient.addColorStop(at(horizon + strip), faded);
+  gradient.addColorStop(at(horizon + strip + FADE_RAMP_LENGTH), solid);
+  gradient.addColorStop(1, solid);
+  return gradient;
+}
+
+// One grid layer, stroked with its glows and then masked, mirroring the
+// SwiftUI order: stroke, shadows, mask.
+function drawLayer(w, h, dpr, layer) {
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const path = gridPath(w, h, layer.strip, layer.fanOffset);
+  ctx.lineWidth = layer.lineWidth;
+  ctx.lineCap = 'round';
+
+  // Canvas shadowBlur is a diameter where SwiftUI's shadow radius is a radius.
+  for (const glow of layer.glows) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = glow.alpha;
+    ctx.shadowColor = glow.color;
+    ctx.shadowBlur = glow.radius * 2;
+    ctx.strokeStyle = glow.color;
+    ctx.stroke(path);
+    ctx.restore();
+  }
+
+  const stroke = ctx.createLinearGradient(0, 0, 0, h);
+  stroke.addColorStop(0, layer.top);
+  stroke.addColorStop(1, layer.bottom);
+  ctx.strokeStyle = stroke;
+  ctx.stroke(path);
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-in';
+  ctx.fillStyle = fadeGradient(ctx, h, layer.strip);
+  ctx.fillRect(0, 0, w, h);
+  ctx.restore();
+
+  return canvas;
 }
 
 function drawGrid(canvas) {
@@ -97,46 +176,11 @@ function drawGrid(canvas) {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, w, h);
 
-  const path = gridPath(w, h);
-  const stroke = ctx.createLinearGradient(0, 0, 0, h);
-  stroke.addColorStop(0, Palette.pinkBright);
-  stroke.addColorStop(1, Palette.cyanBright);
-
-  ctx.lineWidth = GRID.lineWidth;
-  ctx.lineCap = 'round';
-  ctx.globalAlpha = GRID_ALPHA;
-
-  // A tight glow pair, mirroring TitleBackdrop's layered shadows (wide faint
-  // pink behind, tighter cyan in front) but at a fraction of their strength -
-  // at full strength they haze the whole canvas instead of hugging the lines.
-  // Canvas shadowBlur is a diameter where SwiftUI's shadow radius is a radius.
-  const glow = (color, alpha, radius) => {
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.globalAlpha = GRID_ALPHA * alpha;
-    ctx.shadowColor = color;
-    ctx.shadowBlur = radius * 2;
-    ctx.strokeStyle = color;
-    ctx.stroke(path);
-    ctx.restore();
-  };
-  glow(Palette.pinkBright, 0.1, GRID.baseGlow * 1.8);
-  glow(Palette.cyanBright, 0.18, GRID.baseGlow);
-
-  ctx.strokeStyle = stroke;
-  ctx.stroke(path);
+  for (const layer of [FAR_LAYER, NEAR_LAYER]) {
+    ctx.globalAlpha = layer.opacity;
+    ctx.drawImage(drawLayer(w, h, dpr, layer), 0, 0, w, h);
+  }
   ctx.globalAlpha = 1;
-
-  // Erase upward from the horizon so the mirrored ceiling falls away to black.
-  const hy = horizonY(h);
-  const fade = ctx.createLinearGradient(0, Math.max(0, hy - GRID_CEILING_FADE), 0, hy);
-  fade.addColorStop(0, 'rgba(0,0,0,1)');
-  fade.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.save();
-  ctx.globalCompositeOperation = 'destination-out';
-  ctx.fillStyle = fade;
-  ctx.fillRect(0, 0, w, hy);
-  ctx.restore();
 }
 
 function init(banner) {

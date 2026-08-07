@@ -24,11 +24,22 @@ What is ported from where, so a change here can be checked against the original:
   `Resources/gem_{vertices,indices,normals}.txt`. Those indices are 1-based.
   Regenerate it rather than editing it by hand.
 
-`design/swipe_tutorial_capture.jpg` in the game repo is a real screen capture
-and the best ground truth for judging the banner. Sample it rather than
-eyeballing: the gem body there is median luminance 5, as dark as the
-background, with only its top tenth of pixels lit, and the loop lines peak
-near white rather than at flat palette colour.
+Two real screen captures in the game repo are the ground truth, and they are
+not interchangeable. Sample them rather than eyeballing.
+
+- `design/swipe_tutorial_capture.jpg` judges the *scene*: the gem body there is
+  median luminance 5, as dark as the background, with only its top tenth of
+  pixels lit, and the loop lines peak near white rather than at flat palette
+  colour. Do not judge the grid against it - it is gameplay, where
+  `flashState.backdropBase` dims the backdrop to 0.1 and keeps dimming it level
+  by level.
+- `apple_gameplay/title_screen.png` judges the *grid*, because the title screen
+  is the only place `backdropBase` rests at 1.0, which is what the banner is.
+
+The grid geometry is verifiable rather than a matter of taste. Depth row k sits
+`g*C/k` px below the horizon and fan line j crosses `d*j/g` px off centre at
+depth `d`, with `g = H/(delta*cos(theta))`. Measure a rendered scanline against
+those before changing any grid constant.
 
 Four things about this renderer are deliberate and will look wrong if
 "simplified":
