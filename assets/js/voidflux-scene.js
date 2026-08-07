@@ -20,12 +20,14 @@ const CAM_Z = REF_HEIGHT / 2 / Math.tan((FOV / 2) * (Math.PI / 180));
 const LOOP_Z = -1.2;
 // kTopTubeRadius is 0.01 against a lattice of half-extent 1.0; at this loop
 // scale that is the same hairline-with-a-halo the game renders.
-const TUBE_R = 0.014;
+const TUBE_R = 0.012;
 // Intensities are linear-space multipliers on the palette colour, so a value
 // above 1 clips to white and anything well below 1 stays a dim coloured haze.
+// The halo stays tight and weak: a wide one desaturates the wire into a soft
+// pastel stroke instead of the game's thin saturated line.
 const GLOW_SHELLS = [
-  { scale: 3.6, intensity: 0.28, power: 1.6 },
-  { scale: 11.0, intensity: 0.06, power: 2.2 },
+  { scale: 3.0, intensity: 0.3, power: 2.0 },
+  { scale: 7.0, intensity: 0.08, power: 3.0 },
 ];
 const LOOP_SHAPES = 5;
 const LOOP_R = 1.55;
@@ -123,7 +125,10 @@ void main() {
 }
 `;
 
-function makeAdditiveGlowMaterial(color, { intensity = 1.6, power = 0.5, side = THREE.DoubleSide } = {}) {
+// The default intensity drives the wire's core past full so it clips to a hot
+// centre with the palette colour surviving at its edges, which is how the
+// game's loop lines read against the black.
+function makeAdditiveGlowMaterial(color, { intensity = 2.6, power = 0.5, side = THREE.DoubleSide } = {}) {
   return new THREE.ShaderMaterial({
     uniforms: {
       uColor: { value: new THREE.Color(color) },
