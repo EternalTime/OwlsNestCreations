@@ -28,54 +28,42 @@ const GLOW_SHELLS = [
   { scale: 5.5, intensity: 0.08, power: 3.0 },
 ];
 
-// Three loops, deliberately unalike in size and shape so they never read as a
-// repeating motif. The first is sized off the viewport so it always spans the
-// banner and runs off both edges; the other two hold a fixed world size, eased
-// down on narrow viewports so the three stay distinguishable.
-//
-// `waves` are the harmonics of the undulation, in cycles around the loop. They
-// are whole numbers so the ripple closes seamlessly on a closed curve.
-const LOOPS = [
-  {
-    positive: true,
-    spanning: true,
-    xFrac: 0,
-    y: 0.1,
-    z: -0.5,
-    rot: [0.06, -0.1, 0.03],
-    waves: [2, 3],
-    speeds: [0.19, -0.13],
-    amp: 0.05,
-  },
-  {
-    positive: false,
-    radius: 1.9,
-    squash: 0.92,
-    xFrac: -0.03,
-    y: -0.8,
-    z: 0.1,
-    rot: [0.14, 0.24, 0.6],
-    waves: [3, 5],
-    speeds: [0.26, -0.2],
-    amp: 0.13,
-  },
-  {
-    positive: true,
-    radius: 1.0,
-    squash: 1.3,
-    xFrac: 0.53,
-    y: 0.6,
-    z: 0.5,
-    rot: [-0.2, -0.3, 1.9],
-    waves: [4, 6],
-    speeds: [0.34, -0.27],
-    amp: 0.16,
-  },
-];
-// The spanning loop overruns the frame horizontally by this much, and is capped
-// vertically so its top and bottom arcs still read inside the banner.
+// The loops are a chain strung right across the banner. Centres sit closer
+// together than a loop's own diameter, so every loop overlaps its neighbours
+// and the field reads as a tangle of flux rather than a row of beads.
+const CHAIN_RADIUS = 1.25;
+const CHAIN_SPACING = 1.45;
+const CHAIN_SHAPES = 5;
+const CHAIN_MIN = 5;
+const CHAIN_MAX = 13;
+// A phone sees roughly a third of the world width a desktop does, so below this
+// reference the loops shrink; at full size a narrow frame would hold two stray
+// arcs instead of a chain.
+const REF_WIDTH = 14;
+const MIN_FIT = 0.4;
+// Alternating flux signs, teal for positive and pink for negative, exactly as
+// `loopColor` assigns them. Not a strict alternation, so the eye does not read
+// a stripe pattern.
+const CHAIN_SIGNS = [1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1];
+
+// One loop is far larger than the rest and runs off both edges. It is mirrored
+// left-to-right so its long sweep rises away from the copy rather than into it.
 const SPANNING_HALF_WIDTH = 0.57;
 const SPANNING_HALF_HEIGHT = 0.42;
+const SPANNING = {
+  positive: true,
+  y: 0.1,
+  z: -0.5,
+  rot: [0.06, -0.1, 0.03],
+  waves: [2, 3],
+  speeds: [0.19, -0.13],
+  amp: 0.05,
+};
+
+// Loops are the furthest thing in the scene and gems the nearest, so every wire
+// paints before every gem. Depth testing is off throughout (the glow materials
+// need it off), which makes this ordering the only thing establishing depth.
+const ORDER = { loop: 10, gemShell: 100, gemRim: 101, chargeHalo: 110, chargeCore: 120 };
 
 // The gem hull mesh has a max radius of 1.202, so these scales put a gem at
 // roughly a quarter of the banner's height. Charge geometry keeps the game's
@@ -220,7 +208,7 @@ function makeAdditiveGlowMaterial(color, {
 
 // A closed smooth curve: a circle with two low harmonics of radial and
 // out-of-plane wobble, so it reads as a flux loop rather than a ring.
-function loopCurve(rng, radius, squash) {
+function loopCurve(rng, radius, squash, mirrored = false) {
   const n = 13;
   const k1 = 2 + Math.floor(rng() * 2);
   const k2 = 3 + Math.floor(rng() * 2);
@@ -241,23 +229,43 @@ function loopCurve(rng, radius, squash) {
       radius * az * Math.sin(k1 * t + pz)
     ));
   }
+  // Mirroring across the vertical axis reverses the traversal as well as x, so
+  // the swept tube keeps its winding and its faces stay front-facing.
+  if (mirrored) {
+    pts.reverse();
+    for (const p of pts) p.x = -p.x;
+  }
   return new THREE.CatmullRomCurve3(pts, true, 'centripetal');
 }
 
-function makeLoopMesh(curve, color, undulation) {
+// The tube geometry is baked from the curve, so a handful of shapes are built
+// once and shared by every instance that uses them. The undulation lives in the
+// vertex shader and is driven by per-instance uniforms, which is what lets one
+// geometry serve loops that are all flexing out of step with each other.
+function makeLoopShape(curve, radius) {
+  return {
+    radius,
+    shells: GLOW_SHELLS.map((shell) =>
+      new THREE.TubeGeometry(curve, 160, TUBE_R * shell.scale, 8, true)),
+    core: new THREE.TubeGeometry(curve, 220, TUBE_R, 8, true),
+  };
+}
+
+function makeLoopMesh(shape, color, undulation) {
   const group = new THREE.Group();
-  for (const shell of GLOW_SHELLS) {
-    const geo = new THREE.TubeGeometry(curve, 200, TUBE_R * shell.scale, 10, true);
-    group.add(new THREE.Mesh(geo, makeAdditiveGlowMaterial(color, {
-      intensity: shell.intensity,
-      power: shell.power,
+  shape.shells.forEach((geo, i) => {
+    const mesh = new THREE.Mesh(geo, makeAdditiveGlowMaterial(color, {
+      intensity: GLOW_SHELLS[i].intensity,
+      power: GLOW_SHELLS[i].power,
       side: THREE.FrontSide,
       undulation,
-    })));
-  }
-  const core = new THREE.TubeGeometry(curve, 260, TUBE_R, 10, true);
-  group.add(new THREE.Mesh(core, makeAdditiveGlowMaterial(color, { undulation })));
-  group.renderOrder = 100;
+    }));
+    mesh.renderOrder = ORDER.loop;
+    group.add(mesh);
+  });
+  const core = new THREE.Mesh(shape.core, makeAdditiveGlowMaterial(color, { undulation }));
+  core.renderOrder = ORDER.loop;
+  group.add(core);
   return group;
 }
 
@@ -290,61 +298,103 @@ function makeFlicker(rng) {
   };
 }
 
-// Sizes for the current viewport: the spanning loop tracks the visible frame,
-// the other two hold their world size but ease down on a narrow frame so the
-// three never converge on the same apparent size.
-function loopSizes(worldWidth, worldHeight) {
-  // A phone sees roughly a quarter of the world width a desktop does, so the
-  // fixed-size loops have to come down hard or they read as fat blobs filling
-  // the frame rather than as three distinct shapes.
-  const fit = Math.min(1, Math.max(0.3, worldWidth / 14));
-  return LOOPS.map((spec) => {
-    if (!spec.spanning) return { radius: spec.radius * fit, squash: spec.squash };
-    const radius = worldWidth * SPANNING_HALF_WIDTH;
-    const halfHeight = Math.min(radius * 0.45, worldHeight * SPANNING_HALF_HEIGHT);
-    return { radius, squash: halfHeight / radius };
-  });
+// How the chain sizes itself to the visible frame. Quantised, because a change
+// here rebakes every tube geometry and a drag-resize must not churn through it.
+function loopPlan(worldWidth, worldHeight) {
+  const fit = Math.min(1, Math.max(MIN_FIT, worldWidth / REF_WIDTH));
+  const radius = Math.round(CHAIN_RADIUS * fit * 20) / 20;
+  const spacing = radius * CHAIN_SPACING;
+  const count = Math.min(CHAIN_MAX, Math.max(CHAIN_MIN, Math.ceil(worldWidth / spacing) + 2));
+  // The spanning loop's size is baked into its curve rather than applied as a
+  // scale, because a non-uniform scale would stretch the swept tube itself and
+  // the wire has to keep one weight all the way round.
+  const spanRadius = Math.round(worldWidth * SPANNING_HALF_WIDTH * 4) / 4;
+  const spanSquash =
+    Math.min(spanRadius * 0.45, worldHeight * SPANNING_HALF_HEIGHT) / spanRadius;
+  return {
+    radius,
+    spacing,
+    count,
+    spanRadius,
+    spanSquash: Math.round(spanSquash * 50) / 50,
+    key: `${radius}/${count}/${spanRadius}/${Math.round(spanSquash * 50)}`,
+  };
 }
 
-function buildLoops(parent, sizes) {
+function buildLoops(parent, plan) {
   const rng = mulberry32(0x5eed);
-  return LOOPS.map((spec, i) => {
-    const { radius, squash } = sizes[i];
-    const undulation = {
-      // Amplitude is a fraction of the loop's own radius so every loop flexes
-      // by the same visual proportion.
-      amp: radius * spec.amp,
-      waves: spec.waves,
-      speeds: spec.speeds,
-      phases: [rng() * Math.PI * 2, rng() * Math.PI * 2],
-    };
-    // Teal for positive flux, pink for negative, exactly as loopColor assigns.
-    const group = makeLoopMesh(
-      loopCurve(rng, radius, squash),
-      spec.positive ? colorPositive : colorNegative,
-      undulation
-    );
-    group.rotation.set(...spec.rot);
+
+  const shapes = [];
+  for (let i = 0; i < CHAIN_SHAPES; i++) {
+    const radius = plan.radius * (0.78 + rng() * 0.55);
+    shapes.push(makeLoopShape(loopCurve(rng, radius, 0.85 + rng() * 0.3), radius));
+  }
+
+  const instances = [];
+  const add = (shape, positive, undulation, rot, place) => {
+    const group = makeLoopMesh(shape, positive ? colorPositive : colorNegative, undulation);
+    group.rotation.set(...rot);
     parent.add(group);
-    return { group, spec, flicker: makeFlicker(rng) };
-  });
+    instances.push({ group, place, flicker: makeFlicker(rng) });
+  };
+
+  for (let i = 0; i < plan.count; i++) {
+    const shape = shapes[i % CHAIN_SHAPES];
+    const yFrac = (rng() - 0.5) * 1.1;
+    const z = (rng() - 0.5) * 1.1;
+    const x = i - (plan.count - 1) / 2;
+    add(
+      shape,
+      CHAIN_SIGNS[i % CHAIN_SIGNS.length] === 1,
+      {
+        // Amplitude is a fraction of the loop's own radius, so every loop flexes
+        // by the same visual proportion whatever its size.
+        amp: shape.radius * (0.09 + rng() * 0.09),
+        waves: [2 + Math.floor(rng() * 3), 4 + Math.floor(rng() * 3)],
+        speeds: [0.16 + rng() * 0.2, -(0.12 + rng() * 0.18)],
+        phases: [rng() * Math.PI * 2, rng() * Math.PI * 2],
+      },
+      [(rng() - 0.5) * 0.5, (rng() - 0.5) * 0.7, rng() * Math.PI * 2],
+      (group, worldWidth, worldHeight) => {
+        group.position.set(x * plan.spacing, yFrac * worldHeight, LOOP_Z + z);
+      }
+    );
+  }
+
+  const spanShape = makeLoopShape(
+    loopCurve(rng, plan.spanRadius, plan.spanSquash, true),
+    plan.spanRadius
+  );
+  add(
+    spanShape,
+    SPANNING.positive,
+    {
+      amp: plan.spanRadius * SPANNING.amp,
+      waves: SPANNING.waves,
+      speeds: SPANNING.speeds,
+      phases: [rng() * Math.PI * 2, rng() * Math.PI * 2],
+    },
+    SPANNING.rot,
+    (group) => group.position.set(0, SPANNING.y, LOOP_Z + SPANNING.z)
+  );
+
+  return { instances, shapes: [...shapes, spanShape] };
 }
 
-function disposeLoops(parent, loops) {
-  for (const loop of loops) {
+function disposeLoops(parent, field) {
+  if (!field) return;
+  for (const loop of field.instances) {
     parent.remove(loop.group);
-    for (const mesh of loop.group.children) {
-      mesh.geometry.dispose();
-      mesh.material.dispose();
-    }
+    for (const mesh of loop.group.children) mesh.material.dispose();
+  }
+  for (const shape of field.shapes) {
+    shape.core.dispose();
+    for (const geo of shape.shells) geo.dispose();
   }
 }
 
-function layoutLoops(loops, worldWidth) {
-  const halfW = worldWidth / 2;
-  for (const loop of loops) {
-    loop.group.position.set(loop.spec.xFrac * halfW, loop.spec.y, LOOP_Z + loop.spec.z);
-  }
+function layoutLoops(field, worldWidth, worldHeight) {
+  for (const loop of field.instances) loop.place(loop.group, worldWidth, worldHeight);
 }
 
 // The six-face reflection cubemap from `makeBoard`, in three's face order
@@ -511,12 +561,12 @@ function addChargeNodes(container, charge, geo, haloGeo) {
 
     const halo = new THREE.Mesh(haloGeo, haloMat);
     halo.position.copy(position);
-    halo.renderOrder = 1005;
+    halo.renderOrder = ORDER.chargeHalo;
     container.add(halo);
 
     const core = new THREE.Mesh(geo, coreMat);
     core.position.copy(position);
-    core.renderOrder = 1010;
+    core.renderOrder = ORDER.chargeCore;
     container.add(core);
   }
 }
@@ -532,16 +582,18 @@ function buildGems(parent, geometry, materials) {
     pivot.rotation.x = GEM_TILT;
     pivot.scale.setScalar(spec.scale);
 
+    // No group on the gem path carries a renderOrder: three.js takes a group's
+    // renderOrder as the sort key for everything under it, so a nested group
+    // would reset its meshes' ordering and drop the gem behind the loops.
     const container = new THREE.Group();
-    container.renderOrder = 1010;
     pivot.add(container);
 
     const hull = new THREE.Group();
     hull.rotation.set(rng() * Math.PI * 2, rng() * Math.PI * 2, 0);
     const shell = new THREE.Mesh(geometry, materials.shell);
-    shell.renderOrder = 1000;
+    shell.renderOrder = ORDER.gemShell;
     const rim = new THREE.Mesh(geometry, materials.rim);
-    rim.renderOrder = 1001;
+    rim.renderOrder = ORDER.gemRim;
     hull.add(shell, rim);
     container.add(hull);
 
@@ -647,7 +699,7 @@ export function mount(banner) {
   scene.add(stage);
 
   let loopKey = '';
-  let loops = [];
+  let loopField = null;
   let gems = [];
   let posed = false;
 
@@ -663,19 +715,13 @@ export function mount(banner) {
 
     const loopWidth = visibleWidth(camera, LOOP_Z);
     const loopHeight = loopWidth / camera.aspect;
-    // Rebuilding bakes the size into the tube geometry, so it is quantised to
-    // avoid churning through a drag-resize.
-    const sizes = loopSizes(loopWidth, loopHeight).map((s) => ({
-      radius: Math.round(s.radius * 4) / 4,
-      squash: Math.round(s.squash * 50) / 50,
-    }));
-    const key = sizes.map((s) => `${s.radius}/${s.squash}`).join(':');
-    if (key !== loopKey) {
-      disposeLoops(stage, loops);
-      loops = buildLoops(stage, sizes);
-      loopKey = key;
+    const plan = loopPlan(loopWidth, loopHeight);
+    if (plan.key !== loopKey) {
+      disposeLoops(stage, loopField);
+      loopField = buildLoops(stage, plan);
+      loopKey = plan.key;
     }
-    layoutLoops(loops, loopWidth);
+    layoutLoops(loopField, loopWidth, loopHeight);
     layoutGems(gems, camera, visibleWidth(camera, 0));
     posed = false;
   };
@@ -703,7 +749,7 @@ export function mount(banner) {
   ).observe(banner);
 
   const animate = (t, still = false) => {
-    for (const loop of loops) {
+    for (const loop of loopField.instances) {
       const f = still ? 1 : loop.flicker(t);
       for (const mesh of loop.group.children) {
         mesh.material.uniforms.uOpacity.value = f;

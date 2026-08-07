@@ -47,7 +47,8 @@
 .vf-banner[data-vf-ready] .vf-scene { opacity: 1; }
 
 // Scrim over the whole scene so the copy stays legible against the grid and
-// any gem that drifts behind it.
+// any gem that drifts behind it. It dims rather than hides: the loops run the
+// full width of the banner and have to stay visible behind the headline.
 .vf-banner::after {
   content: '';
   position: absolute;
@@ -56,9 +57,9 @@
   pointer-events: none;
   background: linear-gradient(
     95deg,
-    rgba(4, 4, 14, 0.95) 0%,
-    rgba(4, 4, 14, 0.9) 22%,
-    rgba(4, 4, 14, 0.55) 38%,
+    rgba(4, 4, 14, 0.8) 0%,
+    rgba(4, 4, 14, 0.74) 22%,
+    rgba(4, 4, 14, 0.42) 38%,
     rgba(4, 4, 14, 0) 54%
   );
 }
