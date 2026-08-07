@@ -22,13 +22,28 @@ const LOOP_Z = -1.2;
 // scale that is the same hairline-with-a-halo the game renders.
 const TUBE_R = 0.014;
 const GLOW_SHELLS = [
-  { scale: 3.4, opacity: 0.17 },
-  { scale: 9.0, opacity: 0.055 },
+  { scale: 3.6, intensity: 0.5, power: 1.6 },
+  { scale: 11.0, intensity: 0.16, power: 2.2 },
 ];
 const LOOP_SHAPES = 5;
 const LOOP_R = 1.55;
 const LOOP_SPACING = LOOP_R * 1.32;
 const MAX_LOOPS = 10;
+
+// The gem hull mesh has a max radius of 1.202, so these scales put a gem at
+// roughly a quarter of the banner's height. Charge geometry keeps the game's
+// proportions: sphere radius 0.2 and circle radius 0.5 in container units are
+// kChargeRadius and 2.5x it, divided through by kGemScale.
+const GEM_MESH_URL = new URL('../data/voidflux-gem.json', import.meta.url);
+const CHARGE_RADIUS = 0.2;
+const CHARGE_CIRCLE_RADIUS = CHARGE_RADIUS * 2.5;
+const GEM_TILT = -0.95;
+const GEMS = [
+  { charge: 3, xFrac: -0.10, y: 0.72, z: 0.95, scale: 0.55 },
+  { charge: -2, xFrac: 0.26, y: -0.80, z: 0.35, scale: 0.48 },
+  { charge: 4, xFrac: 0.55, y: 0.44, z: 1.25, scale: 0.60 },
+  { charge: -1, xFrac: 0.72, y: -0.66, z: 0.6, scale: 0.44 },
+];
 
 function mulberry32(seed) {
   let a = seed >>> 0;
@@ -43,16 +58,52 @@ function mulberry32(seed) {
 
 // Ported from `makeAdditiveGlowMaterial`: constant lighting, additive blend,
 // no depth read or write.
-function makeAdditiveGlowMaterial(color, opacity) {
-  return new THREE.MeshBasicMaterial({
-    color: new THREE.Color(color),
+//
+// The game gets its soft neon falloff from a bloom pass. Here the same falloff
+// is baked into the material: alpha tracks how squarely a facet faces the
+// camera, which on a swept tube or a sphere is exactly the distance in from the
+// silhouette. Without it, additive geometry renders as a hard-edged band of
+// flat colour rather than a glow.
+const GLOW_VERTEX_SHADER = `
+varying vec3 vNormalW;
+varying vec3 vViewDir;
+void main() {
+  vec4 worldPos = modelMatrix * vec4(position, 1.0);
+  vNormalW = normalize(mat3(modelMatrix) * normal);
+  vViewDir = normalize(cameraPosition - worldPos.xyz);
+  gl_Position = projectionMatrix * viewMatrix * worldPos;
+}
+`;
+
+const GLOW_FRAGMENT_SHADER = `
+uniform vec3 uColor;
+uniform float uIntensity;
+uniform float uPower;
+uniform float uOpacity;
+varying vec3 vNormalW;
+varying vec3 vViewDir;
+void main() {
+  float facing = abs(dot(normalize(vNormalW), normalize(vViewDir)));
+  float alpha = pow(facing, uPower) * uIntensity * uOpacity;
+  gl_FragColor = vec4(uColor, clamp(alpha, 0.0, 1.0));
+}
+`;
+
+function makeAdditiveGlowMaterial(color, { intensity = 1.8, power = 0.5, side = THREE.DoubleSide } = {}) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      uColor: { value: new THREE.Color(color) },
+      uIntensity: { value: intensity },
+      uPower: { value: power },
+      uOpacity: { value: 1 },
+    },
+    vertexShader: GLOW_VERTEX_SHADER,
+    fragmentShader: GLOW_FRAGMENT_SHADER,
     transparent: true,
-    opacity,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
     depthTest: false,
-    side: THREE.DoubleSide,
-    toneMapped: false,
+    side,
   });
 }
 
@@ -85,12 +136,16 @@ function loopCurve(rng, radius) {
 
 function makeLoopMesh(curve, color) {
   const group = new THREE.Group();
-  const core = new THREE.TubeGeometry(curve, 220, TUBE_R, 6, true);
-  group.add(new THREE.Mesh(core, makeAdditiveGlowMaterial(color, 1)));
   for (const shell of GLOW_SHELLS) {
-    const geo = new THREE.TubeGeometry(curve, 160, TUBE_R * shell.scale, 8, true);
-    group.add(new THREE.Mesh(geo, makeAdditiveGlowMaterial(color, shell.opacity)));
+    const geo = new THREE.TubeGeometry(curve, 160, TUBE_R * shell.scale, 10, true);
+    group.add(new THREE.Mesh(geo, makeAdditiveGlowMaterial(color, {
+      intensity: shell.intensity,
+      power: shell.power,
+      side: THREE.FrontSide,
+    })));
   }
+  const core = new THREE.TubeGeometry(curve, 220, TUBE_R, 8, true);
+  group.add(new THREE.Mesh(core, makeAdditiveGlowMaterial(color)));
   group.renderOrder = 100;
   return group;
 }
@@ -143,7 +198,6 @@ export function buildLoops(scene) {
     scene.add(group);
     loops.push({
       group,
-      baseOpacity: group.children.map((m) => m.material.opacity),
       yOffset: (rng() - 0.5) * 1.5,
       zOffset: (rng() - 0.5) * 0.9,
       spin: (rng() - 0.5) * 0.06,
@@ -163,6 +217,146 @@ function layoutLoops(loops, worldWidth) {
     if (i >= count) return;
     loop.x = -span / 2 + i * LOOP_SPACING;
     loop.group.position.set(loop.x, loop.yOffset, LOOP_Z + loop.zOffset);
+  });
+}
+
+// The six-face reflection cubemap from `makeBoard`, in three's face order
+// (+X, -X, +Y, -Y, +Z, -Z), which matches SceneKit's.
+function makeReflectionCubemap() {
+  const faces = [
+    Palette.cyanBright,
+    Palette.whitePure,
+    Palette.steelLight,
+    Palette.cyan,
+    Palette.whitePure,
+    Palette.pink,
+  ];
+  const size = 128;
+  const images = faces.map((color) => {
+    const c = document.createElement('canvas');
+    c.width = size;
+    c.height = size;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, size, size);
+    return c;
+  });
+  const tex = new THREE.CubeTexture(images);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+async function loadGemGeometry() {
+  const res = await fetch(GEM_MESH_URL);
+  const data = await res.json();
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(data.positions, 3));
+  geo.setAttribute('normal', new THREE.Float32BufferAttribute(data.normals, 3));
+  return geo;
+}
+
+// The gem material from `makeBoard`: near-black diffuse, near-mirror
+// reflection of the cubemap, and only 10% opaque so the charges inside show
+// through the shell.
+//
+// SceneKit's `reflective` is a term added on top of the PBR result, so it
+// survives the near-black albedo. three's metalness/roughness envMap is tinted
+// by that albedo instead and would come out black, so the reflection is
+// reproduced with an additively-combined basic envMap - the same outcome.
+function makeGemMaterials(envMap) {
+  const shell = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(Palette.voidBlack),
+    envMap,
+    combine: THREE.AddOperation,
+    reflectivity: 1,
+    transparent: true,
+    opacity: 0.1,
+    side: THREE.FrontSide,
+    depthWrite: false,
+    depthTest: false,
+    toneMapped: false,
+  });
+  // Second pass over the same facets, additive. This is the contribution the
+  // game gets from bloom, which is what makes a 10%-opaque shell read as a
+  // faceted crystal instead of a smudge.
+  const glint = shell.clone();
+  glint.blending = THREE.AdditiveBlending;
+  glint.opacity = 0.26;
+  return { shell, glint };
+}
+
+// Port of `makeChargeNodes`: n = |charge| additive glowing spheres arranged on
+// a circle of 2.5x the sphere radius, teal for positive and pink for negative.
+// The wider halo sphere is the bloom the game renders around each charge.
+function addChargeNodes(container, charge, geo, haloGeo) {
+  const n = Math.abs(charge);
+  const color = charge > 0 ? colorPositive : colorNegative;
+  const coreMat = makeAdditiveGlowMaterial(color, { intensity: 2.2, power: 0.45 });
+  const haloMat = makeAdditiveGlowMaterial(color, {
+    intensity: 0.42,
+    power: 1.7,
+    side: THREE.FrontSide,
+  });
+
+  for (let i = 0; i < n; i++) {
+    const position = new THREE.Vector3();
+    if (n > 1) {
+      const theta = (2 * Math.PI * i) / n;
+      position.set(
+        CHARGE_CIRCLE_RADIUS * Math.cos(theta),
+        0,
+        CHARGE_CIRCLE_RADIUS * Math.sin(theta)
+      );
+    }
+
+    const halo = new THREE.Mesh(haloGeo, haloMat);
+    halo.position.copy(position);
+    halo.renderOrder = 1005;
+    container.add(halo);
+
+    const core = new THREE.Mesh(geo, coreMat);
+    core.position.copy(position);
+    core.renderOrder = 1010;
+    container.add(core);
+  }
+}
+
+function buildGems(scene, geometry, materials) {
+  const rng = mulberry32(0x6e33);
+  const chargeGeo = new THREE.SphereGeometry(CHARGE_RADIUS, 20, 14);
+  const haloGeo = new THREE.SphereGeometry(CHARGE_RADIUS * 3.4, 20, 14);
+  return GEMS.map((spec) => {
+    // Outer node holds the fixed tilt that stands in for the game's elevated
+    // camera; the inner container is what precesses.
+    const pivot = new THREE.Group();
+    pivot.rotation.x = GEM_TILT;
+    pivot.scale.setScalar(spec.scale);
+
+    const container = new THREE.Group();
+    container.renderOrder = 1010;
+    pivot.add(container);
+
+    const hull = new THREE.Group();
+    hull.rotation.set(rng() * Math.PI * 2, rng() * Math.PI * 2, 0);
+    const shell = new THREE.Mesh(geometry, materials.shell);
+    shell.renderOrder = 1000;
+    const glint = new THREE.Mesh(geometry, materials.glint);
+    glint.renderOrder = 1001;
+    hull.add(shell, glint);
+    container.add(hull);
+
+    addChargeNodes(container, spec.charge, chargeGeo, haloGeo);
+
+    scene.add(pivot);
+    return { ...spec, pivot, container, hull, phi0: rng() * Math.PI * 2 };
+  });
+}
+
+function layoutGems(gems, camera) {
+  gems.forEach((gem) => {
+    const halfW = visibleWidth(camera, gem.z) / 2;
+    gem.pivot.position.set(gem.xFrac * halfW, gem.y, gem.z);
   });
 }
 
@@ -198,7 +392,11 @@ export function mount(banner) {
   const camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 100);
   camera.position.set(0, 0, CAM_Z);
 
+  const envMap = makeReflectionCubemap();
+  scene.environment = envMap;
+
   const loops = buildLoops(scene);
+  let gems = [];
 
   const resize = () => {
     const w = banner.clientWidth;
@@ -208,9 +406,19 @@ export function mount(banner) {
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     layoutLoops(loops, visibleWidth(camera, LOOP_Z));
+    layoutGems(gems, camera);
   };
   resize();
   new ResizeObserver(resize).observe(banner);
+
+  loadGemGeometry()
+    .then((geometry) => {
+      gems = buildGems(scene, geometry, makeGemMaterials(envMap));
+      layoutGems(gems, camera);
+    })
+    .catch(() => {
+      // Loops and grid still carry the banner.
+    });
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -237,7 +445,7 @@ export function mount(banner) {
         loop.group.position.y =
           loop.yOffset + 0.12 * Math.sin(elapsed * loop.driftRate + loop.driftPhase);
         const f = loop.flicker(elapsed);
-        loop.group.children.forEach((m, i) => { m.material.opacity = loop.baseOpacity[i] * f; });
+        for (const mesh of loop.group.children) mesh.material.uniforms.uOpacity.value = f;
       }
     }
     renderer.render(scene, camera);
