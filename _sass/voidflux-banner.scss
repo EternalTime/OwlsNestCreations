@@ -20,17 +20,16 @@
   color: #fff;
 }
 
-// Static fallback: without JS or canvas the banner still reads as the void,
-// not a flat black box.
+// The field is voidBlack and nothing else. Glow belongs to the geometry - the
+// thin grid lines and the small charge cores - never to the canvas, so there is
+// no ambient wash here. The grid canvas is 2D and draws even without WebGL, so
+// it is the fallback rather than a painted-on gradient.
 .vf-banner::before {
   content: '';
   position: absolute;
   inset: 0;
   z-index: -3;
-  background:
-    radial-gradient(120% 70% at 50% 30%, rgba(55, 223, 255, 0.16), transparent 60%),
-    radial-gradient(90% 60% at 50% 96%, rgba(255, 73, 201, 0.12), transparent 70%),
-    var(--vf-void);
+  background: var(--vf-void);
 }
 
 .vf-grid,
