@@ -291,6 +291,20 @@ function makeReflectionCubemap() {
   return tex;
 }
 
+// A grazing facet reflects back along the view direction, so which cubemap face
+// lights up the rim depends entirely on where the camera sits. The game's is at
+// (4,4,0), which puts steelLight and cyanBright on its gems' rims; a camera down
+// the z axis would instead sample the pink face for every rim on screen. This
+// rotates the lookup into the game's camera frame so the rims come out the
+// colours the game actually shows.
+function gameEnvRotation() {
+  const q = new THREE.Quaternion().setFromUnitVectors(
+    new THREE.Vector3(0, 0, 1),
+    new THREE.Vector3(4, 4, 0).normalize()
+  );
+  return new THREE.Matrix3().setFromMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(q));
+}
+
 async function loadGemGeometry() {
   const res = await fetch(GEM_MESH_URL);
   const data = await res.json();
@@ -326,6 +340,7 @@ void main() {
 
 const GEM_FRAGMENT_SHADER = `
 uniform samplerCube uEnv;
+uniform mat3 uEnvRotation;
 uniform vec3 uF0;
 uniform float uGain;
 varying vec3 vNormalW;
@@ -335,7 +350,7 @@ void main() {
   vec3 V = normalize(vViewDir);
   float cosTheta = clamp(dot(N, V), 0.0, 1.0);
   vec3 F = uF0 + (1.0 - uF0) * pow(1.0 - cosTheta, 5.0);
-  vec3 reflected = textureCube(uEnv, reflect(-V, N)).rgb;
+  vec3 reflected = textureCube(uEnv, uEnvRotation * reflect(-V, N)).rgb;
   gl_FragColor = vec4(reflected * F * uGain, 1.0);
   #include <colorspace_fragment>
   // Dark facets stay see-through, lit rims read solid - the same reason the
@@ -364,6 +379,7 @@ function makeGemMaterials(envMap) {
   const rim = new THREE.ShaderMaterial({
     uniforms: {
       uEnv: { value: envMap },
+      uEnvRotation: { value: gameEnvRotation() },
       uF0: { value: new THREE.Vector3(f0.r, f0.g, f0.b) },
       uGain: { value: 0.9 },
     },
