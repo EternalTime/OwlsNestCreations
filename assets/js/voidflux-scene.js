@@ -27,8 +27,14 @@ const GLOW_SHELLS = [
 ];
 const LOOP_SHAPES = 5;
 const LOOP_R = 1.55;
-const LOOP_SPACING = LOOP_R * 1.32;
 const MAX_LOOPS = 10;
+// A narrow viewport sees a narrow slice of the world, so at full size only two
+// loops would fit and they would read as stray arcs rather than a chain.
+// Shrinking them keeps the composition - overlapping loops across the whole
+// width - at phone widths. Tube radius is unchanged, so the neon keeps its
+// weight.
+const NARROW_WORLD_WIDTH = 9;
+const NARROW_LOOP_SCALE = 0.6;
 
 // The gem hull mesh has a max radius of 1.202, so these scales put a gem at
 // roughly a quarter of the banner's height. Charge geometry keeps the game's
@@ -38,12 +44,26 @@ const GEM_MESH_URL = new URL('../data/voidflux-gem.json', import.meta.url);
 const CHARGE_RADIUS = 0.2;
 const CHARGE_CIRCLE_RADIUS = CHARGE_RADIUS * 2.5;
 const GEM_TILT = -0.95;
+// Matches the width at which the banner stylesheet stacks the copy below the
+// scene; the whole stage then lifts clear of the copy.
+const STACKED_BREAKPOINT = 860;
+const STACKED_STAGE_LIFT = 0.55;
 const GEMS = [
   { charge: 3, xFrac: -0.10, y: 0.72, z: 0.95, scale: 0.55 },
   { charge: -2, xFrac: 0.26, y: -0.80, z: 0.35, scale: 0.48 },
   { charge: 4, xFrac: 0.55, y: 0.44, z: 1.25, scale: 0.60 },
   { charge: -1, xFrac: 0.72, y: -0.66, z: 0.6, scale: 0.44 },
 ];
+
+// Idle-float constants from `makeGemIdleFloatAction`. The drift amplitude is
+// 0.030 world units against a gem of radius kGemScale * 1.202, so it scales
+// with each gem here rather than being copied literally.
+const GEM_DRIFT_AMP = 0.03 / (0.15 * 1.202);
+const GEM_TILT_CONE = (30 * Math.PI) / 180;
+const GEM_LEAD_IN = 1.0;
+// Where reduced motion parks the scene: far enough in that the lead-in has
+// opened the precession cone and nothing sits at its starting pose.
+const STILL_TIME = 6.0;
 
 function mulberry32(seed) {
   let a = seed >>> 0;
@@ -179,11 +199,11 @@ function makeFlicker(rng) {
   };
 }
 
-export function buildLoops(scene) {
+function buildLoops(parent, radiusScale) {
   const rng = mulberry32(0x5eed);
   const shapes = [];
   for (let i = 0; i < LOOP_SHAPES; i++) {
-    const radius = LOOP_R * (0.85 + rng() * 0.32);
+    const radius = LOOP_R * radiusScale * (0.85 + rng() * 0.32);
     shapes.push(loopCurve(rng, radius));
   }
 
@@ -193,12 +213,14 @@ export function buildLoops(scene) {
     // as `loopColor` assigns them.
     const positive = [1, 0, 1, 1, 0, 1, 0, 0, 1, 0][i] === 1;
     const group = makeLoopMesh(shapes[i % LOOP_SHAPES], positive ? colorPositive : colorNegative);
-    group.rotation.set((rng() - 0.5) * 0.5, (rng() - 0.5) * 0.7, rng() * Math.PI * 2);
+    const rotZ = rng() * Math.PI * 2;
+    group.rotation.set((rng() - 0.5) * 0.5, (rng() - 0.5) * 0.7, rotZ);
     group.visible = false;
-    scene.add(group);
+    parent.add(group);
     loops.push({
       group,
-      yOffset: (rng() - 0.5) * 1.5,
+      rotZ,
+      yOffset: (rng() - 0.5) * 1.5 * radiusScale,
       zOffset: (rng() - 0.5) * 0.9,
       spin: (rng() - 0.5) * 0.06,
       driftPhase: rng() * Math.PI * 2,
@@ -209,14 +231,24 @@ export function buildLoops(scene) {
   return loops;
 }
 
-function layoutLoops(loops, worldWidth) {
-  const count = Math.min(MAX_LOOPS, Math.max(3, Math.ceil(worldWidth / LOOP_SPACING) + 1));
-  const span = (count - 1) * LOOP_SPACING;
+function disposeLoops(parent, loops) {
+  for (const loop of loops) {
+    parent.remove(loop.group);
+    for (const mesh of loop.group.children) {
+      mesh.geometry.dispose();
+      mesh.material.dispose();
+    }
+  }
+}
+
+function layoutLoops(loops, worldWidth, radiusScale) {
+  const spacing = LOOP_R * radiusScale * 1.32;
+  const count = Math.min(MAX_LOOPS, Math.max(3, Math.ceil(worldWidth / spacing) + 1));
+  const span = (count - 1) * spacing;
   loops.forEach((loop, i) => {
     loop.group.visible = i < count;
     if (i >= count) return;
-    loop.x = -span / 2 + i * LOOP_SPACING;
-    loop.group.position.set(loop.x, loop.yOffset, LOOP_Z + loop.zOffset);
+    loop.group.position.set(-span / 2 + i * spacing, loop.yOffset, LOOP_Z + loop.zOffset);
   });
 }
 
@@ -322,7 +354,7 @@ function addChargeNodes(container, charge, geo, haloGeo) {
   }
 }
 
-function buildGems(scene, geometry, materials) {
+function buildGems(parent, geometry, materials) {
   const rng = mulberry32(0x6e33);
   const chargeGeo = new THREE.SphereGeometry(CHARGE_RADIUS, 20, 14);
   const haloGeo = new THREE.SphereGeometry(CHARGE_RADIUS * 3.4, 20, 14);
@@ -348,15 +380,65 @@ function buildGems(scene, geometry, materials) {
 
     addChargeNodes(container, spec.charge, chargeGeo, haloGeo);
 
-    scene.add(pivot);
-    return { ...spec, pivot, container, hull, phi0: rng() * Math.PI * 2 };
+    parent.add(pivot);
+
+    const theta = rng() * Math.PI * 2;
+    return {
+      ...spec,
+      pivot,
+      container,
+      drift: new THREE.Vector3(Math.cos(theta), 1, Math.sin(theta)),
+      driftPeriod: 3.0 + rng() * 1.5,
+      driftPhase: rng() * Math.PI * 2,
+      precess: 7.0 + rng() * 4.0,
+      // Sweep sense follows the charge sign, as the game's `dir` does.
+      dir: spec.charge < 0 ? -1 : 1,
+      phi0: rng() * Math.PI * 2,
+      base: new THREE.Vector3(),
+    };
   });
 }
 
-function layoutGems(gems, camera) {
-  gems.forEach((gem) => {
+// Port of `orientPrecession`: yaw out by phi, tilt, yaw back, so the gem's
+// up-axis traces a cone without the body itself spinning.
+const PRECESS_X = new THREE.Vector3(1, 0, 0);
+const PRECESS_Y = new THREE.Vector3(0, 1, 0);
+const qTilt = new THREE.Quaternion();
+const qYaw = new THREE.Quaternion();
+const qYawBack = new THREE.Quaternion();
+
+function orientPrecession(node, phi, tilt, tiltScale) {
+  qTilt.setFromAxisAngle(PRECESS_X, tilt * tiltScale);
+  qYaw.setFromAxisAngle(PRECESS_Y, phi);
+  qYawBack.setFromAxisAngle(PRECESS_Y, -phi);
+  node.quaternion.copy(qYaw).multiply(qTilt).multiply(qYawBack);
+}
+
+function animateGem(gem, t) {
+  if (!gem.pivot.visible) return;
+  const s = (1 - Math.cos((2 * Math.PI * t) / gem.driftPeriod + gem.driftPhase)) / 2;
+  gem.pivot.position.set(
+    gem.base.x + gem.drift.x * s,
+    gem.base.y + gem.drift.y * s,
+    gem.base.z + gem.drift.z * s
+  );
+  const phi = gem.phi0 + gem.dir * (t / gem.precess) * 2 * Math.PI;
+  orientPrecession(gem.container, phi, GEM_TILT_CONE, Math.min(1, t / GEM_LEAD_IN));
+}
+
+// Gem size and count follow the visible width: on a phone slice, four gems at
+// full size would pile on top of one another.
+function layoutGems(gems, camera, worldWidth) {
+  const fit = Math.min(1, Math.max(0.55, worldWidth / 14));
+  const count = worldWidth >= 12 ? 4 : worldWidth >= 7 ? 3 : 2;
+  gems.forEach((gem, i) => {
+    gem.pivot.visible = i < count;
+    if (i >= count) return;
+    gem.pivot.scale.setScalar(gem.scale * fit);
+    gem.drift.setLength(GEM_DRIFT_AMP * gem.scale * fit);
     const halfW = visibleWidth(camera, gem.z) / 2;
-    gem.pivot.position.set(gem.xFrac * halfW, gem.y, gem.z);
+    gem.base.set(gem.xFrac * halfW, gem.y, gem.z);
+    gem.pivot.position.copy(gem.base);
   });
 }
 
@@ -395,8 +477,13 @@ export function mount(banner) {
   const envMap = makeReflectionCubemap();
   scene.environment = envMap;
 
-  const loops = buildLoops(scene);
+  const stage = new THREE.Group();
+  scene.add(stage);
+
+  let loopScale = 0;
+  let loops = [];
   let gems = [];
+  let posed = false;
 
   const resize = () => {
     const w = banner.clientWidth;
@@ -405,16 +492,28 @@ export function mount(banner) {
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    layoutLoops(loops, visibleWidth(camera, LOOP_Z));
-    layoutGems(gems, camera);
+
+    stage.position.y = w <= STACKED_BREAKPOINT ? STACKED_STAGE_LIFT : 0;
+
+    const loopWidth = visibleWidth(camera, LOOP_Z);
+    const scale = loopWidth >= NARROW_WORLD_WIDTH ? 1 : NARROW_LOOP_SCALE;
+    if (scale !== loopScale) {
+      disposeLoops(stage, loops);
+      loops = buildLoops(stage, scale);
+      loopScale = scale;
+    }
+    layoutLoops(loops, loopWidth, scale);
+    layoutGems(gems, camera, visibleWidth(camera, 0));
+    posed = false;
   };
   resize();
   new ResizeObserver(resize).observe(banner);
 
   loadGemGeometry()
     .then((geometry) => {
-      gems = buildGems(scene, geometry, makeGemMaterials(envMap));
-      layoutGems(gems, camera);
+      gems = buildGems(stage, geometry, makeGemMaterials(envMap));
+      layoutGems(gems, camera, visibleWidth(camera, 0));
+      posed = false;
     })
     .catch(() => {
       // Loops and grid still carry the banner.
@@ -430,23 +529,34 @@ export function mount(banner) {
     { rootMargin: '100px' }
   ).observe(banner);
 
+  const animate = (t, still = false) => {
+    for (const loop of loops) {
+      if (!loop.group.visible) continue;
+      loop.group.rotation.z = loop.rotZ + loop.spin * t;
+      loop.group.position.y =
+        loop.yOffset + 0.12 * Math.sin(t * loop.driftRate + loop.driftPhase);
+      const f = still ? 1 : loop.flicker(t);
+      for (const mesh of loop.group.children) mesh.material.uniforms.uOpacity.value = f;
+    }
+    for (const gem of gems) animateGem(gem, t);
+  };
+
   const clock = new THREE.Clock();
   let elapsed = 0;
 
   const frame = () => {
     requestAnimationFrame(frame);
-    const dt = clock.getDelta();
+    const dt = Math.min(clock.getDelta(), 0.1);
     if (!visible) return;
-    if (!reduceMotion.matches) {
+
+    if (reduceMotion.matches) {
+      if (posed) return;
+      animate(STILL_TIME, true);
+      posed = true;
+    } else {
+      posed = false;
       elapsed += dt;
-      for (const loop of loops) {
-        if (!loop.group.visible) continue;
-        loop.group.rotation.z += loop.spin * dt;
-        loop.group.position.y =
-          loop.yOffset + 0.12 * Math.sin(elapsed * loop.driftRate + loop.driftPhase);
-        const f = loop.flicker(elapsed);
-        for (const mesh of loop.group.children) mesh.material.uniforms.uOpacity.value = f;
-      }
+      animate(elapsed);
     }
     renderer.render(scene, camera);
   };
