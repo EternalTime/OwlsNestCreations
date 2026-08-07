@@ -382,7 +382,6 @@ function buildLoops(parent, plan) {
 }
 
 function disposeLoops(parent, field) {
-  if (!field) return;
   for (const loop of field.instances) {
     parent.remove(loop.group);
     for (const mesh of loop.group.children) mesh.material.dispose();
@@ -699,7 +698,7 @@ export function mount(banner) {
   scene.add(stage);
 
   let loopKey = '';
-  let loopField = null;
+  let loopField = { instances: [], shapes: [] };
   let gems = [];
   let posed = false;
 
