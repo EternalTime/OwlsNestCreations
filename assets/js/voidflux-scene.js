@@ -21,9 +21,11 @@ const LOOP_Z = -1.2;
 // kTopTubeRadius is 0.01 against a lattice of half-extent 1.0; at this loop
 // scale that is the same hairline-with-a-halo the game renders.
 const TUBE_R = 0.014;
+// Intensities are linear-space multipliers on the palette colour, so a value
+// above 1 clips to white and anything well below 1 stays a dim coloured haze.
 const GLOW_SHELLS = [
-  { scale: 3.6, intensity: 0.5, power: 1.6 },
-  { scale: 11.0, intensity: 0.16, power: 2.2 },
+  { scale: 3.6, intensity: 0.28, power: 1.6 },
+  { scale: 11.0, intensity: 0.06, power: 2.2 },
 ];
 const LOOP_SHAPES = 5;
 const LOOP_R = 1.55;
@@ -49,10 +51,10 @@ const GEM_TILT = -0.95;
 const STACKED_BREAKPOINT = 860;
 const STACKED_STAGE_LIFT = 0.55;
 const GEMS = [
-  { charge: 3, xFrac: -0.10, y: 0.72, z: 0.95, scale: 0.55 },
-  { charge: -2, xFrac: 0.26, y: -0.80, z: 0.35, scale: 0.48 },
-  { charge: 4, xFrac: 0.55, y: 0.44, z: 1.25, scale: 0.60 },
-  { charge: -1, xFrac: 0.72, y: -0.66, z: 0.6, scale: 0.44 },
+  { charge: 3, xFrac: -0.10, y: 0.72, z: 0.95, scale: 0.64 },
+  { charge: -2, xFrac: 0.26, y: -0.72, z: 0.35, scale: 0.56 },
+  { charge: 4, xFrac: 0.55, y: 0.48, z: 1.25, scale: 0.70 },
+  { charge: -1, xFrac: 0.74, y: -0.58, z: 0.6, scale: 0.52 },
 ];
 
 // Idle-float constants from `makeGemIdleFloatAction`. The drift amplitude is
@@ -104,12 +106,21 @@ varying vec3 vNormalW;
 varying vec3 vViewDir;
 void main() {
   float facing = abs(dot(normalize(vNormalW), normalize(vViewDir)));
-  float alpha = pow(facing, uPower) * uIntensity * uOpacity;
-  gl_FragColor = vec4(uColor, clamp(alpha, 0.0, 1.0));
+  float weight = pow(facing, uPower) * uIntensity * uOpacity;
+  // Premultiplied, so a weight above 1 drives channels past full and the
+  // framebuffer clips them. That is what leaves a white-hot core with the palette
+  // colour surviving at the edges - in a real capture the game's loop lines peak
+  // at (245,255,255), not at flat teal.
+  gl_FragColor = vec4(uColor * weight, 1.0);
+  #include <colorspace_fragment>
+  // This canvas composites over the grid canvas, so alpha has to track the light
+  // actually emitted. Writing a flat 1.0 turns the dark part of every glow into
+  // an opaque black rope that hides the grid behind it.
+  gl_FragColor.a = clamp(max(max(gl_FragColor.r, gl_FragColor.g), gl_FragColor.b), 0.0, 1.0);
 }
 `;
 
-function makeAdditiveGlowMaterial(color, { intensity = 1.8, power = 0.5, side = THREE.DoubleSide } = {}) {
+function makeAdditiveGlowMaterial(color, { intensity = 1.6, power = 0.5, side = THREE.DoubleSide } = {}) {
   return new THREE.ShaderMaterial({
     uniforms: {
       uColor: { value: new THREE.Color(color) },
@@ -289,34 +300,82 @@ async function loadGemGeometry() {
   return geo;
 }
 
-// The gem material from `makeBoard`: near-black diffuse, near-mirror
-// reflection of the cubemap, and only 10% opaque so the charges inside show
-// through the shell.
+// The gem material from `makeBoard`: near-black diffuse, metalness 1.0,
+// roughness 0.01, reflecting the cubemap, and 10% opaque so the charges inside
+// show through.
 //
-// SceneKit's `reflective` is a term added on top of the PBR result, so it
-// survives the near-black albedo. three's metalness/roughness envMap is tinted
-// by that albedo instead and would come out black, so the reflection is
-// reproduced with an additively-combined basic envMap - the same outcome.
+// The near-black albedo is the whole point. For a metal it is also the
+// reflectance at normal incidence, so Schlick's Fresnel makes a facet facing
+// the camera reflect almost nothing while a facet at a grazing angle reflects
+// almost everything. That is what makes the game's gem a black crystal with
+// bright rim facets rather than a uniformly lit pebble - measured off a real
+// capture, half its body is as dark as the background.
+//
+// uGain replaces the bloom the game applies afterwards, and is calibrated so a
+// grazing facet lands at the same brightness the capture shows.
+const GEM_VERTEX_SHADER = `
+varying vec3 vNormalW;
+varying vec3 vViewDir;
+void main() {
+  vec4 worldPos = modelMatrix * vec4(position, 1.0);
+  vNormalW = normalize(mat3(modelMatrix) * normal);
+  vViewDir = normalize(cameraPosition - worldPos.xyz);
+  gl_Position = projectionMatrix * viewMatrix * worldPos;
+}
+`;
+
+const GEM_FRAGMENT_SHADER = `
+uniform samplerCube uEnv;
+uniform vec3 uF0;
+uniform float uGain;
+varying vec3 vNormalW;
+varying vec3 vViewDir;
+void main() {
+  vec3 N = normalize(vNormalW);
+  vec3 V = normalize(vViewDir);
+  float cosTheta = clamp(dot(N, V), 0.0, 1.0);
+  vec3 F = uF0 + (1.0 - uF0) * pow(1.0 - cosTheta, 5.0);
+  vec3 reflected = textureCube(uEnv, reflect(-V, N)).rgb;
+  gl_FragColor = vec4(reflected * F * uGain, 1.0);
+  #include <colorspace_fragment>
+  // Dark facets stay see-through, lit rims read solid - the same reason the
+  // glow material derives alpha from its own output.
+  gl_FragColor.a = clamp(max(max(gl_FragColor.r, gl_FragColor.g), gl_FragColor.b), 0.0, 1.0);
+}
+`;
+
+// The material splits into the two things SceneKit combines in one pass: a
+// 10%-opaque near-black shell that gives the gem a body against whatever is
+// behind it, and the Fresnel-weighted cubemap reflection added on top. In the
+// game the gems sit over near-black board; here they cross a lit grid, and
+// without the shell a Fresnel-only gem has no silhouette at all.
 function makeGemMaterials(envMap) {
+  const f0 = new THREE.Color(Palette.voidBlack);
+  // Deeper than the game's literal 0.1: its gems sit on a near-black board,
+  // while these cross a lit grid that would otherwise read straight through them.
   const shell = new THREE.MeshBasicMaterial({
     color: new THREE.Color(Palette.voidBlack),
-    envMap,
-    combine: THREE.AddOperation,
-    reflectivity: 1,
     transparent: true,
-    opacity: 0.1,
+    opacity: 0.32,
     side: THREE.FrontSide,
     depthWrite: false,
     depthTest: false,
-    toneMapped: false,
   });
-  // Second pass over the same facets, additive. This is the contribution the
-  // game gets from bloom, which is what makes a 10%-opaque shell read as a
-  // faceted crystal instead of a smudge.
-  const glint = shell.clone();
-  glint.blending = THREE.AdditiveBlending;
-  glint.opacity = 0.26;
-  return { shell, glint };
+  const rim = new THREE.ShaderMaterial({
+    uniforms: {
+      uEnv: { value: envMap },
+      uF0: { value: new THREE.Vector3(f0.r, f0.g, f0.b) },
+      uGain: { value: 0.9 },
+    },
+    vertexShader: GEM_VERTEX_SHADER,
+    fragmentShader: GEM_FRAGMENT_SHADER,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    depthTest: false,
+    side: THREE.FrontSide,
+  });
+  return { shell, rim };
 }
 
 // Port of `makeChargeNodes`: n = |charge| additive glowing spheres arranged on
@@ -325,10 +384,12 @@ function makeGemMaterials(envMap) {
 function addChargeNodes(container, charge, geo, haloGeo) {
   const n = Math.abs(charge);
   const color = charge > 0 ? colorPositive : colorNegative;
-  const coreMat = makeAdditiveGlowMaterial(color, { intensity: 2.2, power: 0.45 });
+  // A hot centre grading out through the palette colour, which is how the
+  // game's bloomed charge spheres read: white-hot core, coloured rim.
+  const coreMat = makeAdditiveGlowMaterial(color, { intensity: 3.4, power: 3.5 });
   const haloMat = makeAdditiveGlowMaterial(color, {
-    intensity: 0.42,
-    power: 1.7,
+    intensity: 0.18,
+    power: 2.2,
     side: THREE.FrontSide,
   });
 
@@ -358,7 +419,7 @@ function addChargeNodes(container, charge, geo, haloGeo) {
 function buildGems(parent, geometry, materials) {
   const rng = mulberry32(0x6e33);
   const chargeGeo = new THREE.SphereGeometry(CHARGE_RADIUS, 20, 14);
-  const haloGeo = new THREE.SphereGeometry(CHARGE_RADIUS * 3.4, 20, 14);
+  const haloGeo = new THREE.SphereGeometry(CHARGE_RADIUS * 2.4, 20, 14);
   return GEMS.map((spec) => {
     // Outer node holds the fixed tilt that stands in for the game's elevated
     // camera; the inner container is what precesses.
@@ -374,9 +435,9 @@ function buildGems(parent, geometry, materials) {
     hull.rotation.set(rng() * Math.PI * 2, rng() * Math.PI * 2, 0);
     const shell = new THREE.Mesh(geometry, materials.shell);
     shell.renderOrder = 1000;
-    const glint = new THREE.Mesh(geometry, materials.glint);
-    glint.renderOrder = 1001;
-    hull.add(shell, glint);
+    const rim = new THREE.Mesh(geometry, materials.rim);
+    rim.renderOrder = 1001;
+    hull.add(shell, rim);
     container.add(hull);
 
     addChargeNodes(container, spec.charge, chargeGeo, haloGeo);
