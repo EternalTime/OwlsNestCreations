@@ -199,7 +199,12 @@ function makeFlicker(rng) {
   };
 }
 
-function buildLoops(parent, radiusScale) {
+function loopCount(worldWidth, radiusScale) {
+  const spacing = LOOP_R * radiusScale * 1.32;
+  return Math.min(MAX_LOOPS, Math.max(3, Math.ceil(worldWidth / spacing) + 1));
+}
+
+function buildLoops(parent, radiusScale, count) {
   const rng = mulberry32(0x5eed);
   const shapes = [];
   for (let i = 0; i < LOOP_SHAPES; i++) {
@@ -208,14 +213,13 @@ function buildLoops(parent, radiusScale) {
   }
 
   const loops = [];
-  for (let i = 0; i < MAX_LOOPS; i++) {
+  for (let i = 0; i < count; i++) {
     // Alternating flux signs, teal for positive and pink for negative, exactly
     // as `loopColor` assigns them.
     const positive = [1, 0, 1, 1, 0, 1, 0, 0, 1, 0][i] === 1;
     const group = makeLoopMesh(shapes[i % LOOP_SHAPES], positive ? colorPositive : colorNegative);
     const rotZ = rng() * Math.PI * 2;
     group.rotation.set((rng() - 0.5) * 0.5, (rng() - 0.5) * 0.7, rotZ);
-    group.visible = false;
     parent.add(group);
     loops.push({
       group,
@@ -241,13 +245,10 @@ function disposeLoops(parent, loops) {
   }
 }
 
-function layoutLoops(loops, worldWidth, radiusScale) {
+function layoutLoops(loops, radiusScale) {
   const spacing = LOOP_R * radiusScale * 1.32;
-  const count = Math.min(MAX_LOOPS, Math.max(3, Math.ceil(worldWidth / spacing) + 1));
-  const span = (count - 1) * spacing;
+  const span = (loops.length - 1) * spacing;
   loops.forEach((loop, i) => {
-    loop.group.visible = i < count;
-    if (i >= count) return;
     loop.group.position.set(-span / 2 + i * spacing, loop.yOffset, LOOP_Z + loop.zOffset);
   });
 }
@@ -475,12 +476,11 @@ export function mount(banner) {
   camera.position.set(0, 0, CAM_Z);
 
   const envMap = makeReflectionCubemap();
-  scene.environment = envMap;
 
   const stage = new THREE.Group();
   scene.add(stage);
 
-  let loopScale = 0;
+  let loopKey = '';
   let loops = [];
   let gems = [];
   let posed = false;
@@ -497,12 +497,13 @@ export function mount(banner) {
 
     const loopWidth = visibleWidth(camera, LOOP_Z);
     const scale = loopWidth >= NARROW_WORLD_WIDTH ? 1 : NARROW_LOOP_SCALE;
-    if (scale !== loopScale) {
+    const count = loopCount(loopWidth, scale);
+    if (`${scale}:${count}` !== loopKey) {
       disposeLoops(stage, loops);
-      loops = buildLoops(stage, scale);
-      loopScale = scale;
+      loops = buildLoops(stage, scale, count);
+      loopKey = `${scale}:${count}`;
     }
-    layoutLoops(loops, loopWidth, scale);
+    layoutLoops(loops, scale);
     layoutGems(gems, camera, visibleWidth(camera, 0));
     posed = false;
   };
@@ -531,7 +532,6 @@ export function mount(banner) {
 
   const animate = (t, still = false) => {
     for (const loop of loops) {
-      if (!loop.group.visible) continue;
       loop.group.rotation.z = loop.rotZ + loop.spin * t;
       loop.group.position.y =
         loop.yOffset + 0.12 * Math.sin(t * loop.driftRate + loop.driftPhase);
