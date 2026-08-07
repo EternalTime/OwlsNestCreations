@@ -1,0 +1,124 @@
+// VoidFlux banner - a slice of the game on the home page.
+// Palette values are the game's, from Rendering.swift `Palette`.
+
+.vf-banner {
+  --vf-void: #04040e;
+  --vf-pink-bright: #ff49c9;
+  --vf-pink: #e1317b;
+  --vf-teal-bright: #49ffe9;
+  --vf-teal: #35c2aa;
+  --vf-cyan-bright: #37dfff;
+  --vf-cyan: #29a3c3;
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: block;
+  padding: 0;
+  min-height: clamp(30rem, 62vh, 44rem);
+  background: var(--vf-void);
+  color: #fff;
+}
+
+// Static fallback: without JS or canvas the banner still reads as the void,
+// not a flat black box.
+.vf-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  background:
+    radial-gradient(120% 70% at 50% 30%, rgba(55, 223, 255, 0.16), transparent 60%),
+    radial-gradient(90% 60% at 50% 96%, rgba(255, 73, 201, 0.12), transparent 70%),
+    var(--vf-void);
+}
+
+.vf-grid,
+.vf-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.vf-grid { z-index: -2; }
+.vf-scene { z-index: -1; opacity: 0; transition: opacity 0.6s ease; }
+.vf-banner[data-vf-ready] .vf-scene { opacity: 1; }
+
+// Scrim over the whole scene so the copy stays legible against the grid and
+// any gem that drifts behind it.
+.vf-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    95deg,
+    rgba(4, 4, 14, 0.95) 0%,
+    rgba(4, 4, 14, 0.9) 22%,
+    rgba(4, 4, 14, 0.55) 38%,
+    rgba(4, 4, 14, 0) 54%
+  );
+}
+
+.vf-banner .game-blurb {
+  position: relative;
+  z-index: 1;
+  max-width: 32rem;
+  margin: 0;
+  padding: clamp(3rem, 9vh, 6rem) 5vw;
+  text-shadow: 0 2px 18px rgba(4, 4, 14, 0.9);
+}
+
+.vf-banner .game-title {
+  color: #fff;
+  text-shadow:
+    0 0 22px rgba(55, 223, 255, 0.55),
+    0 0 60px rgba(255, 73, 201, 0.35);
+}
+
+.vf-banner .game-tag { color: var(--vf-teal-bright); }
+
+.vf-banner .game-desc { color: rgba(255, 255, 255, 0.86); }
+
+.vf-banner .game-cta {
+  background: transparent;
+  color: var(--vf-teal-bright);
+  border: 2px solid var(--vf-teal);
+  box-shadow:
+    0 0 18px rgba(73, 255, 233, 0.25),
+    inset 0 0 18px rgba(73, 255, 233, 0.12);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.vf-banner .game-cta:hover {
+  background: rgba(73, 255, 233, 0.1);
+  box-shadow:
+    0 0 30px rgba(73, 255, 233, 0.45),
+    inset 0 0 24px rgba(73, 255, 233, 0.18);
+}
+
+@media (max-width: 860px) {
+  .vf-banner {
+    min-height: clamp(30rem, 82vh, 42rem);
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .vf-banner::after {
+    background: linear-gradient(
+      to top,
+      rgba(4, 4, 14, 0.96) 30%,
+      rgba(4, 4, 14, 0.8) 46%,
+      rgba(4, 4, 14, 0) 62%
+    );
+  }
+
+  .vf-banner .game-blurb {
+    padding: 2.5rem 6vw 3.5rem;
+    max-width: none;
+  }
+}
