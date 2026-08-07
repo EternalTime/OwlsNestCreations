@@ -43,18 +43,21 @@ const NARROW_LOOP_SCALE = 0.6;
 // proportions: sphere radius 0.2 and circle radius 0.5 in container units are
 // kChargeRadius and 2.5x it, divided through by kGemScale.
 const GEM_MESH_URL = new URL('../data/voidflux-gem.json', import.meta.url);
-const CHARGE_RADIUS = 0.2;
+// A charge is a hot point, not a ball of fog, so the sphere is small and its
+// halo hugs it. The ring stays at the game's 2.5x sphere radius.
+const CHARGE_RADIUS = 0.11;
 const CHARGE_CIRCLE_RADIUS = CHARGE_RADIUS * 2.5;
+const CHARGE_HALO_SCALE = 1.9;
 const GEM_TILT = -0.95;
 // Matches the width at which the banner stylesheet stacks the copy below the
 // scene; the whole stage then lifts clear of the copy.
 const STACKED_BREAKPOINT = 860;
 const STACKED_STAGE_LIFT = 0.55;
 const GEMS = [
-  { charge: 3, xFrac: -0.10, y: 0.72, z: 0.95, scale: 0.64 },
-  { charge: -2, xFrac: 0.26, y: -0.72, z: 0.35, scale: 0.56 },
-  { charge: 4, xFrac: 0.55, y: 0.48, z: 1.25, scale: 0.70 },
-  { charge: -1, xFrac: 0.74, y: -0.58, z: 0.6, scale: 0.52 },
+  { charge: 3, xFrac: -0.10, y: 0.70, z: 0.95, scale: 0.40 },
+  { charge: -2, xFrac: 0.26, y: -0.70, z: 0.35, scale: 0.34 },
+  { charge: 4, xFrac: 0.55, y: 0.46, z: 1.25, scale: 0.44 },
+  { charge: -1, xFrac: 0.74, y: -0.56, z: 0.6, scale: 0.32 },
 ];
 
 // Idle-float constants from `makeGemIdleFloatAction`. The drift amplitude is
@@ -343,13 +346,17 @@ uniform samplerCube uEnv;
 uniform mat3 uEnvRotation;
 uniform vec3 uF0;
 uniform float uGain;
+uniform float uSheen;
 varying vec3 vNormalW;
 varying vec3 vViewDir;
 void main() {
   vec3 N = normalize(vNormalW);
   vec3 V = normalize(vViewDir);
   float cosTheta = clamp(dot(N, V), 0.0, 1.0);
-  vec3 F = uF0 + (1.0 - uF0) * pow(1.0 - cosTheta, 5.0);
+  // Schlick, so only grazing facets blaze. uSheen is SceneKit's reflective
+  // term, flat on top, which tints the gem's inward-facing facets a faint
+  // steel-cyan instead of leaving them dead black.
+  vec3 F = uF0 + (1.0 - uF0) * pow(1.0 - cosTheta, 5.0) + uSheen;
   vec3 reflected = textureCube(uEnv, uEnvRotation * reflect(-V, N)).rgb;
   gl_FragColor = vec4(reflected * F * uGain, 1.0);
   #include <colorspace_fragment>
@@ -366,12 +373,12 @@ void main() {
 // without the shell a Fresnel-only gem has no silhouette at all.
 function makeGemMaterials(envMap) {
   const f0 = new THREE.Color(Palette.voidBlack);
-  // Deeper than the game's literal 0.1: its gems sit on a near-black board,
-  // while these cross a lit grid that would otherwise read straight through them.
+  // A gem is a polished near-black stone, not a window. It occludes what is
+  // behind it and you read its shape from the specular edges, not through it.
   const shell = new THREE.MeshBasicMaterial({
     color: new THREE.Color(Palette.voidBlack),
     transparent: true,
-    opacity: 0.32,
+    opacity: 0.94,
     side: THREE.FrontSide,
     depthWrite: false,
     depthTest: false,
@@ -381,7 +388,8 @@ function makeGemMaterials(envMap) {
       uEnv: { value: envMap },
       uEnvRotation: { value: gameEnvRotation() },
       uF0: { value: new THREE.Vector3(f0.r, f0.g, f0.b) },
-      uGain: { value: 0.9 },
+      uGain: { value: 1.05 },
+      uSheen: { value: 0.05 },
     },
     vertexShader: GEM_VERTEX_SHADER,
     fragmentShader: GEM_FRAGMENT_SHADER,
@@ -400,12 +408,13 @@ function makeGemMaterials(envMap) {
 function addChargeNodes(container, charge, geo, haloGeo) {
   const n = Math.abs(charge);
   const color = charge > 0 ? colorPositive : colorNegative;
-  // A hot centre grading out through the palette colour, which is how the
-  // game's bloomed charge spheres read: white-hot core, coloured rim.
-  const coreMat = makeAdditiveGlowMaterial(color, { intensity: 3.4, power: 3.5 });
+  // A steep falloff off a very high peak: the centre clips every channel to
+  // near-white and drops back through the palette colour within a fraction of
+  // the radius, which is the game's hot point rather than a soft orb.
+  const coreMat = makeAdditiveGlowMaterial(color, { intensity: 12, power: 6 });
   const haloMat = makeAdditiveGlowMaterial(color, {
-    intensity: 0.18,
-    power: 2.2,
+    intensity: 0.5,
+    power: 3,
     side: THREE.FrontSide,
   });
 
@@ -435,7 +444,7 @@ function addChargeNodes(container, charge, geo, haloGeo) {
 function buildGems(parent, geometry, materials) {
   const rng = mulberry32(0x6e33);
   const chargeGeo = new THREE.SphereGeometry(CHARGE_RADIUS, 20, 14);
-  const haloGeo = new THREE.SphereGeometry(CHARGE_RADIUS * 2.4, 20, 14);
+  const haloGeo = new THREE.SphereGeometry(CHARGE_RADIUS * CHARGE_HALO_SCALE, 20, 14);
   return GEMS.map((spec) => {
     // Outer node holds the fixed tilt that stands in for the game's elevated
     // camera; the inner container is what precesses.
