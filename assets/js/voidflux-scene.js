@@ -501,10 +501,11 @@ void main() {
 `;
 
 // The material splits into the two things SceneKit combines in one pass: a
-// 10%-opaque near-black shell that gives the gem a body against whatever is
-// behind it, and the Fresnel-weighted cubemap reflection added on top. In the
-// game the gems sit over near-black board; here they cross a lit grid, and
-// without the shell a Fresnel-only gem has no silhouette at all.
+// near-black shell that gives the gem a body against whatever is behind it, and
+// the Fresnel-weighted cubemap reflection added on top. In the game the gems sit
+// over near-black board, where 10% opacity is body enough; here they cross a lit
+// grid, so the shell runs far deeper than that - a Fresnel-only gem, or a barely
+// opaque one, has no silhouette at all.
 function makeGemMaterials(envMap) {
   const f0 = new THREE.Color(Palette.voidBlack);
   // A gem is a polished near-black stone, not a window. It occludes what is
