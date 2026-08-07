@@ -2,14 +2,25 @@
 layout: default
 ---
 <article class="game-page" style="--g-from: {{ page.gradient_from }}; --g-mid: {{ page.gradient_mid }}; --g-to: {{ page.gradient_to }}; --g-cta-bg: {{ page.cta_bg }}; --g-cta-text: {{ page.cta_text }};">
+  {% if page.scene == 'voidflux' %}
+  {% include voidflux-scene.html mode='page' game=page %}
+  {% else %}
   <section class="game-hero">
-    <img class="game-icon" src="{{ page.icon | relative_url }}" alt="{{ page.title }} icon">
+    <div class="game-card" data-tilt>
+      <img src="{{ page.icon | relative_url }}" alt="{{ page.title }} icon">
+    </div>
     <div class="game-hero-text">
       <h1 class="game-title" style="font-family: {{ page.title_font }};">{{ page.title }}</h1>
       <div class="game-tag">{{ page.tagline }}</div>
+      {% if page.facts %}
+      <div class="game-facts">
+        {% for fact in page.facts %}<span>{{ fact }}</span>{% endfor %}
+      </div>
+      {% endif %}
       <div class="game-status">{{ page.status }}</div>
     </div>
   </section>
+  {% endif %}
   <section class="game-body">
     {{ content }}
   </section>
