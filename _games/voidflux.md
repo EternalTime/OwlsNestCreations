@@ -2,7 +2,6 @@
 title: VoidFlux
 published_on_site: true
 order: 1
-scene: voidflux
 tagline: A puzzle game built on Gauss' Law.
 teaser: Place charges. Bend fields. Balance the flux. Coming to iPhone.
 status: In development for iPhone
@@ -13,10 +12,6 @@ gradient_mid: "#b44fd8"
 gradient_to: "#2abed9"
 cta_bg: "#04040e"
 cta_text: "#25d9c8"
-facts:
-  - Puzzle
-  - "Physics: Gauss' Law"
-  - iPhone
 description: VoidFlux is a puzzle game built on Gauss' Law, in development for iPhone by Owl's Nest Creations.
 ---
 
