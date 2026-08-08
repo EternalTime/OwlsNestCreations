@@ -2,7 +2,7 @@
 title: VoidFlux
 published_on_site: true
 order: 1
-tagline: A puzzle game built on Gauss' Law.
+tagline: A puzzle in the depths of Electromagnetism.
 teaser: Place charges. Bend fields. Balance the flux. Coming to iPhone.
 status: In development for iPhone
 icon: /assets/img/voidflux-icon.png
