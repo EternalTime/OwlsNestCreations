@@ -28,13 +28,13 @@ You end up reading the board the way you read a contour map, and by the second r
 
 <div class="vf-shots" markdown="0">
 {% include voidflux-shot.html
-   name="two-signs"
-   alt="A VoidFlux board: a black hexagonal crystal on a neon perspective grid, pink loops of light floating over its left half and teal loops over its right, with charged gems waiting in a tray below."
-   caption="Pink to the left, teal to the right. Colour gives a loop its sign, and altitude gives its size." %}
+   name="two-loops"
+   alt="An early VoidFlux board at radius three: two hexagonal loops of the same size, one pink and one teal, offset across a small black crystal, with two charged gems in the tray below."
+   caption="Radius three, the smallest board in the game: one loop of each sign, equal and opposite, and two gems in the tray to spend on them." %}
 {% include voidflux-shot.html
-   name="seven-loops"
-   alt="The densest VoidFlux board: seven overlapping loops, five teal and two pink, strung above a black hexagonal crystal, with six gems in the tray below."
-   caption="The widest board in the game, carrying seven loops. Where two of them cross, one gem counts for both." %}
+   name="full-board"
+   alt="A VoidFlux board at radius four: a large teal loop tracing the entire hexagonal boundary, a pink loop crossing the middle below it, two small teal loops higher up, and five charged gems in the tray below."
+   caption="Radius four, with every face on the board inside some loop. The teal ring traces the whole boundary, and the pink line across the middle sits lower because it carries less." %}
 </div>
 
 The opening levels are nearly free, and they are meant to be.
@@ -55,8 +55,8 @@ The game's own story has a name for this: the flux is given, the charge is sough
 <div class="vf-shots" markdown="0">
 {% include voidflux-shot.html
    name="mid-solve"
-   alt="The same seven-loop VoidFlux board partway through a solve, with two gems left in the tray and one loop collapsed onto the crystal as a flat white outline."
-   caption="Four gems in. The loop that has been driven to zero has gone the colour of the void, leaving only its footprint on the crystal." %}
+   alt="A seven-loop VoidFlux board at radius five, partway through a solve, with two gems left in the tray and one loop collapsed onto the crystal as a flat white outline."
+   caption="The widest board in the game, four gems in. The loop driven to zero has gone the colour of the void, leaving only its footprint on the crystal." %}
 </div>
 
 The 204 levels did not come from placing gems by hand and hoping.
