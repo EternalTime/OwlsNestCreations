@@ -89,8 +89,8 @@ A quantity that ignores almost everything about a configuration and reports one 
 <div class="vf-shots" markdown="0">
 {% include voidflux-shot.html
    name="nested-loops"
-   alt="A VoidFlux board of concentric hexagonal loops, a pink one enclosing a teal one above a black crystal, with charged gems in the tray below."
-   caption="Loops nest as freely as Gaussian surfaces do. The pink hexagon and the teal one inside it are two different questions asked of the same board." %}
+   alt="A VoidFlux board of concentric hexagonal loops, two pink ones enclosing two teal ones above a black crystal, with gems of several different charges in the tray below."
+   caption="Loops nest as freely as Gaussian surfaces do. Two pink hexagons here enclose two teal ones: four different questions asked of the same board." %}
 </div>
 
 VoidFlux never computes a field, because it never needs one.
