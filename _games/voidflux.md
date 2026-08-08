@@ -64,7 +64,7 @@ I wrote a generator, and then I wrote two metrics to argue with it.
 The first enumerates a candidate level's entire solution space and scores how scarce the solutions are, in bits.
 Three bits plays like a warm-up; ten bits means you will not stumble onto the answer with any probability worth counting on.
 The second metric asks whether the overlaps are load-bearing or merely decorative, by checking whether the winning placements use the shared regions at all.
-A level that misses either threshold gets redesigned, one at a time, by hand.
+A level that misses either threshold gets redesigned by hand, one at a time (there is no clever way to do this part, and I went looking).
 What shipped is 204 survivors across 37 rounds, and the climb from three bits to ten is the shape of the campaign.
 
 Between rounds there is a story, one scene per round, and it is Wittgenstein's *Tractatus* retold in 80s arcade slang.
@@ -83,8 +83,8 @@ It says nothing about where inside the surface the charge sits, and nothing abou
 
 The second half of that is the part worth sitting with.
 Slide the charges around inside, and as long as none of them crosses out, the flux does not move.
-Dent the surface, stretch it, wrap it tight around one charge or loosely around all of them, and the flux still does not move.
-A quantity that ignores almost everything about a configuration and reports one honest number about it is a rare thing, and it is what turns a board of loops into a puzzle rather than a simulation.
+Dent the surface, stretch it, wrap it tight around one charge or loosely around all of them (the surface is imaginary, so nothing is stopping you), and the flux still does not move.
+A quantity that ignores almost everything about a configuration and still reports one honest number about it is a remarkable thing, and it is what turns a board of loops into a puzzle rather than a simulation.
 
 <div class="vf-shots" markdown="0">
 {% include voidflux-shot.html
@@ -97,7 +97,7 @@ VoidFlux never computes a field, because it never needs one.
 The number on a loop is the charge enclosed by that loop, in units where the permittivity is one, which is a physicist's habit anyway.
 So every loop is one equation, the unknowns are the gems still in your tray, and loops that overlap share unknowns.
 That is the real reason overlap is where the difficulty lives: a gem in a shared region appears in two equations at once.
-Solving a board is solving that small system over the integers, with a finite tray for a budget.
+Stripped of the neon, solving a board is solving that small system over the integers, with a finite tray for a budget.
 
 The board is flat, so its Gaussian surfaces are closed curves rather than closed shells, and that costs less than it sounds.
 The integral statement - what crosses the boundary is fixed by what is enclosed - holds in any number of dimensions.
@@ -111,22 +111,25 @@ Drop a positive gem and a negative gem inside one loop and it reads zero, exactl
 Some of the late boards are built out of that blind spot.
 The game commits to the ambiguity rather than hedging it: a loop at zero is drawn in the colour of the void whether it is empty or merely balanced, and it is the same silence either way.
 
-Gauss' Law is one of Maxwell's four, and it is not the odd one out.
-Written as integrals, all four have the same shape: something measured on a boundary is fixed by something accumulated inside it.
-The magnetic version reads exactly like the electric one with zero on the right, which is the statement that nobody has ever found a magnetic charge to enclose.
+Carl Friedrich Gauss worked the law out in 1835 and never published it; it surfaced in 1867, twelve years after he was dead.
+By then James Clerk Maxwell had folded it into a set of twenty equations in twenty variables, and it fell to Oliver Heaviside, a self-taught telegraph operator who never held a university post, to boil those down in 1884 to the four we teach today.
+Gauss' Law is one of them, and it is not the odd one out: written as integrals, all four have the same shape, something measured on a boundary fixed by something accumulated inside it.
+Indeed, the magnetic version reads exactly like the electric one with zero on the right, which is the statement that nobody has ever found a magnetic charge to enclose.
 Faraday's law trades the closed surface for a closed curve and says the electric field's circulation around it tracks how fast the magnetic flux through it changes.
 Ampère's law, once Maxwell corrected it, says the matching thing for magnetic circulation.
 Boundary and interior, four times over.
 
-That family resemblance is not a coincidence, and it is where electromagnetism starts getting deep.
+Why should four laws about different things keep saying the same thing?
+
+The resemblance is not a coincidence, and it is where electromagnetism starts getting deep.
 All four are one theorem of calculus in different clothes: what a region accumulates is determined by what happens on its edge.
-Push it far enough and the four equations become two, and one of those two is an identity rather than a law, true because of how the field is built rather than because the world happened to come out that way.
+Push it far enough and the whole edifice folds down to two equations, one of which is an identity rather than a law, true because of how the field is built rather than because the world happened to come out that way.
 Charge conservation stops being a separate assumption at that point and starts being a consequence, forced by the fact that a boundary has no boundary of its own.
 
 None of this is painted on.
 The win condition is the law itself, run backwards.
 You are never shown a charge in VoidFlux; you are shown what its field does to a boundary and asked to say what must be inside.
-That inversion is not a design conceit either, since measuring on a boundary to infer an interior is how a great deal of physics actually gets done, interiors being the part you usually cannot reach.
+That inversion is not a design conceit either, since measuring on a boundary to infer an interior is how a great deal of physics actually gets done, interiors being the part we usually cannot reach.
 The game just never says so.
 You drop a gem, the number moves, and your hands work it out.
 
