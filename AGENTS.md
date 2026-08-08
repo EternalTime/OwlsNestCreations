@@ -67,6 +67,31 @@ group, so a nested group with its own `renderOrder` silently resets the sort
 key for every mesh under it. Keep all groups at zero and order the meshes
 (`ORDER` in `voidflux-scene.js`).
 
+## The VoidFlux gameplay captures
+
+`assets/img/voidflux-*.avif`, with `.jpg` fallbacks, are real iPhone captures
+rather than renders of the banner scene. The originals and a per-frame report -
+which frames were rejected and why, plus measured crop boxes - are outside this
+repo at `~/firstmate/data/voidflux-gameplay-captures/report.md`. Crop at least
+the top 200 px off any new frame: it carries the Dynamic Island notch and a
+`LVL:` readout whose numbers come from a capture-only campaign, not the shipped
+one.
+
+Three facts about the board are easy to caption wrongly and none of them can be
+checked from this repo:
+
+- No number appears anywhere on a board. Colour is a loop's sign and its height
+  above the crystal is the magnitude (`loopColor` and `animateLoopFluxChange`,
+  `Game/SceneBuilder.swift`), and a gem holds one glowing core per unit of
+  charge (`makeChargeNodes`).
+- A solved board is blank on purpose, because flux zero is drawn `voidBlack`, so
+  a win state photographs as an empty crystal.
+- A placed gem is absorbed and leaves no mark, so progress shows only as the
+  tray thinning and the loops sinking.
+
+Only `sips` is installed for image work - no ImageMagick, `pngquant` or `cwebp` -
+and it crops from the centre, which is why the committed crop is symmetric.
+
 ## Review before shipping
 
 Visual changes are reviewed by the captain on a running `bundle exec jekyll
