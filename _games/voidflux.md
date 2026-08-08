@@ -7,6 +7,7 @@ teaser: Place charges. Bend fields. Balance the flux. Coming to iPhone.
 status: In development for iPhone
 icon: /assets/img/voidflux-icon.png
 title_font: "'Paytone One', sans-serif"
+banner: voidflux
 gradient_from: "#f92672"
 gradient_mid: "#b44fd8"
 gradient_to: "#2abed9"
