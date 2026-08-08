@@ -23,7 +23,10 @@ sass:
   quiet_deps: true
 
 exclude:
+  - AGENTS.md
+  - CLAUDE.md
   - Gemfile
   - Gemfile.lock
   - README.md
+  - SETUP.md
   - vendor

@@ -15,5 +15,7 @@ bundle exec jekyll serve
 - `_sass/tokens.scss` - studio design tokens (paper, ink, forest green accent).
 - `_games/*.md` - one file per public game. Each game carries its own palette in front matter (`gradient_from`, `gradient_mid`, `gradient_to`, `cta_bg`, `cta_text`, `title_font`); the layouts read those, so game colors never leak into studio tokens.
 - Set `published_on_site: true` in a game's front matter to put it on the home page.
+- `banner: voidflux` swaps that game's home-page block for the live VoidFlux scene (`assets/js/voidflux-*.js`); without it the block falls back to the gradient. See `AGENTS.md` for what that scene is ported from.
+- `assets/js/lib/` - vendored three.js, pinned rather than CDN-loaded, so the site keeps its no-build-step, no-third-party-runtime setup. Update it by replacing the files; the bundle's own `REVISION` export is the version of record.
 - `_includes/owl-glyph.svg` - the owl mark; colors follow CSS variables.
 - `CNAME` - custom domain for GitHub Pages.
