@@ -1,0 +1,18 @@
+{%- comment -%}
+One in-game capture. Parameters:
+  src     - image under /assets/img. Omit to render the pending slot instead.
+  alt     - alt text for the capture; also describes the slot while it is empty.
+  caption - visible figcaption.
+  need    - what the capture has to show, displayed only while `src` is unset.
+{%- endcomment -%}
+<figure class="vf-shot">
+  {%- if include.src -%}
+  <img class="vf-shot-frame" src="{{ include.src | relative_url }}" alt="{{ include.alt }}" loading="lazy" decoding="async">
+  {%- else -%}
+  <div class="vf-shot-frame vf-shot-pending" role="img" aria-label="Placeholder for a screenshot of {{ include.alt }}">
+    <span class="vf-shot-pending-label">Capture pending</span>
+    <span class="vf-shot-pending-need">{{ include.need }}</span>
+  </div>
+  {%- endif -%}
+  <figcaption class="vf-shot-caption">{{ include.caption }}</figcaption>
+</figure>
