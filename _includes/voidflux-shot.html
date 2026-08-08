@@ -1,18 +1,19 @@
 {%- comment -%}
 One in-game capture. Parameters:
-  src     - image under /assets/img. Omit to render the pending slot instead.
-  alt     - alt text for the capture; also describes the slot while it is empty.
+  name    - stem under /assets/img, without the `voidflux-` prefix or extension.
+            Both `voidflux-<name>.avif` and `voidflux-<name>.jpg` must exist.
+  alt     - alt text describing what the capture actually shows.
   caption - visible figcaption.
-  need    - what the capture has to show, displayed only while `src` is unset.
 {%- endcomment -%}
+{%- assign vf_shot_base = '/assets/img/voidflux-' | append: include.name -%}
 <figure class="vf-shot">
-  {%- if include.src -%}
-  <img class="vf-shot-frame" src="{{ include.src | relative_url }}" alt="{{ include.alt }}" loading="lazy" decoding="async">
-  {%- else -%}
-  <div class="vf-shot-frame vf-shot-pending" role="img" aria-label="Placeholder for a screenshot of {{ include.alt }}">
-    <span class="vf-shot-pending-label">Capture pending</span>
-    <span class="vf-shot-pending-need">{{ include.need }}</span>
-  </div>
-  {%- endif -%}
+  <picture>
+    <source srcset="{{ vf_shot_base | append: '.avif' | relative_url }}" type="image/avif">
+    <img class="vf-shot-frame"
+         src="{{ vf_shot_base | append: '.jpg' | relative_url }}"
+         alt="{{ include.alt }}"
+         width="720" height="1200"
+         loading="lazy" decoding="async">
+  </picture>
   <figcaption class="vf-shot-caption">{{ include.caption }}</figcaption>
 </figure>
