@@ -56,14 +56,7 @@ The crystal swallows a gem whole and leaves no mark where it went, so the only t
    caption="The widest board in the game, four gems in. The loop driven to zero has gone the colour of the void, leaving only its footprint on the crystal." %}
 </div>
 
-The 204 levels did not come from placing gems by hand and hoping.
-I wrote a generator, and then I wrote two metrics to argue with it.
-The first enumerates a candidate level's whole solution space and scores how scarce the solutions are, in bits: three bits plays like a warm-up, ten bits means you will not stumble onto the answer by luck.
-The second asks whether the overlaps are load-bearing or merely decorative, by checking whether the winning placements use the shared regions at all.
-Anything that misses either threshold goes back to be redesigned by hand, one at a time, because there is no clever way to do that part and I went looking.
-What shipped is 204 survivors across 37 rounds, and the climb from three bits to ten is the shape of the campaign.
-
-Between rounds there is a story, one scene per round, and it is Wittgenstein's *Tractatus* retold in 80s arcade slang.
+There are 204 levels across 37 rounds, and between the rounds there is a story, one scene per round: Wittgenstein's *Tractatus* retold in 80s arcade slang.
 It ends where the game ends: whereof one cannot speak, thereof one must be silent.
 The whole thing ships in nine languages, Latin among them, because an 80s *Tractatus* without a Latin edition would be rude.
 Synthwave carries the soundtrack and every sound effect is a synth.
@@ -98,7 +91,7 @@ It does not mean the loop is empty.
 It means whatever is inside sums to zero, which is a different claim entirely, and the field along that loop can be strong and busy everywhere while the books still balance.
 Put a positive gem and a negative gem inside one loop and it reads zero, exactly as a bare loop does, and from outside the law cannot tell those two situations apart.
 Nothing can.
-Some of the late boards are built out of that blind spot, and the game refuses to help you: a loop at zero is drawn in the colour of the void whether it is empty or merely balanced.
+Some of the late boards live inside that blind spot, and the game refuses to help you: a loop at zero is drawn in the colour of the void whether it is empty or merely balanced.
 Same silence either way.
 
 The law is older than the way we write it.
