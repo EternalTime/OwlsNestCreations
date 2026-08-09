@@ -1,0 +1,295 @@
+// VoidFlux - the game's own look, shared by the home-page banner and the
+// game page. Palette values are the game's, from Rendering.swift `Palette`.
+
+// ---- Shared field ----
+
+// `.vf-field` is any element that hosts the grid and scene canvases.
+// `.vf-page` is not itself a field but needs the same palette for its prose.
+.vf-field,
+.vf-page {
+  --vf-void: #04040e;
+  --vf-pink-bright: #ff49c9;
+  --vf-pink: #e1317b;
+  --vf-teal-bright: #49ffe9;
+  --vf-teal: #35c2aa;
+  --vf-cyan-bright: #37dfff;
+  --vf-cyan: #29a3c3;
+}
+
+.vf-field {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: block;
+  padding: 0;
+  // The field is voidBlack and nothing else. Glow belongs to the geometry - the
+  // thin grid lines and the small charge cores - never to the canvas, so there
+  // is no ambient wash here. The grid canvas is 2D and draws even without
+  // WebGL, so it is the fallback rather than a painted-on gradient.
+  background: var(--vf-void);
+  color: #fff;
+}
+
+.vf-grid,
+.vf-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.vf-grid { z-index: -2; }
+.vf-scene { z-index: -1; opacity: 0; transition: opacity 0.6s ease; }
+.vf-field[data-vf-ready] .vf-scene { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vf-scene { transition: none; }
+}
+
+// Scrim over the whole scene so the copy stays legible against the grid and
+// any gem that drifts behind it. It dims rather than hides: the loops run the
+// full width and have to stay visible behind the headline.
+.vf-field::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    95deg,
+    rgba(4, 4, 14, 0.8) 0%,
+    rgba(4, 4, 14, 0.74) 22%,
+    rgba(4, 4, 14, 0.42) 38%,
+    rgba(4, 4, 14, 0) 54%
+  );
+}
+
+.vf-field .game-blurb {
+  position: relative;
+  z-index: 1;
+  max-width: 32rem;
+  margin: 0;
+  padding: clamp(3rem, 9vh, 6rem) 5vw;
+  text-shadow: 0 2px 18px rgba(4, 4, 14, 0.9);
+}
+
+.vf-field .game-title {
+  color: #fff;
+  text-shadow:
+    0 0 22px rgba(55, 223, 255, 0.55),
+    0 0 60px rgba(255, 73, 201, 0.35);
+}
+
+.vf-field .game-tag { color: var(--vf-teal-bright); }
+
+.vf-banner .game-desc { color: rgba(255, 255, 255, 0.86); }
+
+// ---- Home-page banner ----
+
+.vf-banner {
+  min-height: clamp(30rem, 62vh, 44rem);
+}
+
+.vf-banner .game-cta {
+  background: transparent;
+  color: var(--vf-teal-bright);
+  border: 2px solid var(--vf-teal);
+  box-shadow:
+    0 0 18px rgba(73, 255, 233, 0.25),
+    inset 0 0 18px rgba(73, 255, 233, 0.12);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.vf-banner .game-cta:hover {
+  background: rgba(73, 255, 233, 0.1);
+  box-shadow:
+    0 0 30px rgba(73, 255, 233, 0.45),
+    inset 0 0 24px rgba(73, 255, 233, 0.18);
+}
+
+// ---- Game page ----
+
+.vf-page {
+  background: var(--vf-void);
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.vf-hero {
+  min-height: clamp(26rem, 58vh, 40rem);
+  display: flex;
+  align-items: center;
+}
+
+.vf-hero .game-title {
+  font-size: clamp(3rem, 8vw, 6rem);
+  line-height: 1;
+}
+
+.vf-hero .game-tag {
+  margin-top: 1rem;
+  font-size: clamp(1.1rem, 2.4vw, 1.45rem);
+  font-weight: 600;
+}
+
+// The status pill trades the old solid CTA colours for the loops' neon rim.
+.vf-hero .game-status {
+  margin-top: 1.6rem;
+  background: rgba(73, 255, 233, 0.08);
+  color: var(--vf-teal-bright);
+  border: 1px solid rgba(73, 255, 233, 0.45);
+  box-shadow: 0 0 18px rgba(73, 255, 233, 0.18);
+  letter-spacing: 0.02em;
+}
+
+.vf-prose {
+  position: relative;
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: clamp(3rem, 8vh, 5rem) 5vw clamp(4rem, 10vh, 7rem);
+}
+
+.vf-prose h2 {
+  margin: 3.5rem 0 1.2rem;
+  padding-bottom: 0.7rem;
+  color: #fff;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  // The grid's own pink-to-cyan run, thinned to a hairline.
+  border-bottom: 1px solid transparent;
+  border-image: linear-gradient(
+      90deg,
+      rgba(255, 73, 201, 0.7),
+      rgba(55, 223, 255, 0.55) 55%,
+      rgba(55, 223, 255, 0)
+    ) 1;
+}
+
+.vf-prose > h2:first-child { margin-top: 0; }
+
+.vf-prose h3 {
+  margin: 2.4rem 0 0.8rem;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.vf-prose p {
+  font-size: 1.08rem;
+  line-height: 1.75;
+  margin-bottom: 1.15rem;
+}
+
+.vf-prose strong { color: #fff; font-weight: 700; }
+
+.vf-prose em { color: rgba(255, 255, 255, 0.92); }
+
+.vf-prose a {
+  color: var(--vf-teal-bright);
+  font-weight: 600;
+  text-decoration-color: rgba(73, 255, 233, 0.4);
+  text-underline-offset: 0.18em;
+}
+
+.vf-prose a:hover { text-decoration-color: var(--vf-teal-bright); }
+
+// A pulled-out line for the game's own voice, set like a story card.
+.vf-prose blockquote {
+  margin: 2.25rem 0;
+  padding: 0.2rem 0 0.2rem 1.4rem;
+  border-left: 2px solid rgba(255, 73, 201, 0.55);
+  color: rgba(255, 255, 255, 0.72);
+  font-style: normal;
+}
+
+.vf-prose blockquote p {
+  margin-bottom: 0.4rem;
+  font-size: 1.02rem;
+  line-height: 1.65;
+}
+
+.vf-prose blockquote p:last-child { margin-bottom: 0; }
+
+// ---- In-game captures ----
+
+.vf-shots {
+  --vf-shot-aspect: 3 / 5;
+
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2.25rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  margin: 2.5rem 0 3rem;
+}
+
+.vf-shot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin: 0;
+  min-width: 0;
+}
+
+.vf-shot picture {
+  display: block;
+}
+
+.vf-shot-frame {
+  display: block;
+  width: 100%;
+  // The intrinsic `height` attribute reserves layout space before the capture
+  // loads; it has to be released here or it beats `aspect-ratio`.
+  height: auto;
+  max-width: 21rem;
+  margin-inline: auto;
+  aspect-ratio: var(--vf-shot-aspect);
+  // Never distort a capture whose aspect differs from the slot.
+  object-fit: contain;
+  background: #05050f;
+  border: 1px solid rgba(73, 255, 233, 0.26);
+  border-radius: 1.5rem;
+  box-shadow:
+    0 0 34px rgba(55, 223, 255, 0.12),
+    0 22px 60px rgba(4, 4, 14, 0.75);
+}
+
+.vf-shot-caption {
+  max-width: 23rem;
+  margin-inline: auto;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  text-align: center;
+}
+
+// ---- Narrow viewports ----
+
+@media (max-width: 860px) {
+  .vf-banner {
+    min-height: clamp(30rem, 82vh, 42rem);
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .vf-hero {
+    min-height: clamp(24rem, 64vh, 34rem);
+    align-items: flex-end;
+  }
+
+  .vf-field::after {
+    background: linear-gradient(
+      to top,
+      rgba(4, 4, 14, 0.96) 30%,
+      rgba(4, 4, 14, 0.8) 46%,
+      rgba(4, 4, 14, 0) 62%
+    );
+  }
+
+  .vf-field .game-blurb {
+    padding: 2.5rem 6vw 3.5rem;
+    max-width: none;
+  }
+}
