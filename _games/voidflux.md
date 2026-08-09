@@ -14,17 +14,17 @@ description: VoidFlux is a puzzle game built on Gauss' Law, in development for i
 ## The game
 
 VoidFlux is an electrostatics puzzle dressed up as a neon crystal toy from the 80s.
-A board is a hex lattice with loops of light strung across it, and the loops overlap, nest, and braid.
-Each loop carries a single number, its flux, and each one would like that number gone.
-Underneath sits a tray of charged gems: teal for positive, pink for negative, with as many cores burning inside a gem as it carries units of charge.
+A board is a hex lattice with loops of light strung across it, overlapping and nesting and braiding through one another.
+Every loop carries a number - its flux - and every loop wants that number gone.
+Underneath sits a tray of charged gems, teal for positive and pink for negative, with as many cores burning inside a gem as it carries units of charge.
 Drop a gem inside a loop and you change what that loop encloses, so its number moves.
-Empty the tray with every loop reading zero, and the board goes quiet.
+Empty the tray with every loop reading zero and the board goes quiet.
 That quiet is a Void, and it is the only way to win.
 
-Not one of those numbers is written anywhere on the board.
-A loop declares its sign the way the gems do, by colour, and declares how much it carries by how high it floats above the crystal.
-A loop deep in the negative rides up out of the lattice; work it back toward zero and it sinks, and when it arrives it takes on the colour of the background and disappears into it.
-You end up reading the board the way you read a contour map, and by the second round you have stopped noticing that you are doing it.
+Not one of those numbers is written anywhere.
+A loop tells you its sign by colour and its size by how high it floats, so a loop deep in the negative rides up out of the lattice, and as you work it back toward zero it sinks.
+When it lands it turns the colour of the background and vanishes into it.
+You end up reading the board like a contour map, and by the second round you have stopped noticing you are doing it.
 
 <div class="vf-shots" markdown="0">
 {% include voidflux-shot.html
@@ -37,20 +37,17 @@ You end up reading the board the way you read a contour map, and by the second r
    caption="Radius four, opened up until the outer teal ring closes into a full hexagon. That one loop encircles everything, and no face on this board sits outside some loop." %}
 </div>
 
-The opening levels are nearly free, and they are meant to be.
-One loop, one number, one gem that plainly belongs inside it: the game is teaching your hands a rule it never says out loud.
-Depth arrives with the overlaps.
-Where two loops share a region, a gem dropped in that region counts for both of them at once, and the two numbers stop being separate problems.
-A late board with six loops layered over one another is not six puzzles.
-It is one puzzle with six constraints, and the few gems left in your tray have to satisfy all of them together.
-The rulebook has not grown by a line; the reading has.
+The first levels are nearly free, and they are meant to be: one loop, one number, one gem that obviously belongs inside it.
+The game is teaching your hands a rule it never says out loud.
+Then the loops start to overlap, and a gem dropped where two of them cross counts for both at once.
+A late board with six loops layered over each other is not six puzzles.
+It is one puzzle with six constraints and a handful of gems left to satisfy all of them, and the rulebook has not grown by a line.
+Only the reading has.
 
 Nothing here rewards speed.
-There is no timer, no dexterity check, and no penalty for sitting still and staring at a board for ten minutes.
-What the game asks is that you read the board before you touch it, because a placement is a commitment - you can restart a level, but you cannot un-drop a gem - and all of the interesting work happens before your thumb comes down.
-A dropped gem is swallowed by the crystal and leaves no mark on the face that took it, so the only record of what you have done is the tray thinning out and the loops settling toward the lattice.
-You are handed a set of fluxes and asked which charges could have produced them.
-The game's own story has a name for this: the flux is given, the charge is sought.
+There is no timer, no dexterity check, no penalty for staring at a board for ten minutes.
+What the game wants is that you read before you touch, because a placement is a commitment - restart the level all you like, but you cannot un-drop a gem - and all the interesting work happens before your thumb comes down.
+The crystal swallows a gem whole and leaves no mark where it went, so the only trace of your progress is the tray thinning out and the loops sinking.
 
 <div class="vf-shots" markdown="0">
 {% include voidflux-shot.html
@@ -61,30 +58,29 @@ The game's own story has a name for this: the flux is given, the charge is sough
 
 The 204 levels did not come from placing gems by hand and hoping.
 I wrote a generator, and then I wrote two metrics to argue with it.
-The first enumerates a candidate level's entire solution space and scores how scarce the solutions are, in bits.
-Three bits plays like a warm-up; ten bits means you will not stumble onto the answer with any probability worth counting on.
-The second metric asks whether the overlaps are load-bearing or merely decorative, by checking whether the winning placements use the shared regions at all.
-A level that misses either threshold gets redesigned by hand, one at a time (there is no clever way to do this part, and I went looking).
+The first enumerates a candidate level's whole solution space and scores how scarce the solutions are, in bits: three bits plays like a warm-up, ten bits means you will not stumble onto the answer by luck.
+The second asks whether the overlaps are load-bearing or merely decorative, by checking whether the winning placements use the shared regions at all.
+Anything that misses either threshold goes back to be redesigned by hand, one at a time, because there is no clever way to do that part and I went looking.
 What shipped is 204 survivors across 37 rounds, and the climb from three bits to ten is the shape of the campaign.
 
 Between rounds there is a story, one scene per round, and it is Wittgenstein's *Tractatus* retold in 80s arcade slang.
 It ends where the game ends: whereof one cannot speak, thereof one must be silent.
-The whole telling ships in nine languages, Latin among them, because an 80s *Tractatus* without a Latin edition would be rude.
+The whole thing ships in nine languages, Latin among them, because an 80s *Tractatus* without a Latin edition would be rude.
 Synthwave carries the soundtrack and every sound effect is a synth.
-There are no ads and there is nothing to buy.
+No ads, nothing to buy.
 
 ## The physics
 
 Draw any closed surface you like.
-Count how much electric field pokes out through it, adding what leaves and subtracting what enters, and you have the flux through that surface.
-Gauss' Law says that number equals the charge enclosed, divided by the permittivity of free space.
-That is the whole law.
-It says nothing about where inside the surface the charge sits, and nothing about what shape you drew.
+Count how much electric field pokes out through it, adding what leaves and subtracting what comes back in, and you have the flux through that surface.
+Gauss' Law says that number is the charge you enclosed, divided by a constant whose only job is to fix the units.
 
-The second half of that is the part worth sitting with.
-Slide the charges around inside, and as long as none of them crosses out, the flux does not move.
-Dent the surface, stretch it, wrap it tight around one charge or loosely around all of them (the surface is imaginary, so nothing is stopping you), and the flux still does not move.
-A quantity that ignores almost everything about a configuration and still reports one honest number about it is a remarkable thing, and it is what turns a board of loops into a puzzle rather than a simulation.
+That is the whole law, and the fun of it is in everything it refuses to care about.
+Slide the charges around inside; as long as none of them crosses out, the flux does not budge.
+Dent the surface, stretch it, wrap it tight around one charge or bag all of them loosely - the surface is imaginary, nobody is stopping you - and the flux still does not budge.
+It does not care where the charge sits.
+It does not care what shape you drew.
+It throws away everything except one honest number, which is exactly what makes a board of loops a puzzle instead of a simulation.
 
 <div class="vf-shots" markdown="0">
 {% include voidflux-shot.html
@@ -93,44 +89,28 @@ A quantity that ignores almost everything about a configuration and still report
    caption="Loops nest as freely as Gaussian surfaces do. Two pink hexagons here enclose two teal ones: four different questions asked of the same board." %}
 </div>
 
-VoidFlux never computes a field, because it never needs one.
-The number on a loop is the charge enclosed by that loop, in units where the permittivity is one, which is a physicist's habit anyway.
-So every loop is one equation, the unknowns are the gems still in your tray, and loops that overlap share unknowns.
-That is the real reason overlap is where the difficulty lives: a gem in a shared region appears in two equations at once.
-Stripped of the neon, solving a board is solving that small system over the integers, with a finite tray for a budget.
+So VoidFlux never computes a field, because it never needs one.
+Every loop is one equation, the gems in your tray are the unknowns, and loops that overlap share unknowns, which is the real reason overlap is where the difficulty lives.
+Strip the neon off and you are solving a small system of equations over the integers, on a budget.
 
-The board is flat, so its Gaussian surfaces are closed curves rather than closed shells, and that costs less than it sounds.
-The integral statement - what crosses the boundary is fixed by what is enclosed - holds in any number of dimensions.
-What dimension changes is how a lone charge's field falls off with distance, an inverse square in three dimensions and an inverse first power in two.
-The puzzle only ever uses the part that survives the change.
-
-A loop reading zero is the subtlest thing on the board.
+The best thing on the board is a loop reading zero.
 It does not mean the loop is empty.
-It means the charges inside sum to zero, which is a different claim, and the field along that loop can be strong and structured everywhere while the books still balance.
-Drop a positive gem and a negative gem inside one loop and it reads zero, exactly as a bare loop does, and from the outside the law cannot tell those two situations apart.
-Some of the late boards are built out of that blind spot.
-The game commits to the ambiguity rather than hedging it: a loop at zero is drawn in the colour of the void whether it is empty or merely balanced, and it is the same silence either way.
+It means whatever is inside sums to zero, which is a different claim entirely, and the field along that loop can be strong and busy everywhere while the books still balance.
+Put a positive gem and a negative gem inside one loop and it reads zero, exactly as a bare loop does, and from outside the law cannot tell those two situations apart.
+Nothing can.
+Some of the late boards are built out of that blind spot, and the game refuses to help you: a loop at zero is drawn in the colour of the void whether it is empty or merely balanced.
+Same silence either way.
 
-Carl Friedrich Gauss worked the law out in 1835 and never published it; it surfaced in 1867, twelve years after he was dead.
-By then James Clerk Maxwell had folded it into a set of twenty equations in twenty variables, and it fell to Oliver Heaviside, a self-taught telegraph operator who never held a university post, to boil those down in 1884 to the four we teach today.
-Gauss' Law is one of them, and it is not the odd one out: written as integrals, all four have the same shape, something measured on a boundary fixed by something accumulated inside it.
-Indeed, the magnetic version reads exactly like the electric one with zero on the right, which is the statement that nobody has ever found a magnetic charge to enclose.
-Faraday's law trades the closed surface for a closed curve and says the electric field's circulation around it tracks how fast the magnetic flux through it changes.
-Ampère's law, once Maxwell corrected it, says the matching thing for magnetic circulation.
-Boundary and interior, four times over.
-
-Why should four laws about different things keep saying the same thing?
-
-The resemblance is not a coincidence, and it is where electromagnetism starts getting deep.
-All four are one theorem of calculus in different clothes: what a region accumulates is determined by what happens on its edge.
-Push it far enough and the whole edifice folds down to two equations, one of which is an identity rather than a law, true because of how the field is built rather than because the world happened to come out that way.
-Charge conservation stops being a separate assumption at that point and starts being a consequence, forced by the fact that a boundary has no boundary of its own.
+The law is older than the way we write it.
+Gauss worked it out in 1835 and never published it; it turned up in 1867, twelve years after he died.
+Maxwell built it into a set of twenty equations in twenty variables, and there it might have stayed, except that Oliver Heaviside - a telegraph operator who left school at sixteen and never held a university post - sat down and boiled those twenty into the four that go on a t-shirt today.
+All four say a version of the same thing, that what happens on a boundary is fixed by what is inside it, which is either a coincidence or the best joke in physics.
+It is not a coincidence.
 
 None of this is painted on.
-The win condition is the law itself, run backwards.
-You are never shown a charge in VoidFlux; you are shown what its field does to a boundary and asked to say what must be inside.
-That inversion is not a design conceit either, since measuring on a boundary to infer an interior is how a great deal of physics actually gets done, interiors being the part we usually cannot reach.
-The game just never says so.
+The win condition is the law itself, run backwards: you are never shown a charge in VoidFlux, you are shown what its field does to a boundary and asked what must be inside.
+That is not a design conceit either, since measuring on a boundary to work out an interior is how a great deal of physics actually gets done, interiors being the part we usually cannot reach.
+The game never mentions any of this.
 You drop a gem, the number moves, and your hands work it out.
 
 If you want to know when it launches, [write to us](mailto:hello@owlsnestcreations.com).
