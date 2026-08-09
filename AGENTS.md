@@ -4,7 +4,7 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 - Add durable project-specific notes here as they are discovered through real work.
 
-## The VoidFlux home-page banner
+## The VoidFlux scene (home-page banner and game-page hero)
 
 `assets/js/voidflux-*.js` is a port of the VoidFlux game's own rendering, not
 freehand web art. The game source lives outside this repo at
@@ -66,6 +66,34 @@ on a group's `renderOrder` first and takes it from the *nearest enclosing*
 group, so a nested group with its own `renderOrder` silently resets the sort
 key for every mesh under it. Keep all groups at zero and order the meshes
 (`ORDER` in `voidflux-scene.js`).
+
+## The VoidFlux gameplay captures
+
+`assets/img/voidflux-*.avif`, with `.jpg` fallbacks, are real iPhone captures
+rather than renders of the banner scene. The originals and a per-frame report -
+which frames were rejected and why, plus measured crop boxes - are outside this
+repo at `~/firstmate/data/voidflux-gameplay-captures/report.md`. Give any new
+frame the same crop as the shipped four: 306 px off the top and the bottom of
+the 1206 x 2622 capture, down to 720 x 1200. The top strip carries the Dynamic
+Island notch and a `LVL:` readout whose numbers come from a capture-only
+campaign rather than the shipped one, and the bottom strip carries the
+`PAUSE`/`RETRY` bar. What is left is the 3:5 every shot on the page shares
+(`--vf-shot-aspect`); a frame at any other aspect letterboxes in its slot.
+
+Three facts about the board are easy to caption wrongly and none of them can be
+checked from this repo:
+
+- No number appears anywhere on a board. Colour is a loop's sign and its height
+  above the crystal is the magnitude (`loopColor` and `animateLoopFluxChange`,
+  `Game/SceneBuilder.swift`), and a gem holds one glowing core per unit of
+  charge (`makeChargeNodes`).
+- A solved board is blank on purpose, because flux zero is drawn `voidBlack`, so
+  a win state photographs as an empty crystal.
+- A placed gem is absorbed and leaves no mark, so progress shows only as the
+  tray thinning and the loops sinking.
+
+Only `sips` is installed for image work - no ImageMagick, `pngquant` or `cwebp` -
+and it crops from the centre, which is why the committed crop is symmetric.
 
 ## Review before shipping
 

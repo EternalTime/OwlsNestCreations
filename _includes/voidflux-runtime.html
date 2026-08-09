@@ -1,0 +1,6 @@
+{%- comment -%}
+Boots every `[data-vf-banner]` on the page. Include once per document: the
+module pulls in the vendored three.js, and a second tag would fetch nothing
+extra but would run the initialiser twice.
+{%- endcomment -%}
+<script type="module" src="{{ '/assets/js/voidflux-banner.js' | relative_url }}"></script>

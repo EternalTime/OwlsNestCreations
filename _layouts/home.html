@@ -10,9 +10,8 @@ layout: default
   {% assign published_games = site.games | where: "published_on_site", true | sort: "order" %}
   {% for game in published_games %}
   {% if game.banner == 'voidflux' %}
-  <section class="game-block vf-banner" data-vf-banner>
-    <canvas class="vf-grid" aria-hidden="true"></canvas>
-    <canvas class="vf-scene" aria-hidden="true"></canvas>
+  <section class="game-block vf-field vf-banner" data-vf-banner>
+    {% include voidflux-field.html %}
     <div class="game-blurb">
       <h2 class="game-title" style="font-family: {{ game.title_font }};">{{ game.title }}</h2>
       <div class="game-tag">{{ game.tagline }}</div>
@@ -34,7 +33,7 @@ layout: default
   {% endfor %}
 </div>
 
-<script type="module" src="{{ '/assets/js/voidflux-banner.js' | relative_url }}"></script>
+{% include voidflux-runtime.html %}
 
 <section class="nest-section">
   <h2>More hatching in the nest</h2>

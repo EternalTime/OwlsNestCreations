@@ -1,0 +1,8 @@
+{%- comment -%}
+The VoidFlux scene surface, shared by the home-page banner and the game page.
+The including element owns the box and carries `data-vf-banner`; these two
+canvases fill it. The grid canvas is 2D and paints on its own, so it is also
+the fallback when WebGL is unavailable.
+{%- endcomment -%}
+<canvas class="vf-grid" aria-hidden="true"></canvas>
+<canvas class="vf-scene" aria-hidden="true"></canvas>

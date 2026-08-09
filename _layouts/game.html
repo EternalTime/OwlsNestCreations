@@ -1,6 +1,22 @@
 ---
 layout: default
 ---
+{% if page.banner == 'voidflux' %}
+<article class="vf-page">
+  <section class="vf-field vf-hero" data-vf-banner>
+    {% include voidflux-field.html %}
+    <div class="game-blurb">
+      <h1 class="game-title" style="font-family: {{ page.title_font }};">{{ page.title }}</h1>
+      <div class="game-tag">{{ page.tagline }}</div>
+      <div class="game-status">{{ page.status }}</div>
+    </div>
+  </section>
+  <div class="vf-prose">
+    {{ content }}
+  </div>
+</article>
+{% include voidflux-runtime.html %}
+{% else %}
 <article class="game-page" style="--g-from: {{ page.gradient_from }}; --g-mid: {{ page.gradient_mid }}; --g-to: {{ page.gradient_to }}; --g-cta-bg: {{ page.cta_bg }}; --g-cta-text: {{ page.cta_text }};">
   <section class="game-hero">
     <img class="game-icon" src="{{ page.icon | relative_url }}" alt="{{ page.title }} icon">
@@ -14,3 +30,4 @@ layout: default
     {{ content }}
   </section>
 </article>
+{% endif %}
