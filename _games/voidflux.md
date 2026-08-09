@@ -56,9 +56,8 @@ The crystal swallows a gem whole and leaves no mark where it went, so the only t
    caption="The widest board in the game, four gems in. The loop driven to zero has gone the colour of the void, leaving only its footprint on the crystal." %}
 </div>
 
-There are 204 levels across 37 rounds, and between the rounds there is a story, one scene per round: Wittgenstein's *Tractatus* retold in 80s arcade slang.
-It ends where the game ends: whereof one cannot speak, thereof one must be silent.
-The whole thing ships in nine languages, Latin among them, because an 80s *Tractatus* without a Latin edition would be rude.
+Between rounds there is a story, one scene per round: Wittgenstein's *Tractatus* retold in 80s arcade slang.
+The whole telling ships in nine languages, Latin among them, because an 80s *Tractatus* without a Latin edition would be rude.
 Synthwave carries the soundtrack and every sound effect is a synth.
 No ads, nothing to buy.
 
