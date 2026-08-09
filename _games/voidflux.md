@@ -29,12 +29,12 @@ You end up reading the board the way you read a contour map, and by the second r
 <div class="vf-shots" markdown="0">
 {% include voidflux-shot.html
    name="two-loops"
-   alt="An early VoidFlux board at radius three: two hexagonal loops of the same size, one pink and one teal, offset across a small black crystal, with two charged gems in the tray below."
+   alt="An early VoidFlux board at radius three: two hexagonal loops of the same size, one pink and one teal, overlapping across a black crystal, with two charged gems in the tray below."
    caption="Radius three, the smallest board in the game: one loop of each sign, equal and opposite, and two gems in the tray to spend on them." %}
 {% include voidflux-shot.html
    name="full-board"
-   alt="A VoidFlux board at radius four: a large teal loop tracing the entire hexagonal boundary, a pink loop crossing the middle below it, two small teal loops higher up, and five charged gems in the tray below."
-   caption="Radius four, with every face on the board inside some loop. The teal ring traces the whole boundary, and the pink line across the middle sits lower because it carries less." %}
+   alt="A VoidFlux board at radius four seen close to face-on: a large teal loop closing into a hexagon around the entire boundary, a pink loop zigzagging across the middle, two small teal loops above it, and five charged gems in the tray below."
+   caption="Radius four, opened up until the outer teal ring closes into a full hexagon. That one loop encircles everything, and no face on this board sits outside some loop." %}
 </div>
 
 The opening levels are nearly free, and they are meant to be.
