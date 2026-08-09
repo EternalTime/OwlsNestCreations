@@ -11,9 +11,9 @@ One in-game capture. Parameters:
     <source srcset="{{ vf_shot_base | append: '.avif' | relative_url }}" type="image/avif">
     <img class="vf-shot-frame"
          src="{{ vf_shot_base | append: '.jpg' | relative_url }}"
-         alt="{{ include.alt }}"
+         alt="{{ include.alt | escape }}"
          width="720" height="1200"
          loading="lazy" decoding="async">
   </picture>
-  <figcaption class="vf-shot-caption">{{ include.caption }}</figcaption>
+  <figcaption class="vf-shot-caption">{{ include.caption | escape }}</figcaption>
 </figure>
