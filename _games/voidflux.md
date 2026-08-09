@@ -80,9 +80,4 @@ Maxwell built it into twenty equations in twenty variables, and there it might h
 All four say a version of the same thing, that what happens on a boundary is fixed by what is inside it, which is either a coincidence or the best joke in physics.
 It is not a coincidence.
 
-None of this is painted on: the win condition is the law itself, run backwards.
-You are never shown a charge, only what its field does to a boundary, and asked what must be inside, which is how a great deal of physics actually gets done.
-The game never mentions any of this.
-You drop a gem, the number moves, and your hands work it out.
-
 If you want to know when it launches, [write to us](mailto:hello@owlsnestcreations.com).
