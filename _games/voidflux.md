@@ -11,33 +11,32 @@ banner: voidflux
 description: VoidFlux is a puzzle game built on Gauss' Law, in development for iPhone by Owl's Nest Creations.
 ---
 
+Rad! 
+You made it, and just in the knick of time.
+There's, like, bright stuff everywhere.
+The Void has been disturbed, flux loops have appeared all around, and the dark matter is being drowned.
+I've trapped the charges you need in our remaining dark crystals; use them to cancel these fluxes.
+It's up to you to bring back the Void!
+
 ## The game
 
 VoidFlux is an electrostatics puzzle dressed up as a neon crystal toy from the 80s.
-Loops of light strung across a hex lattice, each carrying a number - its flux - that it wants gone, and a tray of charged gems below: teal for positive, pink for negative, one burning core per unit of charge.
-Empty the tray with every loop at zero and the board goes quiet.
-That quiet is a Void, and it is the only way to win.
-
-Not one of those numbers is written anywhere.
-Colour gives a loop its sign, height above the lattice gives its size, and a loop worked back to zero turns the colour of the background and vanishes.
-You read the board like a contour map, and by the second round you have stopped noticing you are doing it.
+Loops of light strung across a crystal hexagon of dark matter, each carrying a number - its flux - that the dark matter needs gone, and charged crystal gems below: teal for positive, pink for negative, one burning core per quantum of charge.
+Use each crystal, bring each loop to zero flux, and the board goes quiet.
+That silence is a Void, and it is the only way to win.
 
 <div class="vf-shots" markdown="0">
 {% include voidflux-shot.html
    name="two-loops"
    alt="An early VoidFlux board at radius three: two hexagonal loops of the same size, one pink and one teal, overlapping across a black crystal, with two charged gems in the tray below."
-   caption="Radius three, the smallest board in the game: one loop of each sign, equal and opposite, and two gems in the tray to spend on them." %}
+   caption="Radius three, the smallest board in the game. Where would you put the charge to cancel the flux?" %}
 {% include voidflux-shot.html
    name="full-board"
    alt="A VoidFlux board at radius four seen close to face-on: a large teal loop closing into a hexagon around the entire boundary, a pink loop zigzagging across the middle, two small teal loops above it, and five charged gems in the tray below."
-   caption="Radius four, opened up until the outer teal ring closes into a full hexagon. That one loop encircles everything, and no face on this board sits outside some loop." %}
+   caption="Sometimes I feel like the flux is taunting at me. How do I deal with this maniacal mess?" %}
 </div>
 
-The first levels are nearly free, which is how the game teaches your hands a rule it never says out loud.
-Then the loops overlap, and a gem dropped where two of them cross counts for both at once, so a late board with six loops is not six puzzles but one puzzle with six constraints.
-The rulebook has not grown by a line; only the reading has.
-
-There is no timer and no penalty for staring at a board for ten minutes, but a placement is a commitment - restart the level all you like, you cannot un-drop a gem - so the work all happens before your thumb comes down.
+There is no timer and no penalty for staring at a board for minutes, but placement is commitment - you cannot un-drop a gem - so the work all happens before your thumb comes down.
 The crystal swallows a gem whole, and the only trace of your progress is the tray thinning and the loops sinking.
 
 <div class="vf-shots" markdown="0">
@@ -54,9 +53,8 @@ Synthwave soundtrack, every sound effect a synth, no ads, nothing to buy.
 
 Draw any closed surface you like, count how much electric field pokes out through it, and Gauss' Law says that number is the charge you enclosed, divided by a constant whose only job is to fix the units.
 
-That is the whole law, and the fun of it is in everything it refuses to care about.
+That's the whole law, and the fun of it is in everything it doesn't care about.
 Slide the charges around inside, dent the surface, stretch it, wrap it tight around one charge or bag all of them loosely - it is imaginary, nobody is stopping you - and the flux does not budge.
-One honest number, and everything else thrown away.
 
 <div class="vf-shots" markdown="0">
 {% include voidflux-shot.html
@@ -65,7 +63,7 @@ One honest number, and everything else thrown away.
    caption="Loops nest as freely as Gaussian surfaces do. Two pink hexagons here enclose two teal ones: four different questions asked of the same board." %}
 </div>
 
-So VoidFlux never computes a field: every loop is one equation, the gems in your tray are the unknowns, and overlapping loops share unknowns.
+VoidFlux never computes a field: every loop is one equation, the gems in your tray are the unknowns, and overlapping loops share unknowns.
 Strip the neon off and you are solving a small system of equations over the integers, on a budget.
 
 The best thing on the board is a loop reading zero.
