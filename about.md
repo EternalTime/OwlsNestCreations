@@ -16,4 +16,6 @@ The first, [VoidFlux](/games/voidflux/), is built on Gauss' Law and is coming to
 Questions, ideas, or just curious?
 Write to [hello@owlsnestcreations.com](mailto:hello@owlsnestcreations.com).
 
+<a class="game-cta" href="/privacy/" style="--g-cta-bg: var(--accent); --g-cta-text: var(--paper);">Privacy Policy</a>
+
 </section>
