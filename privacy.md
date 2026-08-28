@@ -9,7 +9,8 @@ body_class: prose-page
 
 # Privacy
 
-The short version: the games collect nothing, and this website keeps simple visit statistics.
+The short version: VoidFlux collects nothing, and this website keeps simple visit statistics.
+Each app gets its own section here, and that section is the authority for that app.
 
 ## VoidFlux
 
