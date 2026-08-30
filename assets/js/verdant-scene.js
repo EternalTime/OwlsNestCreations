@@ -69,14 +69,23 @@ const ISLAND = {
 //
 // The depths sum to one, and the keel drop scales them.
 const BEDS = [
-  { depth: 0.098, inset: 0.085, ledge: 0.80, tone: 0.74 },
-  { depth: 0.112, inset: 0.040, ledge: 0.92, tone: 0.46 },
-  { depth: 0.126, inset: 0.215, ledge: 0.76, tone: 0.82 },
-  { depth: 0.140, inset: 0.170, ledge: 0.92, tone: 0.38 },
-  { depth: 0.166, inset: 0.375, ledge: 0.68, tone: 0.62 },
-  { depth: 0.196, inset: 0.560, ledge: 0.58, tone: 0.34 },
-  { depth: 0.162, inset: 1.000, ledge: 0.35, tone: 0.50 },
+  { depth: 0.086, inset: 0.085, ledge: 0.80, tone: 0.74 },
+  { depth: 0.100, inset: 0.040, ledge: 0.92, tone: 0.46 },
+  { depth: 0.112, inset: 0.215, ledge: 0.76, tone: 0.82 },
+  { depth: 0.126, inset: 0.170, ledge: 0.92, tone: 0.38 },
+  { depth: 0.156, inset: 0.375, ledge: 0.68, tone: 0.62 },
+  { depth: 0.210, inset: 0.620, ledge: 0.58, tone: 0.34 },
+  { depth: 0.210, inset: 1.000, ledge: 0.35, tone: 0.50 },
 ];
+
+// How far each plate hangs below where the profile alone would put it, at the
+// keel and nowhere near the shoulder. Without it the bottom of the mass is a
+// smooth cone: the plates and the beds both have to fade there for the solid
+// to close, and what closes neatly reads as turned. A slab torn off the
+// underside of a country ends ragged.
+function plateHang(p) {
+  return (dealt(p * 17 + 3) - 0.5) * 0.46;
+}
 
 // How far the bedding is off level, and which way it falls. Real bedded rock
 // is almost never laid dead flat, and a stack of level bands on a round mass
@@ -292,7 +301,14 @@ function buildRock() {
       const rise = bed < 0 ? 0 : lobed(theta, 7, bed * 5 + 2) * 0.10 * (1 - f * 0.5);
       ring.push({
         x,
-        y: y + (rise + x * dipX + z * dipZ) * settled,
+        // The hang is nothing at the shoulder, most of it two thirds of the
+        // way down, and nothing again on the keel itself - where every column
+        // has already closed onto the medial line, so a column left hanging
+        // there would draw a spike rather than a ledge.
+        y:
+          y +
+          (rise + x * dipX + z * dipZ) * settled +
+          plateHang(col.plate) * f * f * (1 - f) * 3.4,
         z,
         theta,
         plate: col.plate,
@@ -373,12 +389,13 @@ function buildRock() {
     }
   }
 
-  // Close the keel: the last ring fans onto the medial line.
+  // Close the keel: the last ring fans onto the medial line, under the lowest
+  // of it so the fan cannot turn back up through the mass.
   const last = rings[rings.length - 1].ring;
-  const keelY = -drop;
+  const keelY = Math.min(...last.map((p) => p.y)) - 0.06;
   for (let j = 0; j < N; j++) {
     const k = (j + 1) % N;
-    const mid = { x: ((last[j].x + last[k].x) / 2) * 0.4, y: keelY - 0.05, z: 0 };
+    const mid = { x: ((last[j].x + last[k].x) / 2) * 0.4, y: keelY, z: 0 };
     pushTri(last[j], last[k], mid, stone(BEDS.length - 1, last[j].theta, last[j].plate, keelY, true));
   }
 
