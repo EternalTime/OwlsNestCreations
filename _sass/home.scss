@@ -21,6 +21,14 @@
 
 // ---- Game blocks (per-game palette via --g-* custom props) ----
 
+// Every game banner stands the same height: the tallest block sets the row
+// and the grid stretches the others to match it.
+#games {
+  display: grid;
+  grid-auto-rows: 1fr;
+}
+
+
 .game-block {
   background: linear-gradient(160deg, var(--g-from) 0%, var(--g-mid) 45%, var(--g-to) 100%);
   color: #fff;
@@ -82,6 +90,19 @@
 }
 
 .game-cta:hover { transform: scale(1.06); }
+
+// Apple's own App Store badge (their marketing artwork in assets/img),
+// standing where the text pill stood and moving like one.
+.appstore-badge {
+  display: inline-block;
+  margin-top: 2rem;
+  margin-right: 0.9rem;
+  transition: transform 0.15s ease;
+}
+
+.appstore-badge img { display: block; height: 54px; width: auto; }
+
+.appstore-badge:hover { transform: scale(1.06); }
 
 // ---- Nest section ----
 
