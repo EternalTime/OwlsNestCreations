@@ -100,8 +100,7 @@ function lobed(theta, lobes, salt) {
 // A headland, a cove and a buttress: three places on the rim where the
 // outline does something, rather than a wander that does the same everywhere.
 // Placed on the half of the island the camera can see - the camera looks down
-// -z, so bearings between 0 and pi face it, with pi at screen left. The cove
-// is kept clear of the gardener, who stands at 0.15.
+// -z, so bearings between 0 and pi face it, with pi at screen left.
 const RIM_EVENTS = [
   { at: 2.86, width: 0.40, reach: 0.30 },
   { at: 0.62, width: 0.22, reach: -0.27 },
@@ -677,24 +676,40 @@ function buildRock() {
   return new THREE.Mesh(geometry, material);
 }
 
-// Where the gardener stands: on the rim's edge, on the side the camera and
-// the copy both face, with the drop under her toes. The treetops keep clear
-// of the spot so she reads against sky and cloud.
-const GARDENER_THETA = 0.15;
+// The bearing the gardener walks out along.
+//
+// **The bearing is chosen to suit the wood; the wood is not cleared to suit
+// the bearing.** She used to have a corridor culled through the canopy along
+// bearing 0.15, which is why she was never hidden: a lane was held open
+// through the trees with her standing in it. With that lane filled in, the
+// wood is a closed canopy - the crowns are dealt out to 0.98 of the island's
+// radius and carry another 0.2 to 0.7 of a metre of leaf past that, so at
+// every bearing the wood reaches over the rim and there is nowhere on the
+// island a figure 0.41 of a metre tall can stand and be seen through it.
+//
+// Nowhere but a few chance gaps between one crown and the next, and those
+// cannot be found on paper: a crown is a lump displaced up to 43 hundredths
+// of its own radius, so a ball drawn round it is wrong by more than the gaps
+// are wide. They were found by measurement instead - the banner rendered with
+// her and again without her, and the pixels that differ counted, at twelve
+// bearings round the side the camera sees. At bearing 0.20, where she used to
+// stand, not one pixel of her survives the wood. The best window by a wide
+// margin is the buttress at 1.72: there she keeps about seven tenths of the
+// 35 by 48 pixels she covers, and it holds through the whole of the island's
+// slow turn and bob.
+//
+// Two things make the buttress the window. The rim reaches 0.17 of a metre
+// further out there than either side of it, and the crowns are dealt on the
+// radius rather than on the rim, so they do not follow it out. And it is the
+// closest ground on the island to the camera, which draws her a quarter
+// larger than anywhere else - and at her size that decides whether she is a
+// figure or a speck.
+//
+// **If the wood is ever dealt differently, this has to be measured again.**
+const GARDENER_THETA = 1.72;
 function gardenerSpot() {
   const r = rimRadius(GARDENER_THETA);
   return { x: Math.cos(GARDENER_THETA) * r, z: Math.sin(GARDENER_THETA) * r };
-}
-
-// Distance from a point to her walk - the short stretch around where she
-// peeks from the treeline. The wood grows back over the rim beyond it.
-function distanceToWalk(x, z, spot) {
-  const ax = spot.x * 0.55, az = spot.z * 0.55;
-  const bx = spot.x * 0.78, bz = spot.z * 0.78;
-  const dx = bx - ax, dz = bz - az;
-  const len2 = dx * dx + dz * dz || 1;
-  const t = Math.min(Math.max(((x - ax) * dx + (z - az) * dz) / len2, 0), 1);
-  return Math.hypot(x - (ax + dx * t), z - (az + dz * t));
 }
 
 // ---- The treetops ----
@@ -772,10 +787,9 @@ function buildCanopy() {
   const colors = [];
 
   // The lay of the wood: broad masses over a mound, a second planting packed
-  // over the summit, spires standing out of both, a few crowns leaning right
-  // out over the drop, and the gardener's corridor kept clear.
+  // over the summit, spires standing out of both, and a few crowns leaning
+  // right out over the drop.
   const masses = [];
-  const spot = gardenerSpot();
   const mound = (d) => 1 - (d / (ISLAND.radius * 1.1)) ** 2;
   // One tree in four is a spire: a tall narrow crown tapering to a point,
   // which is the only thing here that changes the wood's own outline rather
@@ -792,7 +806,6 @@ function buildCanopy() {
     // ending in a ring of full-sized crowns laid round a flat top.
     const near = 0.68 + mound(d) * 0.42;
     const r = (kind === 'spire' ? 0.19 + rand() * 0.12 : 0.30 + rand() * 0.24) * near;
-    if (distanceToWalk(x, z, spot) < 0.3 + r * 1.35) continue;
     if (masses.some((c) => (c.x - x) ** 2 + (c.z - z) ** 2 < (0.28 * (c.r + r)) ** 2)) continue;
     masses.push({ x, z, r, kind, y: -0.06 + mound(d) * 0.78 + r * 0.4, seed: 7 + i });
   }
@@ -816,7 +829,6 @@ function buildCanopy() {
   const RIM_GAPS = [1.24, 2.45];
   for (let i = 0; i < 400 && overhang.length < 8; i++) {
     const t = rand() * Math.PI;
-    if (Math.abs(t - GARDENER_THETA) < 0.55) continue;
     if (RIM_GAPS.some((g) => bearingAway(t, g) < 0.24)) continue;
     const rim = rimRadius(t);
     // Just past the rim and no further. A crown set out beyond its own
@@ -844,10 +856,6 @@ function buildCanopy() {
     const K = 5;
     const spreads = [0.99, 0.93, 0.78, 0.52, 0.27, 0];
     const heights = [-0.05, 0.24, 0.45, 0.62, 0.75, 0.85];
-    const dip = (theta, depth) => {
-      let away = bearingAway(theta, GARDENER_THETA);
-      return depth * Math.exp(-(away * away) / (2 * 0.22 * 0.22));
-    };
     const ringPoint = (j, k) => {
       const theta = (j / M) * Math.PI * 2;
       const jag = 1 + (dealt(j * 37 + k * 101) - 0.5) * 0.12;
@@ -858,8 +866,7 @@ function buildCanopy() {
         gap -= 0.34 * Math.exp(-(away * away) / (2 * 0.2 * 0.2));
       }
       const r = rimRadius(theta) * spreads[k] * jag * (k < 2 ? gap : 1);
-      const notch = k === 1 ? dip(theta, 0.3) : k === 0 ? dip(theta, 0.1) : 0;
-      return { x: Math.cos(theta) * r, y: heights[k] - notch, z: Math.sin(theta) * r };
+      return { x: Math.cos(theta) * r, y: heights[k], z: Math.sin(theta) * r };
     };
     const pushDome = (a, b, c) => {
       // The dome is the shade between crowns, so it is held low in the ramp.
@@ -1050,13 +1057,29 @@ function buildGardener() {
   return group;
 }
 
-// Her routine: parked in the wood, then out along her corridor to the rim,
-// a long look over the drop, and back into the trees. The banner is serene,
-// so the loop idles far longer than it moves.
-// She only peeks: parked she is deep enough in the wood to be hidden
-// outright, and at her furthest she is just clear of the treeline, never
-// out on the bare rim.
-const ROUTINE = { kIn: 0.7, kOut: 1.14, period: 16, out: 7, outDone: 9, back: 13, backDone: 15 };
+// Her routine: a long wait in among the trees, then out to the rim, a look
+// over the drop, and back into the wood.
+//
+// **Both ends of the walk are on the island, and that is the whole of the
+// point.** She used to be sent out to 1.14 of the rim - fourteen hundredths
+// of the island's own radius past its edge - and lifted another 0.09 on top
+// of that, to silhouette her against the sky rather than lose her behind the
+// leaves. It bought a silhouette and it cost the ground under her feet: she
+// stood in mid air with cloud behind her ankles. She now walks from 0.45 of
+// the rim to 0.92 of it, and 0.92 of the rim on the buttress leaves 0.15 of a
+// metre of turf beyond her against 0.12 to the worst corner of her tracks, so
+// no part of her passes the edge at any moment of the loop.
+//
+// **Hidden is the normal state and coming out is the event.** The old loop
+// had her out or walking for nine seconds in every sixteen, which is most of
+// the time, and she was never hidden even for the other seven because of the
+// lane cut through the wood. The loop is thirty seconds now and she is in
+// among the trees for twenty-one and a half of them - a little over seven
+// tenths - so a visitor watching the banner sees the wood, and then after a
+// while sees the gardener come out of it. At the near end of the walk she is
+// measured invisible: not one pixel of her differs from the same frame
+// rendered without her.
+const ROUTINE = { kIn: 0.45, kOut: 0.92, period: 30, out: 20, outDone: 22.5, back: 26, backDone: 28.5 };
 
 function gardenerPose(t) {
   const p = ((t % ROUTINE.period) + ROUTINE.period) % ROUTINE.period;
@@ -1595,12 +1618,18 @@ export function mount(banner) {
 
   const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const clock = new THREE.Clock();
-  // Started mid-routine, so the first frame - and the only frame, under
-  // reduced motion - has the gardener out on the rim.
-  let elapsed = 10;
+  // Started in the middle of her look over the drop, so the first frame -
+  // and the only frame, for a visitor who has asked for no motion - has the
+  // gardener standing still on the turf at the rim, which is the one moment
+  // of the loop that makes a picture on its own. Every other still of her is
+  // either a walk stopped halfway or a wood with nobody in it.
+  let elapsed = 24;
 
   const spot = gardenerSpot();
-  const outward = Math.atan2(spot.z, spot.x) + Math.PI * 0.15;
+  // Facing out along her own walk, and then turned twenty degrees off it, so
+  // the camera gets her three quarters on and the chimney off her shoulder
+  // tells one side of her from the other.
+  const outward = Math.atan2(spot.x, spot.z) + 0.35;
 
   const step = () => {
     elapsed += clock.getDelta();
@@ -1608,10 +1637,8 @@ export function mount(banner) {
     island.position.y = ISLAND.shoulderY + ISLAND.bobAmp * Math.sin(t * ISLAND.bobRate);
     island.rotation.y = 0.025 * Math.sin(t * 0.15);
     const pose = gardenerPose(t);
-    // Out past the hedge she steps up onto the canopy's lip, so her walk
-    // ends silhouetted against the sky rather than behind the leaves.
-    const lift = smoothstep(0.95, 1.14, pose.k) * 0.09;
-    gardener.position.set(spot.x * pose.k, lift, spot.z * pose.k);
+    // The garden's floor is flat, so she keeps the one height throughout.
+    gardener.position.set(spot.x * pose.k, 0, spot.z * pose.k);
     gardener.rotation.y = outward + (pose.returning ? Math.PI : 0);
     gardener.rotation.z = pose.walking ? 0.05 * Math.sin(t * 9) : 0;
     smoke.update(t);
