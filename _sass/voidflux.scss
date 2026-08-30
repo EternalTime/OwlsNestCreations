@@ -143,6 +143,17 @@
   letter-spacing: 0.02em;
 }
 
+// When the pill is a live App Store link it lights up like the banner CTA.
+.vf-hero a.game-status {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.vf-hero a.game-status:hover {
+  transform: scale(1.06);
+  background: rgba(73, 255, 233, 0.16);
+  box-shadow: 0 0 30px rgba(73, 255, 233, 0.45);
+}
+
 .vf-prose {
   position: relative;
   max-width: 44rem;
@@ -263,6 +274,11 @@
   font-size: 0.9rem;
   line-height: 1.55;
   text-align: center;
+}
+
+// On light prose pages (the press kit) the caption reads in ink, not white.
+.prose-page .vf-shot-caption {
+  color: var(--ink);
 }
 
 // ---- Narrow viewports ----

@@ -8,7 +8,11 @@ layout: default
     <div class="game-blurb">
       <h1 class="game-title" style="font-family: {{ page.title_font }};">{{ page.title }}</h1>
       <div class="game-tag">{{ page.tagline }}</div>
+      {% if page.appstore_url %}
+      <a class="appstore-badge" href="{{ page.appstore_url }}" target="_blank" rel="noopener"><img src="{{ '/assets/img/app_store_button_white.svg' | relative_url }}" alt="Download on the App Store"></a>
+      {% else %}
       <div class="game-status">{{ page.status }}</div>
+      {% endif %}
     </div>
   </section>
   <div class="vf-prose">
@@ -23,7 +27,11 @@ layout: default
     <div class="game-hero-text">
       <h1 class="game-title" style="font-family: {{ page.title_font }};">{{ page.title }}</h1>
       <div class="game-tag">{{ page.tagline }}</div>
+      {% if page.appstore_url %}
+      <a class="game-status" href="{{ page.appstore_url }}" target="_blank" rel="noopener" style="text-decoration: none; display: inline-block;">{{ page.status }}</a>
+      {% else %}
       <div class="game-status">{{ page.status }}</div>
+      {% endif %}
     </div>
   </section>
   <section class="game-body">

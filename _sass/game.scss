@@ -34,6 +34,14 @@
   border-radius: 999px;
 }
 
+a.game-status {
+  transition: transform 0.15s ease;
+}
+
+a.game-status:hover {
+  transform: scale(1.06);
+}
+
 .game-body {
   max-width: 44rem;
   margin: 0 auto;

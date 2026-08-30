@@ -9,9 +9,8 @@ body_class: prose-page
 
 # About
 
-Owl's Nest Creations is the one-person studio of Damian Sowinski, a research physicist, programmer, and polymath who designs games.
-The games start from real physics - the same equations that show up in research and teaching - and turn them into something you can play.
-The first, [VoidFlux](/games/voidflux/), is built on Gauss' Law and is coming to iPhone.
+Owl’s Nest Creations is the design studio of Damian Sowinski, a research physicist, programmer, and polymath who solves differential equations for fun, simulates exotic spacetimes on the weekends, and designs games when the Moon is out.
+The games start from real physics - the same equations that show up in cutting edge research - and end as visually stunning experiences of pure play.
 
 Questions, ideas, or just curious?
 Write to [hello@owlsnestcreations.com](mailto:hello@owlsnestcreations.com).
