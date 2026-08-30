@@ -254,7 +254,10 @@ const SHATTER_STEP = 0.085;
 // ledge is cut at its ceiling, it is the same stone as the bed above, and the
 // wall runs straight through where the bedding line would have broken it - so
 // the two beds are one face twice the height. Plate 7 loses two in a row and
-// carries a face three beds tall.
+// carries a face three beds tall, and so does plate 8 beside it - they are
+// given the same runs on purpose, because the crack between them is shut down
+// to the middle of the drop and a slab cannot be one face if the bedding
+// arrives at the joint from two different heights.
 //
 // None of them is on plate 5, which is the plate square to the camera at the
 // front of the island. A run there fills the middle of the picture with one
@@ -263,7 +266,7 @@ const SHATTER_STEP = 0.085;
 // them, so they are put to either side of it and low down.
 const SWALLOWED = [
   { bed: 2, plates: [7, 8, 14] },
-  { bed: 3, plates: [6, 7] },
+  { bed: 3, plates: [6, 7, 8] },
   { bed: 4, plates: [1, 11] },
   { bed: 5, plates: [3, 4, 12] },
 ];
