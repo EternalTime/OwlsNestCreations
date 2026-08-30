@@ -1,0 +1,79 @@
+// The Verdant Engine - the island-in-the-sky banner. Every construction in
+// the scene is ported from the game's own render code (see CLAUDE.md); the
+// blue sky is the banner's own. The back canvas paints without WebGL, so the
+// banner is a complete picture everywhere.
+
+.ve-field {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  // The copy stands on the left; .game-block would centre it over the island.
+  justify-content: flex-start;
+  min-height: clamp(30rem, 62vh, 44rem);
+  color: #fff;
+  // The sky's own ramp with the land's dark olive under it, so the block is
+  // never blank before the canvas paints.
+  background: linear-gradient(#4e7fb0, #7fa6c8 42%, #e3e7dc 66%, #62655a 67%, #43453a);
+}
+
+.ve-back,
+.ve-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.ve-back { z-index: -2; }
+.ve-scene { z-index: -1; opacity: 0; transition: opacity 0.6s ease; }
+.ve-field[data-ve-ready] .ve-scene { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ve-scene { transition: none; }
+}
+
+// Scrim behind the copy, so it reads against bright sky and cloud. It leans
+// left and dims rather than hides: the island stays the other half of the
+// composition.
+.ve-field::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    rgba(28, 26, 36, 0.5) 0%,
+    rgba(28, 26, 36, 0.26) 34%,
+    rgba(28, 26, 36, 0) 58%
+  );
+}
+
+.ve-field .game-blurb { position: relative; z-index: 1; }
+
+// The tagline wears the game's own light - the lanterns' lampGlow - as
+// VoidFlux's wears its teal.
+.ve-field .game-tag {
+  font-style: italic;
+  color: #ffd98a;
+  // The title's hard drop, cut in the canopy's darkest green and scaled to
+  // the tagline's size.
+  text-shadow: 0 2px 0 rgba(26, 38, 24, 0.6);
+}
+
+// Not a link: the release window, worn as a plate.
+.ve-field .game-release {
+  display: inline-block;
+  margin-top: 2rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding: 0.9rem 2rem;
+  border-radius: 999px;
+  border: 2px solid rgba(253, 246, 236, 0.85);
+  color: #fdf6ec;
+  background: rgba(28, 26, 36, 0.35);
+}

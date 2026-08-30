@@ -1,0 +1,8 @@
+{%- comment -%}
+The Verdant Engine scene surface, hosted by the home-page banner. The back
+canvas is 2D - sky, ridges and the land far below - and paints on its own,
+so it is also the whole picture when WebGL is unavailable. The scene canvas
+carries the island, the gardener and the drifting cloud (verdant-scene.js).
+{%- endcomment -%}
+<canvas class="ve-back" aria-hidden="true"></canvas>
+<canvas class="ve-scene" aria-hidden="true"></canvas>
