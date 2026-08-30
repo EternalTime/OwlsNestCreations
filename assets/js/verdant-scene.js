@@ -2,14 +2,22 @@
 // under it and treetops on it, with the cloud banks drifting past - over the
 // backdrop verdant-banner.js has already painted.
 //
-// Every construction here is the game's own, ported from the render code:
-// the rock is IslandRockNode's strata - beds stepped in to a keel, each bed
-// toned with a per-facet wobble (the `dealt` hash is copied digit for digit) -
-// the treetops are TreeStand's leaf ramp, and a cloud is CloudBank's puff:
-// a low-segment geodesic sphere squashed (1.35, 0.62, 1.0), lambert-lit in
-// Palette.cloud with a dimmed emission so its underside stays cloud rather
-// than going grey. The drift is CloudDrift's arithmetic at cluster level:
-// each mass walks a slow seeded orbit and breathes.
+// The clouds are the game's own, ported from the render code: a cloud is
+// CloudBank's puff - a low-segment geodesic sphere squashed (1.35, 0.62,
+// 1.0), lambert-lit in Palette.cloud with a dimmed emission so its underside
+// stays cloud rather than going grey - and the drift is CloudDrift's
+// arithmetic at cluster level, each mass walking a slow seeded orbit and
+// breathing. The palette is the game's every hex.
+//
+// The rock and the treetops are the banner's own, by the captain's word of
+// 2026-08-28, and the reason is the camera. The game looks DOWN on its
+// scenes at fifty-six degrees; this camera is level with the island. Every
+// horizontal surface on this rock is therefore seen within eleven degrees of
+// edge on - the top beds within three - so the game's whole scheme, bright
+// bedding ledges taking a high sun, draws a ledge thirteen pixels wide as
+// less than one pixel of picture. What a side-on view does show is the
+// outline and how a vertical face is turned to the sun, so the stone is cut
+// for those instead.
 //
 // three.js is the site's vendored copy, shared with the VoidFlux banner.
 
@@ -39,22 +47,47 @@ const ISLAND = {
   x: 0.85,
   shoulderY: 1.14,
   radius: 1.6,
-  // IslandRock: nine courses, the first 0.55 deep and each 1.28 times the
-  // one above, drawing in to a keel. Scaled to scene units.
-  courses: 9,
-  firstCourse: 0.55,
-  courseGrowth: 1.28,
   keelDrop: 2.0,
   keelHalf: 0.5,
-  drawInPower: 1.6,
-  // How far each course's tread steps in before its face falls, as a share
-  // of the drawing-in that course does: the beds read as beds because the
-  // rim of each is a ledge, not a slope.
-  tread: 0.55,
-  columns: 72,
   bobAmp: 0.07,
   bobRate: 0.5,
 };
+
+// The beds of stone, top to bottom. `depth` is how thick the bed is; `inset`
+// is how far its floor has drawn in toward the keel, nought at the rim and
+// one on the keel line; `ledge` is how much of that draw-in the bed takes as
+// a shelf at its own ceiling rather than as a lean on its face; `tone` is how
+// pale the bed is between the deep stone and the pale.
+//
+// **A bed whose floor is drawn in LESS than the bed above it overhangs**, and
+// two of them do. Nothing overhung on the ported rock - every course was
+// strictly narrower than the one above - and a mass that only ever narrows is
+// a mass that was turned rather than one that broke off. From a level camera
+// the overhang is read in the outline rather than in the shadow under it, so
+// what matters is that the profile steps back out by twenty-odd pixels, not
+// that a soffit is lit.
+//
+// The depths sum to one, and the keel drop scales them.
+const BEDS = [
+  { depth: 0.098, inset: 0.085, ledge: 0.80, tone: 0.74 },
+  { depth: 0.112, inset: 0.040, ledge: 0.92, tone: 0.46 },
+  { depth: 0.126, inset: 0.215, ledge: 0.76, tone: 0.82 },
+  { depth: 0.140, inset: 0.170, ledge: 0.92, tone: 0.38 },
+  { depth: 0.166, inset: 0.375, ledge: 0.68, tone: 0.62 },
+  { depth: 0.196, inset: 0.560, ledge: 0.58, tone: 0.34 },
+  { depth: 0.162, inset: 1.000, ledge: 0.35, tone: 0.50 },
+];
+
+// How far the bedding is off level, and which way it falls. Real bedded rock
+// is almost never laid dead flat, and a stack of level bands on a round mass
+// is a barrel with stripes on it. Nine degrees is enough to be read as a dip
+// and not enough to look like a mistake; it also wedges the top beds, thin on
+// one side and thick on the other, which is a shape no lathe makes.
+//
+// It is eased in below the shoulder, because the shoulder itself has to stay
+// level - the ground and the whole wood stand on it.
+const BED_DIP = 0.158;
+const BED_DIP_BEARING = 2.5;
 
 // IslandRockNode.dealt, exactly.
 function dealt(index) {
@@ -91,101 +124,198 @@ function smoothstep(a, b, x) {
   return t * t * (3 - 2 * t);
 }
 
-// The island's outline in plan: a seeded wander on a circle, low harmonics
-// only, so the rim reads as ground and never as a gear.
-function rimRadius(theta) {
-  return (
-    ISLAND.radius *
-    (1 +
-      0.12 * Math.sin(3 * theta + 1.7) +
-      0.06 * Math.sin(7 * theta + 4.1) +
-      0.035 * Math.sin(11 * theta + 2.3) +
-      0.022 * Math.sin(17 * theta + 0.9))
-  );
+// A wander round the island that never jumps from one column to the next:
+// `lobes` values dealt on a ring and eased between. Returns -1 to 1.
+//
+// Everything that shapes the stone goes through this rather than through a
+// hash of the column, and that is the whole difference between rock and
+// gravel. A value dealt afresh at every column is noise at the size of a
+// facet - about six pixels here - and the eye reads noise at that size as
+// grit on a smooth thing, not as relief in a rough one.
+function lobed(theta, lobes, salt) {
+  const walked = ((theta / (Math.PI * 2)) % 1 + 1) % 1 * lobes;
+  const i = Math.floor(walked);
+  const t = walked - i;
+  const eased = t * t * (3 - 2 * t);
+  const at = (k) => dealt((((k % lobes) + lobes) % lobes) * 71 + salt * 313) * 2 - 1;
+  const a = at(i);
+  return a + (at(i + 1) - a) * eased;
 }
 
-// Course depths, IslandRock's own progression normalised to the keel drop.
-function courseDepths() {
-  const raw = [];
-  let d = ISLAND.firstCourse;
-  for (let i = 0; i < ISLAND.courses; i++) {
-    raw.push(d);
-    d *= ISLAND.courseGrowth;
+// A headland, a cove and a buttress: three places on the rim where the
+// outline does something, rather than a wander that does the same everywhere.
+// Placed on the half of the island the camera can see - the camera looks down
+// -z, so bearings between 0 and pi face it, with pi at screen left. The cove
+// is kept clear of the gardener, who stands at 0.15.
+const RIM_EVENTS = [
+  { at: 2.86, width: 0.40, reach: 0.30 },
+  { at: 0.62, width: 0.22, reach: -0.27 },
+  { at: 1.70, width: 0.30, reach: 0.17 },
+  { at: 2.15, width: 0.17, reach: -0.15 },
+];
+
+function bearingAway(theta, at) {
+  let away = Math.abs(theta - at) % (Math.PI * 2);
+  if (away > Math.PI) away = Math.PI * 2 - away;
+  return away;
+}
+
+// The island's outline in plan: a low-harmonic wander, and then the three
+// events on top of it. The wander alone gave a rim with no promontory and no
+// notch anywhere on it, which is what made the mass read as a turned thing.
+function rimRadius(theta) {
+  let r =
+    ISLAND.radius *
+    (1 +
+      0.10 * Math.sin(3 * theta + 1.7) +
+      0.055 * Math.sin(7 * theta + 4.1) +
+      0.03 * Math.sin(11 * theta + 2.3));
+  for (const e of RIM_EVENTS) {
+    const away = bearingAway(theta, e.at);
+    r += e.reach * Math.exp(-(away * away) / (2 * e.width * e.width));
   }
-  const total = raw.reduce((a, b) => a + b, 0);
-  return raw.map((v) => (v * ISLAND.keelDrop) / total);
+  return r;
+}
+
+// The plan of the rock: flat plates of stone standing at their own distances
+// from the middle, with a crack down the full drop between each and the next.
+//
+// **This is what a rounded outline could never give.** A radial wobble on a
+// circle turns the surface by fifteen degrees at most, and fifteen degrees of
+// turn under this sun is a shading difference the eye does not see; the mass
+// comes back smooth however deep the wobble is made. What reads from a camera
+// level with the rock is a plane at one angle meeting a plane at another
+// along a hard vertical edge - so the outline is a polygon of thirteen
+// irregular plates rather than a circle, and where two plates disagree about
+// how far out they stand, the wall between them is a crack face.
+//
+// The plates are plumb, so a crack runs the whole drop the way a joint in a
+// cliff does, and they soften a little toward the keel where the mass has to
+// close.
+const PLATES = 17;
+const RIB_SOFTEN = 0.4;
+
+function plateEdges() {
+  const widths = [];
+  for (let p = 0; p < PLATES; p++) widths.push(0.62 + dealt(p * 37 + 5) * 0.85);
+  const total = widths.reduce((a, b) => a + b, 0);
+  const edges = [];
+  let walked = 0;
+  for (let p = 0; p < PLATES; p++) {
+    edges.push((walked / total) * Math.PI * 2);
+    walked += widths[p];
+  }
+  edges.push(Math.PI * 2);
+  return edges;
+}
+
+// How far a plate stands off the outline. Mostly sound rock a little proud,
+// and a few plates cut deeply back: the power is what keeps the clefts few.
+function plateOffset(p) {
+  return 0.13 - Math.pow(dealt(p * 91 + 17), 1.8) * 0.5;
 }
 
 // Where a rim column lands when it has drawn all the way in: on the keel, a
-// short medial ridge rather than a point, as the game's stadium keel is.
+// short medial ridge rather than a point.
 function keelPoint(theta) {
   const c = Math.cos(theta);
   const x = Math.sign(c) * Math.min(Math.abs(c) * ISLAND.radius, ISLAND.keelHalf);
   return { x, z: 0 };
 }
 
-function buildRock() {
-  const depths = courseDepths();
-  const N = ISLAND.columns;
-  const total = ISLAND.keelDrop;
-
-  // A ring of the outline drawn in by fraction f, at height y, with the bed's
-  // seeded wander in height - IslandRock's bedWander at our scale.
-  const ringAt = (f, y, level) => {
-    const ring = [];
-    for (let j = 0; j < N; j++) {
-      const theta = (j / N) * Math.PI * 2;
-      const r = rimRadius(theta);
-      const keel = keelPoint(theta);
-      const x = (1 - f) * (r * Math.cos(theta)) + f * keel.x;
-      const z = (1 - f) * (r * Math.sin(theta)) + f * keel.z;
-      const wander = level === 0 ? 0 : (dealt(j * 13 + level * 71) - 0.5) * 0.15 * (0.4 + f);
-      ring.push({ x, y: y + wander, z });
-    }
-    return ring;
+// The shoulder outline walked once: every column carries the bearing it
+// stands on, where the plate puts it, and where the plain rim would have put
+// it, so a ring can be taken between the two as the plates soften downward.
+//
+// A plate is walked along its own chord rather than along the arc, which is
+// what makes it one flat face; at each join two columns are laid on the same
+// bearing, one on each plate, and the wall between them is the crack.
+function rockPlan() {
+  const edges = plateEdges();
+  const plan = [];
+  const at = (theta, offset) => {
+    const r = rimRadius(theta) + offset;
+    return { x: r * Math.cos(theta), z: r * Math.sin(theta) };
   };
-
-  // Each course is a tread and a face: the ledge that steps in at the top of
-  // the bed, then the drop to the next bed's rim. That step is what makes
-  // nine courses read as strata rather than as a slope.
-  const insetAt = (walked) => Math.pow(walked / total, ISLAND.drawInPower);
-
-  // Crag: the columns disagree a little about how far in their bed has
-  // drawn, so the silhouette is a rock and not a lathe. Applied to a ring
-  // once, and every band reads the same ring, so the beds stay watertight -
-  // a bed cragged twice is a seam of bright slivers.
-  const cragged = (ring, salt) => {
-    for (let j = 0; j < ring.length; j++) {
-      const crag = (dealt(j * 29 + salt * 113) - 0.5) * 0.22;
-      const p = ring[j];
-      const len = Math.hypot(p.x, p.z) || 1;
-      p.x += (p.x / len) * crag;
-      p.z += (p.z / len) * crag;
-    }
-    return ring;
-  };
-
-  // Ring stack: each course's floor ring is the next course's rim, shared by
-  // reference so the mass has no seams.
-  const outers = [];
-  const inners = [];
-  {
-    let walkedTo = 0;
-    for (let level = 0; level < ISLAND.courses; level++) {
-      const below = walkedTo + depths[level];
-      const fTop = insetAt(walkedTo);
-      const fNext = insetAt(below);
-      const fTread = fTop + ISLAND.tread * (fNext - fTop);
-      outers.push(level === 0 ? ringAt(fTop, -walkedTo, level) : outers[level]);
-      if (outers.length === level) outers.push(ringAt(fTop, -walkedTo, level));
-      inners.push(cragged(ringAt(fTread, -walkedTo - depths[level] * 0.12, level), level * 2 + 1));
-      outers[level + 1] = cragged(ringAt(fNext, -below, level + 1), level * 2 + 2);
-      walkedTo = below;
+  for (let p = 0; p < PLATES; p++) {
+    const t0 = edges[p];
+    const t1 = edges[p + 1];
+    const offset = plateOffset(p);
+    const a = at(t0, offset);
+    const b = at(t1, offset);
+    const steps = Math.max(2, Math.round(((t1 - t0) / (Math.PI * 2)) * 34));
+    for (let s = 0; s < steps; s++) {
+      const k = s / (steps - 1);
+      const theta = t0 + (t1 - t0) * k;
+      plan.push({
+        theta,
+        x: a.x + (b.x - a.x) * k,
+        z: a.z + (b.z - a.z) * k,
+        rim: at(theta, 0),
+        plate: p,
+      });
     }
   }
-  const bands = [];
-  for (let level = 0; level < ISLAND.courses; level++) {
-    bands.push({ level, outer: outers[level], inner: inners[level], lower: outers[level + 1] });
+  return plan;
+}
+
+function buildRock() {
+  const drop = ISLAND.keelDrop;
+  const plan = rockPlan();
+  const N = plan.length;
+
+  // One ring of the flank: the outline drawn in toward the keel by `f`, with
+  // the rib on it, at height `y` lifted by the bedding line's own rise.
+  //
+  // The rise is lobed round the island for the reason the game gives in
+  // IslandRock.rise: a bedding line dealt afresh at every column moves by its
+  // own amplitude between neighbours, and that stands the bed on end. Here it
+  // was worse than that - the wander was two and three quarter pixels against
+  // a bed six pixels deep, dealt per column, which is most of why the ported
+  // rock came back as grit.
+  const dipX = Math.cos(BED_DIP_BEARING) * BED_DIP;
+  const dipZ = Math.sin(BED_DIP_BEARING) * BED_DIP;
+  const ringAt = (f, y, bed) => {
+    const ring = [];
+    // The dip comes in over the first two beds and the rise with it, so the
+    // shoulder stays the level line the wood stands on.
+    const settled = bed < 0 ? 0 : clamp01((bed + 1) / 3);
+    const soften = f * RIB_SOFTEN;
+    for (let j = 0; j < N; j++) {
+      const col = plan[j];
+      const theta = col.theta;
+      const keel = keelPoint(theta);
+      const px = col.x + (col.rim.x - col.x) * soften;
+      const pz = col.z + (col.rim.z - col.z) * soften;
+      const x = (1 - f) * px + f * keel.x;
+      const z = (1 - f) * pz + f * keel.z;
+      const rise = bed < 0 ? 0 : lobed(theta, 7, bed * 5 + 2) * 0.10 * (1 - f * 0.5);
+      ring.push({
+        x,
+        y: y + (rise + x * dipX + z * dipZ) * settled,
+        z,
+        theta,
+        plate: col.plate,
+      });
+    }
+    return ring;
+  };
+
+  // The profile: the shoulder, then for every bed a shelf at its ceiling and
+  // a floor below it. Consecutive rings are a strip - a shelf where they
+  // share a height, a face where they do not.
+  const rings = [{ ring: ringAt(0, 0, -1), bed: 0, shelf: false, f: 0 }];
+  {
+    let f = 0;
+    let y = 0;
+    for (let bed = 0; bed < BEDS.length; bed++) {
+      const b = BEDS[bed];
+      const shelfF = f + b.ledge * (b.inset - f);
+      rings.push({ ring: ringAt(shelfF, y, bed), bed, shelf: true, f: shelfF });
+      y -= b.depth * drop;
+      f = b.inset;
+      rings.push({ ring: ringAt(f, y, bed), bed, shelf: false, f });
+    }
   }
 
   const positions = [];
@@ -195,63 +325,82 @@ function buildRock() {
     for (let i = 0; i < 3; i++) colors.push(col.r, col.g, col.b);
   };
 
-  const facetColour = (level, columnJ, midY, isTread) => {
-    // IslandRockNode.tone: the bed's own tone with a per-facet wobble, the
-    // tread hashed apart from the face as the game hashes it.
-    const bed = dealt(level * 977 + 31);
-    const wobble = dealt(columnJ * 61 + level * 17 + (isTread ? 5 : 0));
-    const tone = Math.min(Math.max(bed * 0.85 + wobble * 0.15, 0), 1);
-    const col = bedrockMid.clone().lerp(bedrockPale, tone);
-    // Darkening as the mass falls away from the light, so the keel goes
-    // toward black - the "land hanging in the air" read of the rock shader.
-    const drop = -midY / ISLAND.keelDrop;
-    col.lerp(bedrockDeep, 0.55 * smoothstep(0.3, 1.0, drop));
-    // The first course is the crust of earth the garden grows in.
-    if (level === 0 && !isTread) col.copy(soilDark).lerp(bedrockMid, 0.2 * wobble);
+  // How pale a facet of stone is.
+  //
+  // The bed carries the tone and the bearing wanders it slowly; the facet
+  // itself gets a fleck a tenth as large. The ported rock had this the other
+  // way round - the tone came off a hash of the facet's own index, so the
+  // mottle ran across the beds instead of with them and no seam of stone
+  // held together for more than one triangle.
+  const stone = (bed, theta, plate, midY, down) => {
+    // The bed carries the tone; the plate washes it the same way in every bed,
+    // the way one weathered face of a cliff is paler top to bottom; and only
+    // the last and smallest term knows which of the two it is standing in. Let
+    // that last term grow and the flank comes back a chequerboard of stone.
+    const tone = clamp01(
+      BEDS[bed].tone +
+        (dealt(plate * 61 + 9) - 0.5) * 0.20 +
+        lobed(theta, 6, bed * 3 + 7) * 0.09 +
+        (dealt(plate * 313 + bed * 17) - 0.5) * 0.06
+    );
+    const col = bedrockDeep.clone().lerp(bedrockMid, clamp01(tone * 1.9));
+    col.lerp(bedrockPale, clamp01((tone - 0.34) * 1.55));
+    // Falling away from the light toward the keel: the read the game's rock
+    // shader is after, land hanging in the air rather than a thick edge.
+    col.lerp(bedrockDeep, 0.34 * smoothstep(0.34, 1.1, -midY / drop));
+    // A surface turned under is a surface the sun never reaches.
+    if (down) col.multiplyScalar(0.72);
     return col;
   };
 
-  for (const band of bands) {
+  for (let i = 1; i < rings.length; i++) {
+    const upper = rings[i - 1];
+    const lower = rings[i];
+    const bed = lower.bed;
+    // A shelf that draws in faces up; one that steps back out is the ceiling
+    // of an overhang and faces down.
+    const down = lower.shelf && lower.f < upper.f;
     for (let j = 0; j < N; j++) {
       const k = (j + 1) % N;
-      // Tread: outer rim to the stepped-in ring.
-      let a = band.outer[j], b = band.outer[k], c = band.inner[k], d = band.inner[j];
-      let col = facetColour(band.level, j, (a.y + c.y) / 2, true);
+      const a = upper.ring[j], b = upper.ring[k], c = lower.ring[k], d = lower.ring[j];
+      const midY = (a.y + c.y) / 2;
+      const col = stone(bed, a.theta, a.plate, midY, down);
       pushTri(a, b, c, col);
-      pushTri(a, c, d, facetColour(band.level, j + N, (a.y + c.y) / 2, true));
-      // Face: stepped-in ring down to the next bed's rim.
-      a = band.inner[j]; b = band.inner[k]; c = band.lower[k]; d = band.lower[j];
-      col = facetColour(band.level, j, (a.y + c.y) / 2, false);
-      pushTri(a, b, c, col);
-      pushTri(a, c, d, facetColour(band.level, j + N, (a.y + c.y) / 2, false));
+      pushTri(a, c, d, col);
     }
   }
 
-  // Close the keel: the last rim fans onto the medial line.
-  const last = bands[bands.length - 1].lower;
-  const keelY = -ISLAND.keelDrop;
+  // Close the keel: the last ring fans onto the medial line.
+  const last = rings[rings.length - 1].ring;
+  const keelY = -drop;
   for (let j = 0; j < N; j++) {
     const k = (j + 1) % N;
-    const mid = { x: (last[j].x + last[k].x) / 2 * 0.4, y: keelY - 0.05, z: 0 };
-    pushTri(last[j], last[k], mid, facetColour(ISLAND.courses - 1, j, keelY, false));
+    const mid = { x: ((last[j].x + last[k].x) / 2) * 0.4, y: keelY - 0.05, z: 0 };
+    pushTri(last[j], last[k], mid, stone(BEDS.length - 1, last[j].theta, last[j].plate, keelY, true));
   }
-  const rings = [bands[0].outer];
 
   // A lid just under the canopy, so no camera angle sees down into the shell.
+  const shoulder = rings[0].ring;
   const lid = { x: 0, y: 0.02, z: 0 };
   for (let j = 0; j < N; j++) {
     const k = (j + 1) % N;
     const col = soilDark.clone().lerp(leafShadow, 0.5);
-    pushTri({ ...rings[0][k], y: 0.02 }, { ...rings[0][j], y: 0.02 }, lid, col);
+    pushTri({ ...shoulder[k], y: 0.02 }, { ...shoulder[j], y: 0.02 }, lid, col);
   }
 
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   geometry.computeVertexNormals();
-  const material = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
-  const mesh = new THREE.Mesh(geometry, material);
-  return mesh;
+  // Double sided, so the overhangs cannot go missing whichever way a strip
+  // happens to be wound - and three.js turns the normal to face the camera on
+  // a double-sided surface, so a soffit is still lit as the soffit it is.
+  const material = new THREE.MeshLambertMaterial({
+    vertexColors: true,
+    flatShading: true,
+    side: THREE.DoubleSide,
+  });
+  return new THREE.Mesh(geometry, material);
 }
 
 // Where the gardener stands: on the rim's edge, on the side the camera and
