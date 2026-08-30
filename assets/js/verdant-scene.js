@@ -348,6 +348,9 @@ function buildRock() {
     // Falling away from the light toward the keel: the read the game's rock
     // shader is after, land hanging in the air rather than a thick edge.
     col.lerp(bedrockDeep, 0.34 * smoothstep(0.34, 1.1, -midY / drop));
+    // The top bed is the crust of earth the garden is growing in, not stone:
+    // what the gardener stands on has to be seen to be a crust.
+    if (bed === 0) col.copy(soilDark).lerp(bedrockMid, 0.18 + tone * 0.22);
     // A surface turned under is a surface the sun never reaches.
     if (down) col.multiplyScalar(0.72);
     return col;
@@ -425,15 +428,27 @@ function distanceToWalk(x, z, spot) {
 
 // ---- The treetops ----
 
-// TreeStand's crown masses, ported exactly: a mass is an icosahedron
-// (subdivided once - three's detail-1 solid) whose vertices ride the game's
-// smooth three-sine lump, so every mass is a closed surface and the wood
-// cannot tear open. The colour is the leaf shader read as vertex colours:
-// the shadow-deep-mid-sun ramp up the crown, then the two-lattice clump
-// mottle so no facet is a flat swatch.
+// The leaf ramp and its clump grain are TreeStand's, digit for digit. What is
+// the banner's own is where the ramp is measured from, what shapes a mass, and
+// how the wood meets the drop.
+//
+// **The ramp is measured on the crown and not on the wood.** The game runs
+// shadow-deep-mid-sun over each crown's own body - `(y - crownBase) / (2 *
+// crownDepth)` in TreeStand.addBlob - so every tree in it shows a shaded
+// underside and a lit top. The port measured it up the whole canopy instead,
+// from world -0.2 to 1.15, and that is most of why the wood came back as one
+// green lump: two masses at the same height took the same colour whatever
+// their shape, a low mass was uniformly dark and a high one uniformly bright,
+// and no mass anywhere had a top and an underside of its own.
+//
+// **The grain is per mass and not per world.** The game gives each blob its
+// own offset round the crown; the port sampled a field in world coordinates,
+// so two masses touching shared their mottle and were glued into one surface.
+//
+// **There are two kinds of tree.** Every mass was one shape in one size class
+// before, so the wood's silhouette varied only by scale.
 
-const CANOPY_Y_MIN = -0.2;
-const CANOPY_Y_MAX = 1.15;
+const CROWN_SPAN = 2.0;
 
 function clamp01(v) {
   return Math.min(Math.max(v, 0), 1);
@@ -446,9 +461,10 @@ function cellHash(cx, cy, kx, ky, m) {
 }
 
 // The leaf modifier's grain: two rotated lattices of clumps and a fine
-// dust, in the mass's own metres.
-function leafGrain(x, y, z) {
-  const m0 = x + 0.6 * z;
+// dust, round the mass and up it, in the mass's own metres. `turn` is the
+// mass's own offset round the crown, so no two masses carry the same mottle.
+function leafGrain(x, y, z, turn) {
+  const m0 = x + 0.6 * z + (turn || 0);
   const m1 = y * 3.2;
   const clump = cellHash(
     Math.floor((m0 * 0.94 - m1 * 0.34) * 5.5),
@@ -466,9 +482,10 @@ function leafGrain(x, y, z) {
 }
 
 // The leaf modifier's tone: shadow at the underside, deep, mid, sun at the
-// top, the brighter clumps stepping up a tone as well as brightening.
-function leafColour(y, grain) {
-  const rise = clamp01((y - CANOPY_Y_MIN) / (CANOPY_Y_MAX - CANOPY_Y_MIN));
+// top, the brighter clumps stepping up a tone as well as brightening. `rise`
+// is how far up its own crown the leaf sits, nought at the underside and one
+// at the top.
+function leafColour(rise, grain) {
   const col = leafShadow.clone().lerp(leafDeep, clamp01(rise * 2.6));
   col.lerp(leafMid, clamp01((rise - 0.3) * 2.4));
   col.lerp(leafSun, clamp01((rise - 0.68) * 3.0));
@@ -482,83 +499,117 @@ function buildCanopy() {
   const rand = mulberry32(0x9e551);
   const positions = [];
   const colors = [];
-  const pushVertex = (x, y, z) => {
-    positions.push(x, y, z);
-    const col = leafColour(y, leafGrain(x, y, z));
-    colors.push(col.r, col.g, col.b);
-  };
 
-  // The lay of the wood: broad masses over a mound, the outer ring leaning
-  // past the rim, a second planting packed over the summit, and the
-  // gardener's corridor kept clear.
+  // The lay of the wood: broad masses over a mound, a second planting packed
+  // over the summit, spires standing out of both, a few crowns leaning right
+  // out over the drop, and the gardener's corridor kept clear.
   const masses = [];
   const spot = gardenerSpot();
-  for (let i = 0; i < 700 && masses.length < 64; i++) {
+  const mound = (d) => 1 - (d / (ISLAND.radius * 1.1)) ** 2;
+  // One tree in four is a spire: a tall narrow crown tapering to a point,
+  // which is the only thing here that changes the wood's own outline rather
+  // than the size of the lumps along it.
+  const kindOf = () => (rand() < 0.30 ? 'spire' : 'broad');
+
+  for (let i = 0; i < 900 && masses.length < 78; i++) {
     const t = rand() * Math.PI * 2;
     const d = Math.sqrt(rand()) * ISLAND.radius * 0.98;
     const x = Math.cos(t) * d;
     const z = Math.sin(t) * d;
-    const r = 0.4 + rand() * 0.28;
+    const kind = kindOf();
+    // The wood thins as it goes out, so it tapers to its edge instead of
+    // ending in a ring of full-sized crowns laid round a flat top.
+    const near = 0.68 + mound(d) * 0.42;
+    const r = (kind === 'spire' ? 0.19 + rand() * 0.12 : 0.30 + rand() * 0.24) * near;
     if (distanceToWalk(x, z, spot) < 0.3 + r * 1.35) continue;
-    if (masses.some((c) => (c.x - x) ** 2 + (c.z - z) ** 2 < (0.3 * (c.r + r)) ** 2)) continue;
-    const mound = 1 - (d / (ISLAND.radius * 1.1)) ** 2;
-    masses.push({ x, z, r, y: -0.08 + mound * 0.62 + r * 0.4, seed: 7 + i });
+    if (masses.some((c) => (c.x - x) ** 2 + (c.z - z) ** 2 < (0.28 * (c.r + r)) ** 2)) continue;
+    masses.push({ x, z, r, kind, y: -0.06 + mound(d) * 0.78 + r * 0.4, seed: 7 + i });
   }
-  for (let i = 0; i < 260 && masses.length < 84; i++) {
+  for (let i = 0; i < 400 && masses.length < 106; i++) {
     const t = rand() * Math.PI * 2;
-    const d = Math.sqrt(rand()) * ISLAND.radius * 0.55;
+    const d = Math.sqrt(rand()) * ISLAND.radius * 0.6;
     const x = Math.cos(t) * d;
     const z = Math.sin(t) * d;
-    const r = 0.32 + rand() * 0.22;
-    if (masses.some((c) => (c.x - x) ** 2 + (c.z - z) ** 2 < (0.22 * (c.r + r)) ** 2)) continue;
-    const mound = 1 - (d / (ISLAND.radius * 1.1)) ** 2;
-    masses.push({ x, z, r, y: 0.1 + mound * 0.62 + r * 0.4, seed: 900 + i });
+    const kind = kindOf();
+    const r = kind === 'spire' ? 0.17 + rand() * 0.11 : 0.24 + rand() * 0.19;
+    if (masses.some((c) => (c.x - x) ** 2 + (c.z - z) ** 2 < (0.2 * (c.r + r)) ** 2)) continue;
+    masses.push({ x, z, r, kind, y: 0.12 + mound(d) * 0.78 + r * 0.4, seed: 900 + i });
+  }
+
+  // The trees that lean out over the drop, and the trunks that show under
+  // them. An unbroken fringe all the way round is the surest sign that a
+  // canopy was laid on rather than grown: what is wanted is a few crowns
+  // hanging past the rock with daylight under them, and a gap or two where
+  // the rock comes through.
+  const overhang = [];
+  const RIM_GAPS = [1.24, 2.45];
+  for (let i = 0; i < 400 && overhang.length < 8; i++) {
+    const t = rand() * Math.PI;
+    if (Math.abs(t - GARDENER_THETA) < 0.55) continue;
+    if (RIM_GAPS.some((g) => bearingAway(t, g) < 0.24)) continue;
+    const rim = rimRadius(t);
+    // Just past the rim and no further. A crown set out beyond its own
+    // neighbours stops being a tree at the edge of a wood and becomes a bush
+    // floating in the air on a stick.
+    const d = rim * (0.97 + rand() * 0.13);
+    const x = Math.cos(t) * d;
+    const z = Math.sin(t) * d;
+    const r = 0.22 + rand() * 0.15;
+    if (overhang.some((c) => (c.x - x) ** 2 + (c.z - z) ** 2 < (1.3 * (c.r + r)) ** 2)) continue;
+    const mass = { x, z, r, kind: 'broad', y: 0.2 + rand() * 0.16 + r * 0.3, seed: 4400 + i };
+    masses.push(mass);
+    overhang.push({ ...mass, root: Math.min(d, rim * 0.94) });
   }
 
   // The dome of deep wood under the masses, so whatever shows between two
-  // of them is leaf and never sky. Coloured by the same ramp, low in it.
+  // of them is leaf and never sky.
+  //
+  // Its outermost ring used to stand at 1.28 of the rim - wider than the
+  // island and wider than any crown on it - so it hung past the whole wood as
+  // a smooth green flap with no leaf shape anywhere on it. It is drawn back
+  // inside the crowns now, which is the only place it can do its job from.
   {
     const M = 44;
     const K = 5;
-    const spreads = [1.28, 1.08, 0.8, 0.52, 0.27, 0];
-    const heights = [-0.14, 0.2, 0.42, 0.6, 0.74, 0.84];
+    const spreads = [0.99, 0.93, 0.78, 0.52, 0.27, 0];
+    const heights = [-0.05, 0.24, 0.45, 0.62, 0.75, 0.85];
     const dip = (theta, depth) => {
-      let away = Math.abs(theta - GARDENER_THETA) % (Math.PI * 2);
-      if (away > Math.PI) away = Math.PI * 2 - away;
+      let away = bearingAway(theta, GARDENER_THETA);
       return depth * Math.exp(-(away * away) / (2 * 0.22 * 0.22));
     };
     const ringPoint = (j, k) => {
       const theta = (j / M) * Math.PI * 2;
       const jag = 1 + (dealt(j * 37 + k * 101) - 0.5) * 0.12;
-      const r = rimRadius(theta) * spreads[k] * jag;
+      // Where the rim is meant to show bare rock the dome pulls back with it.
+      let gap = 1;
+      for (const g of RIM_GAPS) {
+        const away = bearingAway(theta, g);
+        gap -= 0.34 * Math.exp(-(away * away) / (2 * 0.2 * 0.2));
+      }
+      const r = rimRadius(theta) * spreads[k] * jag * (k < 2 ? gap : 1);
       const notch = k === 1 ? dip(theta, 0.3) : k === 0 ? dip(theta, 0.1) : 0;
       return { x: Math.cos(theta) * r, y: heights[k] - notch, z: Math.sin(theta) * r };
     };
     const pushDome = (a, b, c) => {
-      // The dome sits inside the wood: held low in the ramp so it reads as
-      // shade between crowns, its own grain still on it.
+      // The dome is the shade between crowns, so it is held low in the ramp.
       for (const p of [a, b, c]) {
         positions.push(p.x, p.y, p.z);
-        const col = leafColour(Math.min(p.y, 0.32), leafGrain(p.x, p.y, p.z) * 0.7);
+        const col = leafColour(0.17, leafGrain(p.x, p.y, p.z, 0) * 0.7);
         colors.push(col.r, col.g, col.b);
       }
     };
     for (let k = 0; k < K; k++) {
       for (let j = 0; j < M; j++) {
         const jn = (j + 1) % M;
-        const a = ringPoint(j, k);
-        const b = ringPoint(jn, k);
-        const c = ringPoint(jn, k + 1);
-        const d = ringPoint(j, k + 1);
-        pushDome(a, b, c);
-        pushDome(a, c, d);
+        pushDome(ringPoint(j, k), ringPoint(jn, k), ringPoint(jn, k + 1));
+        pushDome(ringPoint(j, k), ringPoint(jn, k + 1), ringPoint(j, k + 1));
       }
     }
   }
 
-  // The masses themselves: addBlob, digit for digit. The lump is a product
-  // of three sines of the direction, phased per mass, +-26% - a smooth
-  // closed displacement, which is why the game's crowns have no cracks.
+  // The masses themselves. The lump is TreeStand.addBlob's: a product of three
+  // sines of the direction, phased per mass, plus or minus twenty-six per
+  // cent - a smooth closed displacement, which is why a crown has no cracks.
   const proto = new THREE.IcosahedronGeometry(1, 1);
   const protoPos = proto.getAttribute('position');
   const protoIndex = proto.getIndex();
@@ -566,26 +617,57 @@ function buildCanopy() {
   for (const mass of masses) {
     const deal = mulberry32(mass.seed);
     const phase = [deal() * 6.28, deal() * 6.28, deal() * 6.28];
-    const squash = 0.62 + deal() * 0.3;
+    const squash = 0.55 + deal() * 0.55;
+    const turn = deal() * 20;
+    // A spire is the same solid drawn out and drawn to a point: the crown
+    // narrows as a power of how far up it the leaf sits.
+    const tall = mass.kind === 'spire' ? 2.5 + deal() * 1.1 : 0;
     const placed = [];
     for (let v = 0; v < protoPos.count; v++) {
       vertex.fromBufferAttribute(protoPos, v).normalize();
-      const lump = 1 + 0.26
-        * Math.sin(vertex.x * 4.3 + phase[0])
-        * Math.sin(vertex.y * 3.1 + phase[1])
-        * Math.sin(vertex.z * 2.6 + phase[2]);
-      placed.push([
-        mass.x + vertex.x * mass.r * lump,
-        mass.y + vertex.y * mass.r * squash * lump,
-        mass.z + vertex.z * mass.r * lump,
-      ]);
+      // TreeStand's own lump, and a second one at twice the frequency over
+      // it. One smooth product of three sines makes an egg; the second term
+      // knuckles it, which is what tells a crown of leaves from a boulder.
+      // Both are smooth functions of the direction, so the surface still
+      // closes and a crown still cannot tear open.
+      const lump = 1
+        + 0.26
+          * Math.sin(vertex.x * 4.3 + phase[0])
+          * Math.sin(vertex.y * 3.1 + phase[1])
+          * Math.sin(vertex.z * 2.6 + phase[2])
+        + 0.17
+          * Math.sin(vertex.x * 8.7 + phase[1])
+          * Math.sin(vertex.y * 7.1 + phase[2])
+          * Math.sin(vertex.z * 9.3 + phase[0]);
+      if (tall) {
+        const up = (vertex.y + 1) / 2;
+        const taper = Math.pow(1 - up, 0.62);
+        const flat = Math.hypot(vertex.x, vertex.z) || 1;
+        placed.push([
+          mass.x + (vertex.x / flat) * mass.r * taper * lump,
+          mass.y + (up - 0.4) * mass.r * tall * lump,
+          mass.z + (vertex.z / flat) * mass.r * taper * lump,
+        ]);
+      } else {
+        placed.push([
+          mass.x + vertex.x * mass.r * lump,
+          mass.y + vertex.y * mass.r * squash * lump,
+          mass.z + vertex.z * mass.r * lump,
+        ]);
+      }
     }
+    // How far up its own crown a leaf sits, which is what the ramp is read on.
+    const half = tall ? mass.r * tall * 0.5 : mass.r * squash;
+    const base = mass.y - half * (tall ? 0.8 : 1);
+    const span = Math.max(half * CROWN_SPAN, 0.2);
     const faces = protoIndex ? protoIndex.count / 3 : protoPos.count / 3;
     const at = (f, k) => (protoIndex ? protoIndex.getX(f * 3 + k) : f * 3 + k);
     for (let f = 0; f < faces; f++) {
       for (let k = 0; k < 3; k++) {
         const p = placed[at(f, k)];
-        pushVertex(p[0], p[1], p[2]);
+        positions.push(p[0], p[1], p[2]);
+        const col = leafColour((p[1] - base) / span, leafGrain(p[0], p[1], p[2], turn));
+        colors.push(col.r, col.g, col.b);
       }
     }
   }
@@ -601,7 +683,55 @@ function buildCanopy() {
     flatShading: true,
     side: THREE.DoubleSide,
   });
-  return new THREE.Mesh(geometry, material);
+  const group = new THREE.Group();
+  group.add(new THREE.Mesh(geometry, material));
+  group.add(buildTrunks(overhang));
+  return group;
+}
+
+// The trunks under the crowns that lean out over the drop. They are the whole
+// point of letting a crown overhang: a mass of leaf hanging past the rock with
+// nothing under it is a cloud, and a mass with a trunk running back in under
+// the canopy is a tree standing at the edge of a wood.
+function buildTrunks(overhang) {
+  const positions = [];
+  const colors = [];
+  const light = colour(Palette.barkLight);
+  const mid = colour(Palette.barkMid);
+  const dark = colour(Palette.barkDark);
+  const push = (a, b, c, col) => {
+    positions.push(a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]);
+    for (let i = 0; i < 3; i++) colors.push(col.r, col.g, col.b);
+  };
+  for (const tree of overhang) {
+    const t = Math.atan2(tree.z, tree.x);
+    const foot = [Math.cos(t) * tree.root, -0.03, Math.sin(t) * tree.root];
+    const head = [tree.x, tree.y - tree.r * 0.5, tree.z];
+    const wide = 0.035 + tree.r * 0.05;
+    const sides = 5;
+    for (let s = 0; s < sides; s++) {
+      const a = (s / sides) * Math.PI * 2;
+      const b = ((s + 1) / sides) * Math.PI * 2;
+      // Turned to the light like the rock is: one flank of the trunk catches
+      // the sun and the other does not.
+      const face = mid.clone().lerp(Math.cos(a + 0.6) > 0 ? light : dark, 0.4);
+      const ring = (ang, at, w) => [at[0] + Math.cos(ang) * w, at[1], at[2] + Math.sin(ang) * w];
+      const p0 = ring(a, foot, wide * 1.35);
+      const p1 = ring(b, foot, wide * 1.35);
+      const p2 = ring(b, head, wide);
+      const p3 = ring(a, head, wide);
+      push(p0, p1, p2, face);
+      push(p0, p2, p3, face);
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geometry.computeVertexNormals();
+  return new THREE.Mesh(
+    geometry,
+    new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, side: THREE.DoubleSide })
+  );
 }
 
 // ---- The gardener ----
