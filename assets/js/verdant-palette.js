@@ -25,6 +25,11 @@ export const Palette = {
   leafDeep: '#2e4227',
   leafShadow: '#1a2618',
 
+  // TreeStand bark, for the trunks under the crowns that overhang the drop
+  barkLight: '#5c4931',
+  barkMid: '#33261a',
+  barkDark: '#150f0a',
+
   // FarCountryPicture's air
   landHaze: '#4a4c3c',
 
