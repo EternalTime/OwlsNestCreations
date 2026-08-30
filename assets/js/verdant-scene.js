@@ -224,6 +224,126 @@ function plateOffset(p) {
   return 0.13 - Math.pow(dealt(p * 91 + 17), 1.8) * 0.5;
 }
 
+// Plates that have shattered. A big slab only reads as big with broken ground
+// beside it, and this is the only thing on the flank that makes a face much
+// SMALLER than the grid would allow. A shattered plate breaks both ways at
+// once: its columns stand at their own reaches instead of on one chord, so no
+// two facets across it lie in one plane, and its rings step in and out by
+// their own amounts, so its wall is chopped down into a stack of small ledges
+// instead of running clean from its ceiling to its floor.
+//
+// It is given one extra column and no more. Every column on the island ends
+// on the keel and cuts one notch in the fan that closes it, so a plate walked
+// in six would comb the keel's approved raggedness down into a saw.
+const SHATTERED = [2, 4, 8, 13];
+const SHATTER_REACH = 0.11;
+const SHATTER_STEP = 0.085;
+
+// Where a bed is swallowed by the one above it.
+//
+// **Seventeen plates each crossing every one of seven beds is a grid**, and a
+// grid has no big faces in it however far the widths and the depths are
+// wobbled: every face is bounded by the same two cracks and the same two
+// bedding lines as its neighbours, so none of them can be more than about
+// twice any other. Measured off the rendered picture before this, the
+// ninety-six faces the camera sees ran 0.07 to 0.26 square units of stone
+// with the middle at 0.16 - four fifths of them inside a single factor of
+// four, and inside any one bed a factor of 2.4.
+//
+// A bed listed here does not run the whole way round. Against those plates no
+// ledge is cut at its ceiling, it is the same stone as the bed above, and the
+// wall runs straight through where the bedding line would have broken it - so
+// the two beds are one face twice the height. Plate 7 loses two in a row and
+// carries a face three beds tall.
+//
+// None of them is on plate 5, which is the plate square to the camera at the
+// front of the island. A run there fills the middle of the picture with one
+// blank plane and takes the bedding out of the only place it is read at full
+// size; the tall faces are worth more standing beside beds than instead of
+// them, so they are put to either side of it and low down.
+const SWALLOWED = [
+  { bed: 2, plates: [7, 8, 14] },
+  { bed: 3, plates: [6, 7] },
+  { bed: 4, plates: [1, 11] },
+  { bed: 5, plates: [3, 4, 12] },
+];
+
+function swallowed(bed, plate) {
+  return SWALLOWED.some((s) => s.bed === bed && s.plates.includes(plate));
+}
+
+// The bed whose stone and whose bedding line a column actually takes: the top
+// of the run it has been swallowed into.
+const BED_HOST = BEDS.map((_, bed) =>
+  Array.from({ length: PLATES }, (_, plate) => {
+    let b = bed;
+    while (b > 0 && swallowed(b, plate)) b--;
+    return b;
+  }),
+);
+
+// The rings that fall inside a run, and where each of them belongs on the
+// straight line between the run's ceiling and its floor. The inset alone will
+// not put them there: a column's place is not a straight function of its
+// inset - the hang below the shoulder goes as f squared times one minus f -
+// so rings laid at even insets come out on a curve, and a curve is three
+// walls at three leans, which is what the run was meant to stop being.
+const PLATE_STRAIGHTEN = Array.from({ length: PLATES }, () => []);
+
+// How far each ring of the flank has drawn in toward the keel, worked out for
+// one plate: the shoulder, then a shelf and a floor for every bed. Beds that
+// this plate swallows are worked as one bed - one ledge at the top of the run
+// and one straight wall from there to the floor of the last of them - so the
+// rings that would have divided them land ON that wall instead of breaking
+// it, and the strips between them come out flat and empty.
+const PLATE_INSET = Array.from({ length: PLATES }, (_, plate) => {
+  const runs = [];
+  for (let bed = 0; bed < BEDS.length; bed++) {
+    if (bed > 0 && swallowed(bed, plate)) runs[runs.length - 1].push(bed);
+    else runs.push([bed]);
+  }
+  const insets = [0];
+  let at = 0;
+  for (const run of runs) {
+    const first = BEDS[run[0]];
+    const floor = BEDS[run[run.length - 1]].inset;
+    // The ledge at the top of a run is the one the first bed would have had
+    // on its own; all the extra draw-in goes into the lean of the wall. Cut it
+    // for the whole run instead and the ledge is several times too deep, which
+    // takes a bite out of the outline the shape work never asked for.
+    const shelf = at + first.ledge * (first.inset - at);
+    const depth = run.reduce((s, b) => s + BEDS[b].depth, 0);
+    const top = insets.length;
+    let walked = 0;
+    for (const bed of run) {
+      insets.push(shelf + (floor - shelf) * (walked / depth));
+      walked += BEDS[bed].depth;
+      insets.push(shelf + (floor - shelf) * (walked / depth));
+    }
+    const foot = insets.length - 1;
+    walked = 0;
+    for (let i = 0; i < run.length; i++) {
+      if (i > 0) PLATE_STRAIGHTEN[plate].push({ index: top + i * 2, top, foot, at: walked / depth });
+      walked += BEDS[run[i]].depth;
+      if (i < run.length - 1) {
+        PLATE_STRAIGHTEN[plate].push({ index: top + i * 2 + 1, top, foot, at: walked / depth });
+      }
+    }
+    at = floor;
+  }
+  // A shattered plate's rings each stand at their own reach as well, which is
+  // what chops its wall into small ledges rather than one clean face. It dies
+  // away toward the keel, where every plate has to close onto the medial line
+  // whatever it has been doing above.
+  if (SHATTERED.includes(plate)) {
+    for (let i = 1; i < insets.length - 1; i++) {
+      const f = insets[i];
+      insets[i] = clamp01(f + (dealt(plate * 71 + i * 41 + 7) - 0.5) * SHATTER_STEP * (1 - f));
+    }
+  }
+  return insets;
+});
+
 // Where a rim column lands when it has drawn all the way in: on the keel, a
 // short medial ridge rather than a point.
 function keelPoint(theta) {
@@ -232,35 +352,92 @@ function keelPoint(theta) {
   return { x, z: 0 };
 }
 
-// The shoulder outline walked once: every column carries the bearing it
-// stands on, where the plate puts it, and where the plain rim would have put
-// it, so a ring can be taken between the two as the plates soften downward.
+// A point on the rim at a bearing, pushed out or cut back by `offset`.
+function rimPoint(theta, offset) {
+  const r = rimRadius(theta) + offset;
+  return { x: r * Math.cos(theta), z: r * Math.sin(theta) };
+}
+
+// Which cracks do not run the whole drop.
 //
-// A plate is walked along its own chord rather than along the arc, which is
-// what makes it one flat face; at each join two columns are laid on the same
-// bearing, one on each plate, and the wall between them is the crack.
+// A crack that runs from the shoulder to the keel divides two plates all the
+// way down, so neither can ever be wider than one plate. Where a crack is
+// shut the two plates it separates stand at one reach and the eye sees a
+// single slab twice the width; `from` and `to` are where along the drop it is
+// open, nought at the shoulder and one at the keel, so a crack from -0.1 to
+// 0.38 dies a third of the way down and one from 0.55 to 1.1 does not open
+// until past halfway. Crack `c` is the joint between plate `c` and the next
+// round, and no plate is listed twice, so a shut crack never has to be
+// reconciled with another.
+const CRACKS = [
+  { crack: 3, from: -0.1, to: 0.38 },
+  { crack: 7, from: 0.55, to: 1.1 },
+];
+
+function plateOffsetAt(p, f) {
+  const own = plateOffset(p);
+  for (const c of CRACKS) {
+    const twin = c.crack;
+    const next = (c.crack + 1) % PLATES;
+    if (p !== twin && p !== next) continue;
+    const open =
+      smoothstep(c.from - 0.06, c.from + 0.06, f) * (1 - smoothstep(c.to - 0.06, c.to + 0.06, f));
+    const shared = (plateOffset(twin) + plateOffset(next)) / 2;
+    return shared + (own - shared) * open;
+  }
+  return own;
+}
+
+// Which plate's stone a plate is cut from at each ring. The wash in `stone`
+// is dealt per plate, so where a crack has shut both sides must be told to
+// take the one stone - otherwise the slab that has just closed up comes back
+// in two shades and the eye still reads the crack the geometry has removed.
+const PLATE_STONE = Array.from({ length: PLATES }, (_, plate) =>
+  PLATE_INSET[plate].map((f) => {
+    for (const c of CRACKS) {
+      const next = (c.crack + 1) % PLATES;
+      if (plate !== c.crack && plate !== next) continue;
+      return f > c.from && f < c.to ? plate : c.crack;
+    }
+    return plate;
+  }),
+);
+
+// Where a column stands when its plate reaches out by `offset`. A plate is
+// walked along its own chord rather than along the arc, which is what makes
+// it one flat face; at each join two columns are laid on the same bearing,
+// one on each plate, and the wall between them is the crack. A shattered
+// plate has no chord - every column takes the arc at its own reach.
+function columnAt(col, offset) {
+  if (col.shatter !== 0) return rimPoint(col.theta, offset + col.shatter);
+  const a = rimPoint(col.t0, offset);
+  const b = rimPoint(col.t1, offset);
+  return { x: a.x + (b.x - a.x) * col.k, z: a.z + (b.z - a.z) * col.k };
+}
+
+// The shoulder outline walked once: every column carries the bearing it
+// stands on, the chord of the plate it belongs to, and where the plain rim
+// would have put it, so a ring can be taken between the two as the plates
+// soften downward.
 function rockPlan() {
   const edges = plateEdges();
   const plan = [];
-  const at = (theta, offset) => {
-    const r = rimRadius(theta) + offset;
-    return { x: r * Math.cos(theta), z: r * Math.sin(theta) };
-  };
   for (let p = 0; p < PLATES; p++) {
     const t0 = edges[p];
     const t1 = edges[p + 1];
-    const offset = plateOffset(p);
-    const a = at(t0, offset);
-    const b = at(t1, offset);
-    const steps = Math.max(2, Math.round(((t1 - t0) / (Math.PI * 2)) * 34));
+    const broken = SHATTERED.includes(p);
+    const span = (t1 - t0) / (Math.PI * 2);
+    const steps = Math.max(broken ? 3 : 2, Math.round(span * 34));
     for (let s = 0; s < steps; s++) {
       const k = s / (steps - 1);
       const theta = t0 + (t1 - t0) * k;
       plan.push({
         theta,
-        x: a.x + (b.x - a.x) * k,
-        z: a.z + (b.z - a.z) * k,
-        rim: at(theta, 0),
+        t0,
+        t1,
+        k,
+        shatter: broken ? (dealt(p * 53 + s * 29 + 11) - 0.5) * SHATTER_REACH : 0,
+        rim: rimPoint(theta, 0),
         plate: p,
       });
     }
@@ -284,21 +461,31 @@ function buildRock() {
   // rock came back as grit.
   const dipX = Math.cos(BED_DIP_BEARING) * BED_DIP;
   const dipZ = Math.sin(BED_DIP_BEARING) * BED_DIP;
-  const ringAt = (f, y, bed) => {
+  const ringAt = (index, y, bed) => {
     const ring = [];
     // The dip comes in over the first two beds and the rise with it, so the
     // shoulder stays the level line the wood stands on.
     const settled = bed < 0 ? 0 : clamp01((bed + 1) / 3);
-    const soften = f * PLATE_SOFTEN;
     for (let j = 0; j < N; j++) {
       const col = plan[j];
+      // Every plate walks its own profile, so a plate that has swallowed a
+      // bed is drawn in less far here than its neighbours are.
+      const f = index < 0 ? 0 : PLATE_INSET[col.plate][index];
+      const host = bed < 0 ? -1 : BED_HOST[bed][col.plate];
       const theta = col.theta;
       const keel = keelPoint(theta);
-      const px = col.x + (col.rim.x - col.x) * soften;
-      const pz = col.z + (col.rim.z - col.z) * soften;
+      const soften = f * PLATE_SOFTEN;
+      // The reach is asked for at this depth, so a crack that dies partway
+      // down has already closed by the time the lower rings are laid.
+      const stood = columnAt(col, plateOffsetAt(col.plate, f));
+      const px = stood.x + (col.rim.x - stood.x) * soften;
+      const pz = stood.z + (col.rim.z - stood.z) * soften;
       const x = (1 - f) * px + f * keel.x;
       const z = (1 - f) * pz + f * keel.z;
-      const rise = bed < 0 ? 0 : lobed(theta, 7, bed * 5 + 2) * 0.10 * (1 - f * 0.5);
+      // The bedding line takes the run's own wander, not each swallowed bed's,
+      // or the wall the run has just joined up would kink at every line it was
+      // meant to run past.
+      const rise = host < 0 ? 0 : lobed(theta, 7, host * 5 + 2) * 0.10 * (1 - f * 0.5);
       ring.push({
         x,
         // The hang is nothing at the shoulder, most of it two thirds of the
@@ -312,6 +499,9 @@ function buildRock() {
         z,
         theta,
         plate: col.plate,
+        cut: index < 0 ? col.plate : PLATE_STONE[col.plate][index],
+        f,
+        host,
       });
     }
     return ring;
@@ -320,17 +510,27 @@ function buildRock() {
   // The profile: the shoulder, then for every bed a shelf at its ceiling and
   // a floor below it. Consecutive rings are a strip - a shelf where they
   // share a height, a face where they do not.
-  const rings = [{ ring: ringAt(0, 0, -1), bed: 0, shelf: false, f: 0 }];
+  const rings = [{ ring: ringAt(-1, 0, -1), bed: 0, shelf: false }];
   {
-    let f = 0;
     let y = 0;
+    let index = 0;
     for (let bed = 0; bed < BEDS.length; bed++) {
-      const b = BEDS[bed];
-      const shelfF = f + b.ledge * (b.inset - f);
-      rings.push({ ring: ringAt(shelfF, y, bed), bed, shelf: true, f: shelfF });
-      y -= b.depth * drop;
-      f = b.inset;
-      rings.push({ ring: ringAt(f, y, bed), bed, shelf: false, f });
+      rings.push({ ring: ringAt(++index, y, bed), bed, shelf: true });
+      y -= BEDS[bed].depth * drop;
+      rings.push({ ring: ringAt(++index, y, bed), bed, shelf: false });
+    }
+  }
+
+  // Pull the rings inside a run onto the line between its ceiling and its
+  // floor, so a swallowed pair is one plane and not two nearly-one planes.
+  for (let j = 0; j < N; j++) {
+    for (const s of PLATE_STRAIGHTEN[plan[j].plate]) {
+      const a = rings[s.top].ring[j];
+      const b = rings[s.foot].ring[j];
+      const p = rings[s.index].ring[j];
+      p.x = a.x + (b.x - a.x) * s.at;
+      p.y = a.y + (b.y - a.y) * s.at;
+      p.z = a.z + (b.z - a.z) * s.at;
     }
   }
 
@@ -375,15 +575,15 @@ function buildRock() {
   for (let i = 1; i < rings.length; i++) {
     const upper = rings[i - 1];
     const lower = rings[i];
-    const bed = lower.bed;
-    // A shelf that draws in faces up; one that steps back out is the ceiling
-    // of an overhang and faces down.
-    const down = lower.shelf && lower.f < upper.f;
     for (let j = 0; j < N; j++) {
       const k = (j + 1) % N;
       const a = upper.ring[j], b = upper.ring[k], c = lower.ring[k], d = lower.ring[j];
+      // A shelf that draws in faces up; one that steps back out is the ceiling
+      // of an overhang and faces down. Which it is now depends on the plate,
+      // so it is asked of the column and not of the whole ring.
+      const down = lower.shelf && d.f < a.f;
       const midY = (a.y + c.y) / 2;
-      const col = stone(bed, a.theta, a.plate, midY, down);
+      const col = stone(d.host, a.theta, d.cut, midY, down);
       pushTri(a, b, c, col);
       pushTri(a, c, d, col);
     }
