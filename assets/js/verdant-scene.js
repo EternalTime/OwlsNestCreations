@@ -13,11 +13,10 @@
 // 2026-08-28, and the reason is the camera. The game looks DOWN on its
 // scenes at fifty-six degrees; this camera is level with the island. Every
 // horizontal surface on this rock is therefore seen within eleven degrees of
-// edge on - the top beds within three - so the game's whole scheme, bright
-// bedding ledges taking a high sun, draws a ledge thirteen pixels wide as
-// less than one pixel of picture. What a side-on view does show is the
-// outline and how a vertical face is turned to the sun, so the stone is cut
-// for those instead.
+// edge on, so the game's whole scheme - bright bedding ledges taking a high
+// sun - draws a ledge thirteen pixels wide as less than one pixel of
+// picture. What a side-on view does show is the outline and how a steep face
+// is turned to the sun, so the stone is cut for those instead.
 //
 // three.js is the site's vendored copy, shared with the VoidFlux banner.
 
@@ -48,55 +47,9 @@ const ISLAND = {
   shoulderY: 1.14,
   radius: 1.6,
   keelDrop: 2.0,
-  keelHalf: 0.5,
   bobAmp: 0.07,
   bobRate: 0.5,
 };
-
-// The beds of stone, top to bottom. `depth` is how thick the bed is; `inset`
-// is how far its floor has drawn in toward the keel, nought at the rim and
-// one on the keel line; `ledge` is how much of that draw-in the bed takes as
-// a shelf at its own ceiling rather than as a lean on its face; `tone` is how
-// pale the bed is between the deep stone and the pale.
-//
-// **A bed whose floor is drawn in LESS than the bed above it overhangs**, and
-// two of them do. Nothing overhung on the ported rock - every course was
-// strictly narrower than the one above - and a mass that only ever narrows is
-// a mass that was turned rather than one that broke off. From a level camera
-// the overhang is read in the outline rather than in the shadow under it, so
-// what matters is that the profile steps back out by twenty-odd pixels, not
-// that a soffit is lit.
-//
-// The depths sum to one, and the keel drop scales them.
-const BEDS = [
-  { depth: 0.086, inset: 0.085, ledge: 0.80, tone: 0.74 },
-  { depth: 0.100, inset: 0.040, ledge: 0.92, tone: 0.46 },
-  { depth: 0.112, inset: 0.215, ledge: 0.76, tone: 0.82 },
-  { depth: 0.126, inset: 0.170, ledge: 0.92, tone: 0.38 },
-  { depth: 0.156, inset: 0.375, ledge: 0.68, tone: 0.62 },
-  { depth: 0.210, inset: 0.620, ledge: 0.58, tone: 0.34 },
-  { depth: 0.210, inset: 1.000, ledge: 0.35, tone: 0.50 },
-];
-
-// How far each plate hangs below where the profile alone would put it, at the
-// keel and nowhere near the shoulder. Without it the bottom of the mass is a
-// smooth cone: the plates and the beds both have to fade there for the solid
-// to close, and what closes neatly reads as turned. A slab torn off the
-// underside of a country ends ragged.
-function plateHang(p) {
-  return (dealt(p * 17 + 3) - 0.5) * 0.46;
-}
-
-// How far the bedding is off level, and which way it falls. Real bedded rock
-// is almost never laid dead flat, and a stack of level bands on a round mass
-// is a barrel with stripes on it. Nine degrees is enough to be read as a dip
-// and not enough to look like a mistake; it also wedges the top beds, thin on
-// one side and thick on the other, which is a shape no lathe makes.
-//
-// It is eased in below the shoulder, because the shoulder itself has to stay
-// level - the ground and the whole wood stand on it.
-const BED_DIP = 0.158;
-const BED_DIP_BEARING = 2.5;
 
 // IslandRockNode.dealt, exactly.
 function dealt(index) {
@@ -119,8 +72,7 @@ function colour(hex) {
   return new THREE.Color(hex);
 }
 
-const bedrockPale = colour(Palette.bedrockPale);
-const bedrockMid = colour(Palette.bedrockMid);
+const bannerStone = colour(Palette.bannerStone);
 const bedrockDeep = colour(Palette.bedrockDeep);
 const soilDark = colour(Palette.soilDark);
 const leafSun = colour(Palette.leafSun);
@@ -135,12 +87,6 @@ function smoothstep(a, b, x) {
 
 // A wander round the island that never jumps from one column to the next:
 // `lobes` values dealt on a ring and eased between. Returns -1 to 1.
-//
-// Everything that shapes the stone goes through this rather than through a
-// hash of the column, and that is the whole difference between rock and
-// gravel. A value dealt afresh at every column is noise at the size of a
-// facet - about six pixels here - and the eye reads noise at that size as
-// grit on a smooth thing, not as relief in a rough one.
 function lobed(theta, lobes, salt) {
   const walked = ((theta / (Math.PI * 2)) % 1 + 1) % 1 * lobes;
   const i = Math.floor(walked);
@@ -186,356 +132,405 @@ function rimRadius(theta) {
   return r;
 }
 
-// The plan of the rock: flat plates of stone standing at their own distances
-// from the middle, with a crack down the full drop between each and the next.
-//
-// **This is what a rounded outline could never give.** A radial wobble on a
-// circle turns the surface by fifteen degrees at most, and fifteen degrees of
-// turn under this sun is a shading difference the eye does not see; the mass
-// comes back smooth however deep the wobble is made. What reads from a camera
-// level with the rock is a plane at one angle meeting a plane at another
-// along a hard vertical edge - so the outline is a polygon of seventeen
-// irregular plates rather than a circle, and where two plates disagree about
-// how far out they stand, the wall between them is a crack face.
-//
-// The plates are plumb, so a crack runs the whole drop the way a joint in a
-// cliff does, and they soften a little toward the keel where the mass has to
-// close.
-const PLATES = 17;
-const PLATE_SOFTEN = 0.4;
-
-function plateEdges() {
-  const widths = [];
-  for (let p = 0; p < PLATES; p++) widths.push(0.62 + dealt(p * 37 + 5) * 0.85);
-  const total = widths.reduce((a, b) => a + b, 0);
-  const edges = [];
-  let walked = 0;
-  for (let p = 0; p < PLATES; p++) {
-    edges.push((walked / total) * Math.PI * 2);
-    walked += widths[p];
-  }
-  edges.push(Math.PI * 2);
-  return edges;
-}
-
-// How far a plate stands off the outline. Mostly sound rock a little proud,
-// and a few plates cut deeply back: the power is what keeps the clefts few.
-function plateOffset(p) {
-  return 0.13 - Math.pow(dealt(p * 91 + 17), 1.8) * 0.5;
-}
-
-// Plates that have shattered. A big slab only reads as big with broken ground
-// beside it, and this is the only thing on the flank that makes a face much
-// SMALLER than the grid would allow. A shattered plate breaks both ways at
-// once: its columns stand at their own reaches instead of on one chord, so no
-// two facets across it lie in one plane, and its rings step in and out by
-// their own amounts, so its wall is chopped down into a stack of small ledges
-// instead of running clean from its ceiling to its floor.
-//
-// It is given one extra column and no more. Every column on the island ends
-// on the keel and cuts one notch in the fan that closes it, so a plate walked
-// in six would comb the keel's approved raggedness down into a saw.
-const SHATTERED = [2, 4, 8, 13];
-const SHATTER_REACH = 0.11;
-const SHATTER_STEP = 0.085;
-
-// Where a bed is swallowed by the one above it.
-//
-// **Seventeen plates each crossing every one of seven beds is a grid**, and a
-// grid has no big faces in it however far the widths and the depths are
-// wobbled: every face is bounded by the same two cracks and the same two
-// bedding lines as its neighbours, so none of them can be more than about
-// twice any other. Measured off the rendered picture before this, the
-// ninety-six faces the camera sees ran 0.07 to 0.26 square units of stone
-// with the middle at 0.16 - four fifths of them inside a single factor of
-// four, and inside any one bed a factor of 2.4.
-//
-// A bed listed here does not run the whole way round. Against those plates no
-// ledge is cut at its ceiling, it is the same stone as the bed above, and the
-// wall runs straight through where the bedding line would have broken it - so
-// the two beds are one face twice the height. Plate 7 loses two in a row and
-// carries a face three beds tall, and so does plate 8 beside it - they are
-// given the same runs on purpose, because the crack between them is shut down
-// to the middle of the drop and a slab cannot be one face if the bedding
-// arrives at the joint from two different heights.
-//
-// None of them is on plate 5, which is the plate square to the camera at the
-// front of the island. A run there fills the middle of the picture with one
-// blank plane and takes the bedding out of the only place it is read at full
-// size; the tall faces are worth more standing beside beds than instead of
-// them, so they are put to either side of it and low down.
-const SWALLOWED = [
-  { bed: 2, plates: [7, 8, 14] },
-  { bed: 3, plates: [6, 7, 8] },
-  { bed: 4, plates: [1, 11] },
-  { bed: 5, plates: [3, 4, 12] },
-];
-
-function swallowed(bed, plate) {
-  return SWALLOWED.some((s) => s.bed === bed && s.plates.includes(plate));
-}
-
-// The bed whose stone and whose bedding line a column actually takes: the top
-// of the run it has been swallowed into.
-const BED_HOST = BEDS.map((_, bed) =>
-  Array.from({ length: PLATES }, (_, plate) => {
-    let b = bed;
-    while (b > 0 && swallowed(b, plate)) b--;
-    return b;
-  }),
-);
-
-// The rings that fall inside a run, and where each of them belongs on the
-// straight line between the run's ceiling and its floor. The inset alone will
-// not put them there: a column's place is not a straight function of its
-// inset - the hang below the shoulder goes as f squared times one minus f -
-// so rings laid at even insets come out on a curve, and a curve is three
-// walls at three leans, which is what the run was meant to stop being.
-const PLATE_STRAIGHTEN = Array.from({ length: PLATES }, () => []);
-
-// How far each ring of the flank has drawn in toward the keel, worked out for
-// one plate: the shoulder, then a shelf and a floor for every bed. Beds that
-// this plate swallows are worked as one bed - one ledge at the top of the run
-// and one straight wall from there to the floor of the last of them - so the
-// rings that would have divided them land ON that wall instead of breaking
-// it, and the strips between them come out flat and empty.
-const PLATE_INSET = Array.from({ length: PLATES }, (_, plate) => {
-  const runs = [];
-  for (let bed = 0; bed < BEDS.length; bed++) {
-    if (bed > 0 && swallowed(bed, plate)) runs[runs.length - 1].push(bed);
-    else runs.push([bed]);
-  }
-  const insets = [0];
-  let at = 0;
-  for (const run of runs) {
-    const first = BEDS[run[0]];
-    const floor = BEDS[run[run.length - 1]].inset;
-    // The ledge at the top of a run is the one the first bed would have had
-    // on its own; all the extra draw-in goes into the lean of the wall. Cut it
-    // for the whole run instead and the ledge is several times too deep, which
-    // takes a bite out of the outline the shape work never asked for.
-    const shelf = at + first.ledge * (first.inset - at);
-    const depth = run.reduce((s, b) => s + BEDS[b].depth, 0);
-    const top = insets.length;
-    let walked = 0;
-    for (const bed of run) {
-      insets.push(shelf + (floor - shelf) * (walked / depth));
-      walked += BEDS[bed].depth;
-      insets.push(shelf + (floor - shelf) * (walked / depth));
-    }
-    const foot = insets.length - 1;
-    walked = 0;
-    for (let i = 0; i < run.length; i++) {
-      if (i > 0) PLATE_STRAIGHTEN[plate].push({ index: top + i * 2, top, foot, at: walked / depth });
-      walked += BEDS[run[i]].depth;
-      if (i < run.length - 1) {
-        PLATE_STRAIGHTEN[plate].push({ index: top + i * 2 + 1, top, foot, at: walked / depth });
-      }
-    }
-    at = floor;
-  }
-  // A shattered plate's rings each stand at their own reach as well, which is
-  // what chops its wall into small ledges rather than one clean face. It dies
-  // away toward the keel, where every plate has to close onto the medial line
-  // whatever it has been doing above.
-  if (SHATTERED.includes(plate)) {
-    for (let i = 1; i < insets.length - 1; i++) {
-      const f = insets[i];
-      insets[i] = clamp01(f + (dealt(plate * 71 + i * 41 + 7) - 0.5) * SHATTER_STEP * (1 - f));
-    }
-  }
-  return insets;
-});
-
-// Where a rim column lands when it has drawn all the way in: on the keel, a
-// short medial ridge rather than a point.
-function keelPoint(theta) {
-  const c = Math.cos(theta);
-  const x = Math.sign(c) * Math.min(Math.abs(c) * ISLAND.radius, ISLAND.keelHalf);
-  return { x, z: 0 };
-}
-
-// A point on the rim at a bearing, pushed out or cut back by `offset`.
-function rimPoint(theta, offset) {
-  const r = rimRadius(theta) + offset;
+// A point on the rim at a bearing.
+function rimPoint(theta) {
+  const r = rimRadius(theta);
   return { x: r * Math.cos(theta), z: r * Math.sin(theta) };
 }
 
-// Which cracks do not run the whole drop.
+// ---- The stone under the island ----
 //
-// A crack that runs from the shoulder to the keel divides two plates all the
-// way down, so neither can ever be wider than one plate. Where a crack is
-// shut the two plates it separates stand at one reach and the eye sees a
-// single slab twice the width; `from` and `to` are where along the drop it is
-// open, nought at the shoulder and one at the keel, so a crack from -0.1 to
-// 0.38 dies a third of the way down and one from 0.55 to 1.1 does not open
-// until past halfway. Crack `c` is the joint between plate `c` and the next
-// round, and no plate is listed twice, so a shut crack never has to be
-// reconciled with another.
-const CRACKS = [
-  { crack: 3, from: -0.1, to: 0.38 },
-  { crack: 7, from: 0.55, to: 1.1 },
-];
+// The underside is a mountain hanging point downward, cut the way the
+// captain's reference is cut. **Every face on it is a triangle and no two of
+// them are paired into a rectangle**, and nothing anywhere on it runs round
+// the island at one height. The courses and beds this rock used to be built
+// of are gone: a bed is a line at a constant height by definition, and while
+// the rock had them it read as a stack of bricks however far their sizes and
+// their tones were varied.
+//
+// What replaces them is radial. Spurs run from the rim down to the keel with
+// gullies between them, and between one spur and the next the stone is ruled
+// straight in bearing - so a spur is a genuine crease and the flank between
+// two of them is one broad plane. Each spur reaches its own depth, so the
+// keel is a crumpled crown rather than a point and the outline is jagged
+// rather than a cone.
+//
+// The facets are cut from an irregular scatter of points, triangulated in the
+// plan and then hung. Their sizes therefore run wide - broad planes where the
+// stone is quiet, tight clusters along every crease and at the keel - which
+// no grid of columns and rings can give, because there every face is bounded
+// by the same lines as its neighbours.
+//
+// It is one stone throughout. All of the light and shade on it is which way a
+// facet is turned to the sun, which is the whole of how the reference reads.
 
-function plateOffsetAt(p, f) {
-  const own = plateOffset(p);
-  for (const c of CRACKS) {
-    const twin = c.crack;
-    const next = (c.crack + 1) % PLATES;
-    if (p !== twin && p !== next) continue;
-    const open =
-      smoothstep(c.from - 0.06, c.from + 0.06, f) * (1 - smoothstep(c.to - 0.06, c.to + 0.06, f));
-    const shared = (plateOffset(twin) + plateOffset(next)) / 2;
-    return shared + (own - shared) * open;
-  }
-  return own;
+// How far the stone hangs below the rim on the plain profile, as a fraction
+// of the keel drop. Measured off the captain's reference, the mountain there
+// is very nearly a straight cone - at a quarter of the way down from the peak
+// it is already 45 hundredths of its base across, at halfway 70 and at three
+// quarters 88 - so all of its character is in the ridges and none of it is in
+// the profile. This is that cone, with the first tenth of the drop steepened
+// to about seventy degrees for the cliff where the mass broke away from the
+// country it belonged to.
+function flankProfile(u) {
+  return 0.55 * u + 0.45 * Math.pow(u, 0.35);
 }
 
-// Which plate's stone a plate is cut from at each ring. The wash in `stone`
-// is dealt per plate, so where a crack has shut both sides must be told to
-// take the one stone - otherwise the slab that has just closed up comes back
-// in two shades and the eye still reads the crack the geometry has removed.
-const PLATE_STONE = Array.from({ length: PLATES }, (_, plate) =>
-  PLATE_INSET[plate].map((f) => {
-    for (const c of CRACKS) {
-      const next = (c.crack + 1) % PLATES;
-      if (plate !== c.crack && plate !== next) continue;
-      return f > c.from && f < c.to ? plate : c.crack;
-    }
-    return plate;
-  }),
+// The fan of spurs. `reach` is how much deeper - a ridge - or shallower - a
+// gully - the stone hangs along that bearing, and the two alternate, so a
+// ridge always has a gully beside it. `wave` and `phase` say where down its
+// length a spur is strongest: some stand out high on the flank and have died
+// before the keel, others gather only below halfway. Without that a fan of
+// seventeen even spurs is a parasol.
+//
+// **The flutes have to be deep, and the reason is arithmetic.** The sun comes
+// from up and to the left, at a bearing of 0.56 across the picture and 0.72
+// up it. The underside of a cone whose rim is 1.6 across and whose keel hangs
+// 2.0 below it meets the horizon at 51 degrees on average, so its plain flank
+// turns a normal 0.62 downward - and 0.62 of the sun's 0.72 upward is more
+// than the whole of its 0.56 sideways can answer. Every facet on such a flank
+// is in shadow, and a mass in which no facet is lit is a black cut-out
+// whatever is cut into it. A flute does not change the average - a ridge
+// stands as far out as its gully cuts in - but it turns the stone either side
+// of every crease through sixty degrees sideways, which is enough to bring
+// one wall into the sun and leave the other out of it. That alternation is
+// the whole of the reference's light.
+const SPUR_AMP = 0.38;
+const SPURS = (() => {
+  const count = 17;
+  const widths = [];
+  for (let i = 0; i < count; i++) widths.push(0.55 + dealt(i * 29 + 3) * 0.95);
+  const total = widths.reduce((a, b) => a + b, 0);
+  const spurs = [];
+  let walked = 0;
+  for (let i = 0; i < count; i++) {
+    // A spur's depth is set by the two flanks it stands between, so a wide
+    // flank is cut as steeply as a narrow one. A fixed depth spread over a
+    // wide flank is hardly any tilt at all, and it is the tilt the light
+    // reads - without this the broad planes, which are the ones that cover
+    // the picture, are the ones that go dark.
+    const span = ((widths[(i + count - 1) % count] + widths[i]) / 2) * (count / total);
+    spurs.push({
+      at: (walked / total) * Math.PI * 2,
+      reach: (i % 2 ? -1 : 1) * span * (0.74 + dealt(i * 53 + 11) * 0.56),
+      wave: 2.1 + dealt(i * 97 + 5) * 4.2,
+      phase: dealt(i * 131 + 19) * Math.PI * 2,
+    });
+    walked += widths[i];
+  }
+  return spurs;
+})();
+
+// Which two spurs a bearing lies between, and how far across.
+function spurAt(theta) {
+  const turn = Math.PI * 2;
+  const t = ((theta % turn) + turn) % turn;
+  let i = SPURS.length - 1;
+  while (i > 0 && SPURS[i].at > t) i--;
+  const a = SPURS[i].at;
+  const b = i + 1 < SPURS.length ? SPURS[i + 1].at : turn;
+  return { i, g: (t - a) / (b - a) };
+}
+
+function spurReach(i, u) {
+  const s = SPURS[i % SPURS.length];
+  // Where down its length a spur is at its strongest, on two beats rather
+  // than one. **It is allowed to go negative**, and that is the point: a spur
+  // that holds its sign from the rim to the keel is the rib of an umbrella,
+  // and seventeen of those are an umbrella. Where this passes through nought
+  // the crease dies out, and below that the ridge comes back as a gully and
+  // the gully beside it as a ridge - so no fold anywhere on the mass runs the
+  // whole drop.
+  const along =
+    -0.34 +
+    1.34 *
+      Math.pow(
+        clamp01(
+          0.5 + 0.36 * Math.sin(u * s.wave + s.phase) + 0.18 * Math.sin(u * s.wave * 2.3 + s.phase * 1.7),
+        ),
+        1.25,
+      );
+  // Nothing at the rim, so the crust is cut on a clean line, and falling away
+  // with the radius below.
+  //
+  // **It has to fall away with the radius, or the flutes stand on end near
+  // the keel.** A flank between two spurs is only as wide as the ring it is
+  // cut on: a sixth of a metre of arc at the keel against three quarters at
+  // the rim. The same depth of flute across the narrow one is four times the
+  // tilt, so a flute held at full depth all the way down leaves the last of
+  // the mass as a comb of eighty-degree slivers. Held instead in proportion
+  // to the radius, the stone stands at about sixty-five degrees either side
+  // of every crease from the rim to the keel, which is the tilt the light
+  // reads best and the facets stay facets.
+  return s.reach * along * Math.pow(u, 0.35) * (0.08 + 0.92 * (1 - u));
+}
+
+// The lumps in the mass: a shoulder swelling out, hollows scooped between
+// spurs, a knuckle low down beside the keel. Each is a lens in the plan, so
+// none of them is level and none of them runs round the island, and they are
+// what stops the spurs reading as the ribs of an umbrella. `at` is the
+// bearing and `rho` how far out along it, nought at the keel and one at the
+// rim; `reach` is in keel drops, positive for stone standing proud.
+const SWELLS = [
+  { at: 2.70, rho: 0.62, span: 0.52, reach: 0.26 },
+  { at: 2.10, rho: 0.34, span: 0.40, reach: -0.20 },
+  { at: 1.55, rho: 0.70, span: 0.44, reach: -0.22 },
+  { at: 1.05, rho: 0.45, span: 0.50, reach: 0.28 },
+  { at: 0.45, rho: 0.66, span: 0.38, reach: 0.19 },
+  { at: 3.55, rho: 0.50, span: 0.46, reach: -0.18 },
+  { at: 4.80, rho: 0.55, span: 0.50, reach: 0.22 },
+  // The keel's own two: one throws the lowest point of the mass off the
+  // middle, the other stands a second knuckle beside it, so the stone ends
+  // in a crumpled crown instead of on the axis it was turned about.
+  { at: 2.35, rho: 0.13, span: 0.34, reach: 0.30 },
+  { at: 5.60, rho: 0.20, span: 0.30, reach: -0.24 },
+]
+  // And a scatter of smaller knuckles all over the flanks, dealt rather than
+  // placed. A spur that runs unbroken from the rim to the keel is a fold in a
+  // curtain, and seventeen of them are a curtain: it takes something
+  // happening ACROSS a spur, at its own place and its own size, to make the
+  // stone read as stone.
+  .concat(
+    Array.from({ length: 40 }, (_, i) => ({
+      at: dealt(i * 71 + 13) * Math.PI * 2,
+      rho: 0.14 + dealt(i * 137 + 29) * 0.78,
+      span: 0.12 + dealt(i * 191 + 7) * 0.23,
+      reach: (dealt(i * 233 + 41) - 0.45) * 0.28,
+    })),
+  )
+  .map((s) => {
+    const r = rimRadius(s.at) * s.rho;
+    return { ...s, x: Math.cos(s.at) * r, z: Math.sin(s.at) * r };
+  });
+
+// How far the stone hangs below the rim at a point on the plan.
+function stoneHang(x, z) {
+  const theta = Math.atan2(z, x);
+  const rho = Math.min(Math.hypot(x, z) / rimRadius(theta), 1);
+  const u = 1 - rho;
+  const { i, g } = spurAt(theta);
+  const near = spurReach(i, u);
+  const far = spurReach(i + 1, u);
+  let hang = flankProfile(u) + SPUR_AMP * (near + (far - near) * g);
+  // The lumps are eased in below the rim, so the line the crust is cut on is
+  // the rim itself and the garden's floor is not lifted or dropped anywhere.
+  const settled = smoothstep(0.02, 0.26, u);
+  for (const s of SWELLS) {
+    const dx = x - s.x;
+    const dz = z - s.z;
+    hang += s.reach * Math.exp(-(dx * dx + dz * dz) / (s.span * s.span)) * settled;
+  }
+  return hang * ISLAND.keelDrop;
+}
+
+// Sectors whose stone has shattered. A broad plane only reads as broad with
+// broken ground beside it, so a third of the flanks are cut into small facets
+// and the rest are left as one face.
+const SECTOR_CALM = SPURS.map((_, i) =>
+  dealt(i * 211 + 13) < 0.35 ? 0.42 : 0.74 + dealt(i * 17 + 41) * 0.41,
 );
 
-// Where a column stands when its plate reaches out by `offset`. A plate is
-// walked along its own chord rather than along the arc, which is what makes
-// it one flat face; at each join two columns are laid on the same bearing,
-// one on each plate, and the wall between them is the crack. A shattered
-// plate has no chord - every column takes the arc at its own reach.
-function columnAt(col, offset) {
-  if (col.shatter !== 0) return rimPoint(col.theta, offset + col.shatter);
-  const a = rimPoint(col.t0, offset);
-  const b = rimPoint(col.t1, offset);
-  return { x: a.x + (b.x - a.x) * col.k, z: a.z + (b.z - a.z) * col.k };
+// How much room a facet is given here. Tight along every crease, where the
+// stone comes apart into a cluster; tight at the keel, where the spurs crowd
+// together; tighter again along the rim, where the crust is cut; and broad in
+// the middle of a quiet flank, where one plane can run for a third of a metre.
+function facetSpacing(x, z) {
+  const theta = Math.atan2(z, x);
+  const rho = Math.hypot(x, z) / rimRadius(theta);
+  const { i, g } = spurAt(theta);
+  // **How fast this may change matters more than what it ranges over.** Where
+  // a fine patch of stone abuts a coarse one, the facets that bridge the two
+  // are drawn between one near point and two far ones and come out as
+  // needles, which draw as loose threads down the rock rather than as facets.
+  // So the three things that make a facet small - standing on a crease,
+  // standing near the keel, standing on a flank whose stone has shattered -
+  // are multiplied together, and none of them may take away more than about
+  // half. That holds the whole range to nine to one and every step along it
+  // small.
+  const crease = 0.55 + 0.45 * Math.pow(2 * Math.min(g, 1 - g), 1.2);
+  const room =
+    0.55 + 0.45 * smoothstep(0.02, 0.26, rho) * (1 - 0.45 * smoothstep(0.80, 0.99, rho));
+  return 0.34 * SECTOR_CALM[i] * crease * room;
 }
 
-// The shoulder outline walked once: every column carries the bearing it
-// stands on, the chord of the plate it belongs to, and where the plain rim
-// would have put it, so a ring can be taken between the two as the plates
-// soften downward.
-function rockPlan() {
-  const edges = plateEdges();
-  const plan = [];
-  for (let p = 0; p < PLATES; p++) {
-    const t0 = edges[p];
-    const t1 = edges[p + 1];
-    const broken = SHATTERED.includes(p);
-    const span = (t1 - t0) / (Math.PI * 2);
-    const steps = Math.max(broken ? 3 : 2, Math.round(span * 34));
-    for (let s = 0; s < steps; s++) {
-      const k = s / (steps - 1);
-      const theta = t0 + (t1 - t0) * k;
-      plan.push({
-        theta,
-        t0,
-        t1,
-        k,
-        shatter: broken ? (dealt(p * 53 + s * 29 + 11) - 0.5) * SHATTER_REACH : 0,
-        rim: rimPoint(theta, 0),
-        plate: p,
-      });
+// How much a step laid out flat in the plan is stretched when the stone is
+// hung on it. On the sixty-degree band just inside the rim it is stretched
+// two and a half times, so a scatter that is even in the plan comes out there
+// as a comb of slivers two and a half times taller than they are wide. The
+// scatter is squeezed radially by this instead, which is what gives that band
+// facets rather than fringe.
+function planStretch(rho) {
+  const u = clamp01(1 - rho);
+  const a = Math.max(0, u - 0.004);
+  const b = Math.min(1, u + 0.004);
+  const slope = ((flankProfile(b) - flankProfile(a)) / (b - a)) * (ISLAND.keelDrop / ISLAND.radius);
+  return Math.min(3.0, Math.sqrt(1 + slope * slope));
+}
+
+// The points the stone is cut on: the rim first, then a chain straight down
+// every spur so the crease is cut ALONG it rather than across it, then a
+// scatter filling what is left at whatever spacing that place asks for.
+function stonePoints() {
+  const points = [];
+  const rim = [];
+  const clear = (x, z, r, stretch) => {
+    const len = Math.hypot(x, z) || 1;
+    const ux = x / len;
+    const uz = z / len;
+    for (const p of points) {
+      const dx = p.x - x;
+      const dz = p.z - z;
+      // A floor under all of it, whatever the squeeze asks for. Two points
+      // three centimetres apart in the plan make a facet a pixel and a half
+      // wide on screen, which draws as a stray thread down the stone rather
+      // than as a facet.
+      if (dx * dx + dz * dz < 0.03 * 0.03) return false;
+      const out = (dx * ux + dz * uz) * stretch;
+      const along = dx * uz - dz * ux;
+      if (out * out + along * along < r * r) return false;
+    }
+    return true;
+  };
+
+  // The rim is walked at the spacing the stone just inside it asks for. Laid
+  // at one fine step instead, it hands every coarse flank below it a fan of
+  // long thin slivers - a fringe of icicles hanging off the crust, which is
+  // what a dense line meeting a coarse one always makes.
+  for (let theta = 0; theta < Math.PI * 2; ) {
+    const p = rimPoint(theta);
+    const point = { x: p.x, z: p.z, y: 0, rim: true };
+    rim.push(point);
+    points.push(point);
+    theta += facetSpacing(p.x * 0.97, p.z * 0.97) / rimRadius(theta);
+  }
+  // The last step lands short of the first point as often as not, so the two
+  // are merged when they would otherwise sit on top of one another.
+  if (Math.hypot(rim[0].x - rim[rim.length - 1].x, rim[0].z - rim[rim.length - 1].z) < 0.03) {
+    points.splice(points.indexOf(rim.pop()), 1);
+  }
+
+  for (let i = 0; i < SPURS.length; i++) {
+    const at = SPURS[i].at;
+    const R = rimRadius(at);
+    let rho = 0.975;
+    let n = 0;
+    // The chains stop short of the keel. Carried all the way in they would
+    // meet there, and seventeen chains meeting at a point can only be closed
+    // by seventeen long radial slivers - the fan of a paper parasol, which is
+    // the shape the whole of this is trying not to be. The keel is left to
+    // the scatter, which crumples it.
+    while (rho > 0.23) {
+      const x = Math.cos(at) * R * rho;
+      const z = Math.sin(at) * R * rho;
+      // The crease is cut at the spacing its own flanks are cut at. Given a
+      // step of its own it disagrees with them, and the disagreement is paid
+      // for in needles down either side of every spur.
+      const gap = facetSpacing(x, z) * 0.86;
+      // A spine point that lands on top of a rim point makes a facet with no
+      // width, and a facet with no width has no normal: it draws as a stray
+      // dark thread down the stone. Where the rim already stands close enough
+      // the rim point serves as the top of the crease.
+      if (clear(x, z, gap * 0.5, planStretch(rho))) points.push({ x, z, gap });
+      rho -= (gap * (0.78 + dealt(i * 43 + n * 19 + 7) * 0.55)) / (R * planStretch(rho));
+      n++;
     }
   }
-  return plan;
+
+  const rand = mulberry32(0x51ee0);
+  for (let attempt = 0; attempt < 26000; attempt++) {
+    const theta = rand() * Math.PI * 2;
+    // A third of the darts are thrown at the keel alone. Scattered evenly over
+    // the plan they land where the plan is wide, and the keel - which is where
+    // the facets are smallest and most of them are wanted - takes a twentieth
+    // of the darts and comes out bare.
+    const rho = attempt % 3 === 0 ? rand() * 0.30 : Math.sqrt(rand()) * 0.985;
+    const R = rimRadius(theta);
+    const x = Math.cos(theta) * R * rho;
+    const z = Math.sin(theta) * R * rho;
+    const gap = facetSpacing(x, z);
+    if (!clear(x, z, gap * 0.68, planStretch(rho))) continue;
+    points.push({ x, z, gap });
+  }
+
+  // The grain: the stone is rough where its facets are small and smooth where
+  // they are broad, so a quiet flank stays one plane and a crease comes apart
+  // into a cluster of facets each catching the light its own way. Tied to the
+  // spacing, because a wobble smaller than a facet is grit rather than relief.
+  for (let i = 0; i < points.length; i++) {
+    const p = points[i];
+    if (p.rim) continue;
+    const rho = Math.hypot(p.x, p.z) / rimRadius(Math.atan2(p.z, p.x));
+    const rough = 0.32 * p.gap * planStretch(rho) * (1 - smoothstep(0.13, 0.34, p.gap));
+    p.y = -(stoneHang(p.x, p.z) + (dealt(i * 29 + 7) - 0.5) * 2 * rough);
+  }
+
+  return { points, rim };
+}
+
+// Bowyer-Watson, in the plan. Returns triples of indices into `points`.
+function triangulate(points) {
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (const p of points) {
+    lo = Math.min(lo, p.x, p.z);
+    hi = Math.max(hi, p.x, p.z);
+  }
+  const wide = (hi - lo) * 12;
+  const mid = (lo + hi) / 2;
+  const work = points.concat([
+    { x: mid - wide, z: mid - wide },
+    { x: mid + wide, z: mid - wide },
+    { x: mid, z: mid + wide },
+  ]);
+  const n = points.length;
+
+  const held = (a, b, c) => {
+    const ax = work[a].x, ay = work[a].z;
+    const bx = work[b].x, by = work[b].z;
+    const cx = work[c].x, cy = work[c].z;
+    const d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by));
+    if (Math.abs(d) < 1e-14) return { a, b, c, ux: 0, uy: 0, r2: -1 };
+    const a2 = ax * ax + ay * ay;
+    const b2 = bx * bx + by * by;
+    const c2 = cx * cx + cy * cy;
+    const ux = (a2 * (by - cy) + b2 * (cy - ay) + c2 * (ay - by)) / d;
+    const uy = (a2 * (cx - bx) + b2 * (ax - cx) + c2 * (bx - ax)) / d;
+    return { a, b, c, ux, uy, r2: (ax - ux) ** 2 + (ay - uy) ** 2 };
+  };
+
+  let tris = [held(n, n + 1, n + 2)];
+  for (let i = 0; i < n; i++) {
+    const px = work[i].x;
+    const pz = work[i].z;
+    const kept = [];
+    const edges = [];
+    for (const t of tris) {
+      if ((px - t.ux) ** 2 + (pz - t.uy) ** 2 < t.r2) {
+        edges.push([t.a, t.b], [t.b, t.c], [t.c, t.a]);
+      } else kept.push(t);
+    }
+    tris = kept;
+    for (let e = 0; e < edges.length; e++) {
+      const [u, v] = edges[e];
+      let shared = false;
+      for (let f = 0; f < edges.length && !shared; f++) {
+        if (f !== e && edges[f][0] === v && edges[f][1] === u) shared = true;
+      }
+      if (!shared) tris.push(held(u, v, i));
+    }
+  }
+
+  const out = [];
+  for (const t of tris) {
+    if (t.a >= n || t.b >= n || t.c >= n) continue;
+    out.push([t.a, t.b, t.c]);
+  }
+  return out;
 }
 
 function buildRock() {
-  const drop = ISLAND.keelDrop;
-  const plan = rockPlan();
-  const N = plan.length;
-
-  // One ring of the flank: the outline drawn in toward the keel by `f`, with
-  // the rib on it, at height `y` lifted by the bedding line's own rise.
-  //
-  // The rise is lobed round the island for the reason the game gives in
-  // IslandRock.rise: a bedding line dealt afresh at every column moves by its
-  // own amplitude between neighbours, and that stands the bed on end. Here it
-  // was worse than that - the wander was two and three quarter pixels against
-  // a bed six pixels deep, dealt per column, which is most of why the ported
-  // rock came back as grit.
-  const dipX = Math.cos(BED_DIP_BEARING) * BED_DIP;
-  const dipZ = Math.sin(BED_DIP_BEARING) * BED_DIP;
-  const ringAt = (index, y, bed) => {
-    const ring = [];
-    // The dip comes in over the first two beds and the rise with it, so the
-    // shoulder stays the level line the wood stands on.
-    const settled = bed < 0 ? 0 : clamp01((bed + 1) / 3);
-    for (let j = 0; j < N; j++) {
-      const col = plan[j];
-      // Every plate walks its own profile, so a plate that has swallowed a
-      // bed is drawn in less far here than its neighbours are.
-      const f = index < 0 ? 0 : PLATE_INSET[col.plate][index];
-      const host = bed < 0 ? -1 : BED_HOST[bed][col.plate];
-      const theta = col.theta;
-      const keel = keelPoint(theta);
-      const soften = f * PLATE_SOFTEN;
-      // The reach is asked for at this depth, so a crack that dies partway
-      // down has already closed by the time the lower rings are laid.
-      const stood = columnAt(col, plateOffsetAt(col.plate, f));
-      const px = stood.x + (col.rim.x - stood.x) * soften;
-      const pz = stood.z + (col.rim.z - stood.z) * soften;
-      const x = (1 - f) * px + f * keel.x;
-      const z = (1 - f) * pz + f * keel.z;
-      // The bedding line takes the run's own wander, not each swallowed bed's,
-      // or the wall the run has just joined up would kink at every line it was
-      // meant to run past.
-      const rise = host < 0 ? 0 : lobed(theta, 7, host * 5 + 2) * 0.10 * (1 - f * 0.5);
-      ring.push({
-        x,
-        // The hang is nothing at the shoulder, most of it two thirds of the
-        // way down, and nothing again on the keel itself - where every column
-        // has already closed onto the medial line, so a column left hanging
-        // there would draw a spike rather than a ledge.
-        y:
-          y +
-          (rise + x * dipX + z * dipZ) * settled +
-          plateHang(col.plate) * f * f * (1 - f) * 3.4,
-        z,
-        theta,
-        plate: col.plate,
-        cut: index < 0 ? col.plate : PLATE_STONE[col.plate][index],
-        f,
-        host,
-      });
-    }
-    return ring;
-  };
-
-  // The profile: the shoulder, then for every bed a shelf at its ceiling and
-  // a floor below it. Consecutive rings are a strip - a shelf where they
-  // share a height, a face where they do not.
-  const rings = [{ ring: ringAt(-1, 0, -1), bed: 0, shelf: false }];
-  {
-    let y = 0;
-    let index = 0;
-    for (let bed = 0; bed < BEDS.length; bed++) {
-      rings.push({ ring: ringAt(++index, y, bed), bed, shelf: true });
-      y -= BEDS[bed].depth * drop;
-      rings.push({ ring: ringAt(++index, y, bed), bed, shelf: false });
-    }
-  }
-
-  // Pull the rings inside a run onto the line between its ceiling and its
-  // floor, so a swallowed pair is one plane and not two nearly-one planes.
-  for (let j = 0; j < N; j++) {
-    for (const s of PLATE_STRAIGHTEN[plan[j].plate]) {
-      const a = rings[s.top].ring[j];
-      const b = rings[s.foot].ring[j];
-      const p = rings[s.index].ring[j];
-      p.x = a.x + (b.x - a.x) * s.at;
-      p.y = a.y + (b.y - a.y) * s.at;
-      p.z = a.z + (b.z - a.z) * s.at;
-    }
-  }
+  const { points, rim } = stonePoints();
+  const faces = triangulate(points);
 
   const positions = [];
   const colors = [];
@@ -544,80 +539,62 @@ function buildRock() {
     for (let i = 0; i < 3; i++) colors.push(col.r, col.g, col.b);
   };
 
-  // How pale a facet of stone is.
+  // One stone, and the crust of earth above it. The captain's reference is a
+  // single colour lit by facet angle, and a previous measure of this rock
+  // found its hue barely varied anyway - so nothing here separates one part
+  // of the mass from another by colour.
   //
-  // The bed carries the tone and the bearing wanders it slowly; the facet
-  // itself gets a fleck a tenth as large. The ported rock had this the other
-  // way round - the tone came off a hash of the facet's own index, so the
-  // mottle ran across the beds instead of with them and no seam of stone
-  // held together for more than one triangle.
-  const stone = (bed, theta, plate, midY, down) => {
-    // The bed carries the tone; the plate washes it the same way in every bed,
-    // the way one weathered face of a cliff is paler top to bottom; and only
-    // the last and smallest term knows which of the two it is standing in. Let
-    // that last term grow and the flank comes back a chequerboard of stone.
-    const tone = clamp01(
-      BEDS[bed].tone +
-        (dealt(plate * 61 + 9) - 0.5) * 0.20 +
-        lobed(theta, 6, bed * 3 + 7) * 0.09 +
-        (dealt(plate * 313 + bed * 17) - 0.5) * 0.06
-    );
-    const col = bedrockDeep.clone().lerp(bedrockMid, clamp01(tone * 1.9));
-    col.lerp(bedrockPale, clamp01((tone - 0.34) * 1.55));
-    // Falling away from the light toward the keel: the read the game's rock
-    // shader is after, land hanging in the air rather than a thick edge.
-    col.lerp(bedrockDeep, 0.34 * smoothstep(0.34, 1.1, -midY / drop));
-    // The top bed is the crust of earth the garden is growing in, not stone:
-    // what the gardener stands on has to be seen to be a crust.
-    if (bed === 0) col.copy(soilDark).lerp(bedrockMid, 0.18 + tone * 0.22);
-    // A surface turned under is a surface the sun never reaches.
-    if (down) col.multiplyScalar(0.72);
-    return col;
-  };
+  // **It is paler than any stone the game has, and it has to be.** An
+  // underside takes no direct sun over most of itself; what reaches it is the
+  // ambient and the garden's bounce, about an eighth of full daylight. Under
+  // that, the light on this mass runs from the 88th level of grey in the
+  // gullies to the 209th on the walls that face the sun - two and a half
+  // times, plenty to model a facet by. But the light is multiplied by the
+  // stone, and on the game's deep bedrock that whole range lands between the
+  // 27th level and the 55th, where there is no room left to see it and the
+  // mass reads as a black cut-out however it is cut. On this stone the same
+  // angles open out to between the 55th and the 115th.
+  const stone = bannerStone.clone();
+  const crust = soilDark.clone().lerp(bannerStone, 0.50);
 
-  for (let i = 1; i < rings.length; i++) {
-    const upper = rings[i - 1];
-    const lower = rings[i];
-    for (let j = 0; j < N; j++) {
-      const k = (j + 1) % N;
-      const a = upper.ring[j], b = upper.ring[k], c = lower.ring[k], d = lower.ring[j];
-      // A shelf that draws in faces up; one that steps back out is the ceiling
-      // of an overhang and faces down. Which it is now depends on the plate,
-      // so it is asked of the column and not of the whole ring.
-      const down = lower.shelf && d.f < a.f;
-      const midY = (a.y + c.y) / 2;
-      const col = stone(d.host, a.theta, d.cut, midY, down);
-      pushTri(a, b, c, col);
-      pushTri(a, c, d, col);
-    }
-  }
-
-  // Close the keel: the last ring fans onto the medial line, under the lowest
-  // of it so the fan cannot turn back up through the mass.
-  const last = rings[rings.length - 1].ring;
-  const keelY = Math.min(...last.map((p) => p.y)) - 0.06;
-  for (let j = 0; j < N; j++) {
-    const k = (j + 1) % N;
-    const mid = { x: ((last[j].x + last[k].x) / 2) * 0.4, y: keelY, z: 0 };
-    pushTri(last[j], last[k], mid, stone(BEDS.length - 1, last[j].theta, last[j].plate, keelY, true));
+  for (const [ia, ib, ic] of faces) {
+    const a = points[ia];
+    const b = points[ib];
+    const c = points[ic];
+    const cx = (a.x + b.x + c.x) / 3;
+    const cz = (a.z + b.z + c.z) / 3;
+    const theta = Math.atan2(cz, cx);
+    // Delaunay fills the hull; the island's rim is not convex, so the slivers
+    // laid across the cove are dropped.
+    if (Math.hypot(cx, cz) > rimRadius(theta)) continue;
+    const hang = -(a.y + b.y + c.y) / 3;
+    // The crust the garden grows in, eaten away unevenly underneath rather
+    // than cut off level. It has to be deeper than the first row of facets
+    // below the rim, or its edge is that row's own zigzag and the island wears
+    // a saw round its middle.
+    const crustDeep = 0.34 + lobed(theta, 5, 3) * 0.13;
+    const col =
+      hang < crustDeep
+        ? crust
+        : stone.clone().lerp(bedrockDeep, 0.18 * smoothstep(0.35, 2.0, hang));
+    pushTri(a, b, c, col);
   }
 
   // A lid just under the canopy, so no camera angle sees down into the shell.
-  const shoulder = rings[0].ring;
   const lid = { x: 0, y: 0.02, z: 0 };
-  for (let j = 0; j < N; j++) {
-    const k = (j + 1) % N;
+  for (let j = 0; j < rim.length; j++) {
+    const k = (j + 1) % rim.length;
     const col = soilDark.clone().lerp(leafShadow, 0.5);
-    pushTri({ ...shoulder[k], y: 0.02 }, { ...shoulder[j], y: 0.02 }, lid, col);
+    pushTri({ ...rim[k], y: 0.02 }, { ...rim[j], y: 0.02 }, lid, col);
   }
 
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   geometry.computeVertexNormals();
-  // Double sided, so the overhangs cannot go missing whichever way a strip
+  // Double sided, so a facet cannot go missing whichever way its triangle
   // happens to be wound - and three.js turns the normal to face the camera on
-  // a double-sided surface, so a soffit is still lit as the soffit it is.
+  // a double-sided surface, so every facet is lit as the facet it is.
   const material = new THREE.MeshLambertMaterial({
     vertexColors: true,
     flatShading: true,
