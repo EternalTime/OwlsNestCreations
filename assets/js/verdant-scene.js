@@ -194,7 +194,7 @@ function rimRadius(theta) {
 // turn under this sun is a shading difference the eye does not see; the mass
 // comes back smooth however deep the wobble is made. What reads from a camera
 // level with the rock is a plane at one angle meeting a plane at another
-// along a hard vertical edge - so the outline is a polygon of thirteen
+// along a hard vertical edge - so the outline is a polygon of seventeen
 // irregular plates rather than a circle, and where two plates disagree about
 // how far out they stand, the wall between them is a crack face.
 //
@@ -202,7 +202,7 @@ function rimRadius(theta) {
 // cliff does, and they soften a little toward the keel where the mass has to
 // close.
 const PLATES = 17;
-const RIB_SOFTEN = 0.4;
+const PLATE_SOFTEN = 0.4;
 
 function plateEdges() {
   const widths = [];
@@ -289,7 +289,7 @@ function buildRock() {
     // The dip comes in over the first two beds and the rise with it, so the
     // shoulder stays the level line the wood stands on.
     const settled = bed < 0 ? 0 : clamp01((bed + 1) / 3);
-    const soften = f * RIB_SOFTEN;
+    const soften = f * PLATE_SOFTEN;
     for (let j = 0; j < N; j++) {
       const col = plan[j];
       const theta = col.theta;
