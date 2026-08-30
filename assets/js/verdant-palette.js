@@ -43,6 +43,13 @@ export const Palette = {
   hardwood: '#3a2415',
   lampGlow: '#ffd98a',
 
+  // Banner-only stone, for the island's underside (not in the game). The
+  // game looks down on its rock in full sun; this camera is level with it and
+  // sees only the underside, which takes no direct sun over most of itself.
+  // Under an eighth of daylight the game's own bedrock cannot show a turned
+  // facet at all - see the note on the stone in verdant-scene.js.
+  bannerStone: '#a99e8b',
+
   // Banner-only sky (not in the game)
   skyTop: '#4e7fb0',
   skyMid: '#7fa6c8',
