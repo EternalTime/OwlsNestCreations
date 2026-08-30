@@ -138,6 +138,39 @@ function rimPoint(theta) {
   return { x: r * Math.cos(theta), z: r * Math.sin(theta) };
 }
 
+// ---- The turf ----
+
+// How far below the rim the grass reaches, in world height, at a bearing.
+//
+// The grass grows over the top of the island and then spills over the rim and
+// runs a little way down the stone, the way turf overhangs a cut bank. This
+// camera is level, so the top of the island is barely a sliver of picture and
+// the flank is nearly all of it: the spill IS the grass, as far as the eye
+// here is concerned, and everything about it has to be judged on the flank.
+//
+// **It must not be a band of one depth.** A green line at a constant height
+// all the way round is the same horizontal banding the stone under it was
+// just rebuilt to be rid of, and it would put the banding straight back one
+// step higher up. So the reach wanders on two beats that do not divide into
+// one another - six lobes for the long tongues, seventeen for the fret
+// between them - and the two together carry it from about 0.41 of a metre
+// below the rim where the turf hangs furthest to nothing at all where it
+// hangs least, and there the stone comes up bare to the edge.
+//
+// **A fifth of a metre is as far as it should usually go, and the reason is
+// what the eye compares it against.** The crust of earth beneath it is cut at
+// 0.34 of a metre give or take 0.13, so a turf that typically reaches 0.18
+// stops well inside the crust nearly everywhere and lets the earth show as a
+// second, different-edged strip beneath it - grass, then earth, then stone,
+// three tones down the flank whose two edges wander on beats of six and of
+// five and so never fall together. Run the turf deeper than the crust
+// everywhere and both edges are lost at once: the earth is buried and the
+// green meets the stone on a single line, which is the one line this rock
+// must not have.
+function turfDepth(theta) {
+  return 0.18 + lobed(theta, 6, 17) * 0.15 + lobed(theta, 17, 53) * 0.08;
+}
+
 // ---- The stone under the island ----
 //
 // The underside is a mountain hanging point downward, cut the way the
@@ -556,6 +589,22 @@ function buildRock() {
   // angles open out to between the 55th and the 115th.
   const stone = bannerStone.clone();
   const crust = soilDark.clone().lerp(bannerStone, 0.50);
+  // The grass is the game's own leaf ramp and nothing else: what is lit at
+  // the top of a crown lights the top of the turf, and what is in shade under
+  // a crown shades the turf where it hangs down the stone. So the treetops,
+  // the grass and the game are all saying the same green.
+  //
+  // The ramp is taken a step brighter than a crown's, because of where the
+  // turf sits. Every facet the grass lands on is part of the cliff just under
+  // the rim, turned about seventy degrees from level, so it takes barely a
+  // third of the sun a level surface would - and the game's leaf colours,
+  // which are mixed for a crown lit from above, come out under that as a
+  // green so dark it joins the wood's own underside and the island loses its
+  // top edge. Reading the same ramp from leafSun down instead puts the lit
+  // turf back where a bank of grass belongs, a clear step above the shade
+  // beneath the crowns standing on it.
+  const turfLit = leafSun.clone();
+  const turfShade = leafMid.clone().lerp(leafDeep, 0.35);
 
   for (const [ia, ib, ic] of faces) {
     const a = points[ia];
@@ -573,18 +622,43 @@ function buildRock() {
     // below the rim, or its edge is that row's own zigzag and the island wears
     // a saw round its middle.
     const crustDeep = 0.34 + lobed(theta, 5, 3) * 0.13;
-    const col =
-      hang < crustDeep
-        ? crust
-        : stone.clone().lerp(bedrockDeep, 0.18 * smoothstep(0.35, 2.0, hang));
+    // The turf's own edge, torn facet by facet - but only just.
+    //
+    // **The deal has to stay small, and the reason is the shape of the facets
+    // it is dealt over.** The stone in this band is the seventy-degree cliff,
+    // where the plan is squeezed radially and a facet comes out two and a half
+    // times taller than it is wide. A facet is painted whole, by where its
+    // middle falls, so a deal big enough to move the edge past a whole facet
+    // flips green and stone alternately down a row of slivers and draws the
+    // turf as a comb of green needles hanging off the rim. At a twentieth of a
+    // metre the deal only ever moves the edge by part of a facet, which puts
+    // the tear at the facets' own scale and leaves the raggedness proper to
+    // the wander, where it can be as wide as it is deep.
+    const grassDeep = turfDepth(theta) + (dealt(ia * 53 + 29) - 0.5) * 0.05;
+    let col;
+    if (hang < grassDeep) {
+      // Bright where the turf lies over the top, darkening as it hangs, and
+      // dealt a step of the ramp per facet the way the leaf grain steps a
+      // crown's colour - so the turf is not one flat green wash.
+      col = turfLit.clone().lerp(turfShade, smoothstep(0, 0.42, hang));
+      col.lerp(leafDeep, 0.22 * dealt(ia * 17 + 91));
+    } else if (hang < crustDeep) {
+      col = crust;
+    } else {
+      col = stone.clone().lerp(bedrockDeep, 0.18 * smoothstep(0.35, 2.0, hang));
+    }
     pushTri(a, b, c, col);
   }
 
   // A lid just under the canopy, so no camera angle sees down into the shell.
+  // It is the garden's floor where a gap between two crowns lets it show, so
+  // it is grass in the wood's own shade rather than bare earth: the leaf
+  // ramp's bottom two tones, which is what the undersides of the crowns just
+  // above it are painted in.
   const lid = { x: 0, y: 0.02, z: 0 };
   for (let j = 0; j < rim.length; j++) {
     const k = (j + 1) % rim.length;
-    const col = soilDark.clone().lerp(leafShadow, 0.5);
+    const col = leafShadow.clone().lerp(leafDeep, 0.55);
     pushTri({ ...rim[k], y: 0.02 }, { ...rim[j], y: 0.02 }, lid, col);
   }
 
