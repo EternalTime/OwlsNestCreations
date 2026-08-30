@@ -1,0 +1,5 @@
+{%- comment -%}
+Boots every `[data-ve-banner]` on the page. Include once per document: the
+module registers all banners it finds and lazily fetches the WebGL scene.
+{%- endcomment -%}
+<script type="module" src="{{ '/assets/js/verdant-banner.js' | relative_url }}"></script>

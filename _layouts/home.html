@@ -17,6 +17,9 @@ layout: default
       <div class="game-tag">{{ game.tagline }}</div>
       <p class="game-desc">{{ game.teaser }}</p>
       <a class="game-cta" href="{{ game.url | relative_url }}">More about {{ game.title }}</a>
+      {% if game.appstore_url %}
+      <a class="appstore-badge" href="{{ game.appstore_url }}" target="_blank" rel="noopener"><img src="{{ '/assets/img/app_store_button_white.svg' | relative_url }}" alt="Download on the App Store"></a>
+      {% endif %}
     </div>
   </section>
   {% else %}
@@ -26,14 +29,30 @@ layout: default
       <h2 class="game-title" style="font-family: {{ game.title_font }};">{{ game.title }}</h2>
       <div class="game-tag">{{ game.tagline }}</div>
       <p class="game-desc">{{ game.teaser }}</p>
+      {% if game.appstore_url %}
+      <a class="appstore-badge" href="{{ game.appstore_url }}" target="_blank" rel="noopener"><img src="{{ '/assets/img/app_store_button_black.svg' | relative_url }}" alt="Download on the App Store"></a>
+      {% endif %}
       <a class="game-cta" href="{{ game.url | relative_url }}">More about {{ game.title }}</a>
     </div>
   </section>
   {% endif %}
   {% endfor %}
+  {% comment %}
+  The Verdant Engine: announced as in development, home banner only - there is
+  no game page yet, so nothing here links anywhere (2026-08-28).
+  {% endcomment %}
+  <section class="game-block ve-field" data-ve-banner>
+    {% include verdant-field.html %}
+    <div class="game-blurb">
+      <h2 class="game-title">The Verdant Engine</h2>
+      <div class="game-tag">A serene Idle-RPG set in a world powered by Pattern&nbsp;Formation.</div>
+      <span class="game-release">Expected November release</span>
+    </div>
+  </section>
 </div>
 
 {% include voidflux-runtime.html %}
+{% include verdant-runtime.html %}
 
 <section class="nest-section">
   <h2>More hatching in the nest</h2>
