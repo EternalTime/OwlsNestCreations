@@ -137,6 +137,33 @@ function rimPoint(theta) {
   return { x: r * Math.cos(theta), z: r * Math.sin(theta) };
 }
 
+// The four trees that hang their leaves over the edge - see buildWillows.
+// They are listed here because the turf has to know about them: where a
+// willow hangs, the grass runs down to meet it.
+//
+// `drop` is how far below the rim the longest frond falls, in metres, and
+// `span` how wide across the rim the tree reaches, in radians.
+//
+// **The bearings are chosen on where they land in the picture, not on where
+// they are round the island.** The camera is level, so a bearing shows at a
+// distance cos(bearing) out from the middle of the island - which crowds the
+// bearings near 0 and near pi together and spreads the ones near a right
+// angle apart. Four evenly dealt bearings would come out as two pairs stuck
+// to the two edges. These four stand at 0.96, 0.64, -0.46 and -0.97 of the
+// island's half-width, so the widest run of clean stone - 1.10 of that
+// half-width, better than half the whole island - lies across the middle,
+// where the eye is.
+//
+// No arm of any of them reaches into the two bare gaps the canopy keeps at
+// 1.24 and 2.45, nor within 0.20 of a radian of the buttress at 1.72 where
+// the gardener is seen.
+const WILLOWS = [
+  { at: 0.30, span: 0.16, drop: 0.40, seed: 311 },
+  { at: 0.88, span: 0.20, drop: 1.05, seed: 733 },
+  { at: 2.05, span: 0.26, drop: 0.65, seed: 1279 },
+  { at: 2.88, span: 0.22, drop: 1.15, seed: 1811 },
+];
+
 // ---- The turf ----
 
 // How far below the rim the grass reaches, in world height, at a bearing.
@@ -166,8 +193,26 @@ function rimPoint(theta) {
 // everywhere and both edges are lost at once: the earth is buried and the
 // green meets the stone on a single line, which is the one line this rock
 // must not have.
+//
+// **Under a willow the turf runs down to meet it.** Grass spilling to a fifth
+// of a metre and a curtain of leaf falling a whole metre from a bough just
+// above it would otherwise be two separate fringes with a strip of bare stone
+// between them, and the eye reads two edges rather than one broken one. So
+// where a willow hangs the turf reaches down about a third as far as the
+// willow does, and the two greens meet.
+//
+// **It is a tongue and not a skirt.** The bulge is held to about half the
+// tree's own span and to a quarter of a metre at most, because a wide, gentle
+// one does not tie a willow to the grass - it lowers the turf's edge all
+// round and puts back the same level band a step further down.
 function turfDepth(theta) {
-  return 0.18 + lobed(theta, 6, 17) * 0.15 + lobed(theta, 17, 53) * 0.08;
+  let deep = 0.18 + lobed(theta, 6, 17) * 0.15 + lobed(theta, 17, 53) * 0.08;
+  for (const w of WILLOWS) {
+    const away = bearingAway(theta, w.at);
+    const wide = w.span * 0.5;
+    deep += Math.min(w.drop * 0.32, 0.24) * Math.exp(-(away * away) / (2 * wide * wide));
+  }
+  return deep;
 }
 
 // ---- The stone under the island ----
@@ -353,6 +398,24 @@ function stoneHang(x, z) {
     hang += s.reach * Math.exp(-(dx * dx + dz * dz) / (s.span * s.span)) * settled;
   }
   return hang * ISLAND.keelDrop;
+}
+
+// How far out from the middle the stone's face lies, on a bearing, at a given
+// depth below the rim. The stone is cut from flutes and swells rather than
+// from a formula, so this is a bisection on stoneHang itself, which is the
+// only thing that knows where the face actually is. It is what lets a
+// willow's fronds hang against the cut instead of in the air beside it.
+function faceRadius(theta, depth) {
+  const cos = Math.cos(theta);
+  const sin = Math.sin(theta);
+  let near = 0.02;
+  let far = rimRadius(theta);
+  for (let i = 0; i < 22; i++) {
+    const mid = (near + far) / 2;
+    if (stoneHang(cos * mid, sin * mid) > depth) near = mid;
+    else far = mid;
+  }
+  return (near + far) / 2;
 }
 
 // Sectors whose stone has shattered. A broad plane only reads as broad with
@@ -844,6 +907,16 @@ function buildCanopy() {
     overhang.push({ ...mass, root: Math.min(d, rim * 0.94) });
   }
 
+  // The willows, whose leaf falls past the rim and down the stone. Their
+  // heads join the wood here and their fronds go into the same mesh; only
+  // their trunks and boughs are a mesh of their own, being bark.
+  //
+  // **This is done after the wood is dealt and not before it.** The lay of
+  // the crowns is what hides the gardener, and it was measured; drawing so
+  // much as one number from `rand` earlier than this deals the whole wood
+  // differently and she is lost.
+  const willowBark = buildWillows(masses, positions, colors);
+
   // The dome of deep wood under the masses, so whatever shows between two
   // of them is leaf and never sky.
   //
@@ -964,6 +1037,7 @@ function buildCanopy() {
   const group = new THREE.Group();
   group.add(new THREE.Mesh(geometry, material));
   group.add(buildTrunks(overhang));
+  group.add(willowBark);
   return group;
 }
 
@@ -1005,6 +1079,222 @@ function buildTrunks(overhang) {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geometry.computeVertexNormals();
+  return new THREE.Mesh(
+    geometry,
+    new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, side: THREE.DoubleSide })
+  );
+}
+
+// ---- The willows over the rim ----
+//
+// The wood ended and the stone began at very nearly one height the whole way
+// round, and a boundary like that reads as a lid laid on a plinth however
+// ragged either side of it is made. Measured on the render, half of the rim
+// sat within a twentieth of a metre of a single height and three quarters of
+// it within a fifth of a metre. Leaning a crown further out does not help,
+// because a crown that leans still ends where the rim does; what breaks the
+// line is green at SEVERAL DIFFERENT heights against the rock, and that is
+// what these four trees are for.
+//
+// Four things decide whether such a tree reads as a willow or as a bush
+// thrown over the edge.
+//
+// **The hanging mass tapers and thins downward.** A frond is a chain of leaf
+// clumps that shrink from about a tenth of a metre where it leaves the bough
+// to a thirtieth at its tip. Heaviest at the top and lightest at the bottom
+// is what a willow is; a sphere pushed below the rim is not one. The curtain
+// thins as well as tapering, because the fronds are dealt lengths from four
+// tenths to a whole one of the tree's drop - so a few reach the bottom and
+// most of them stop well short, and the hem is ragged rather than cut.
+//
+// **It is attached.** Each willow stands on a trunk in the garden, carries a
+// head of leaf in the wood's own ramp, and throws three boughs out over the
+// lip; the fronds hang from the outer third of those boughs and from their
+// tips. Without a bough in sight a drooping crown is exactly the bush
+// floating in the air on a stick that the note on the overhanging crowns
+// above warns against.
+//
+// **It hangs against the stone.** Over the first third of a metre of its fall
+// a frond swings in from the bough tip to the face and then follows the face
+// down, the radius solved off stoneHang, so it reads as overhanging the cut
+// rather than levitating beside it.
+//
+// **They are few and uneven.** Four of them, falling 0.40, 0.65, 1.05 and
+// 1.15 of a metre - four different heights, none of them the rim's - with
+// long stretches of clean rock between (see WILLOWS). The two bare gaps the
+// canopy keeps in its fringe stay gaps: no willow reaches into either.
+function buildWillows(masses, positions, colors) {
+  const barkPositions = [];
+  const barkColors = [];
+  const light = colour(Palette.barkLight);
+  const mid = colour(Palette.barkMid);
+  const dark = colour(Palette.barkDark);
+
+  const pol = (t, r, y) => [Math.cos(t) * r, y, Math.sin(t) * r];
+  const bez = (a, b, c, s) => {
+    const k = 1 - s;
+    return [0, 1, 2].map((i) => k * k * a[i] + 2 * k * s * b[i] + s * s * c[i]);
+  };
+  const pushBark = (a, b, c, col) => {
+    barkPositions.push(a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]);
+    for (let i = 0; i < 3; i++) barkColors.push(col.r, col.g, col.b);
+  };
+  // A limb swept along a path. The ring has to be square to the limb rather
+  // than level: a bough here is nearly horizontal, and a level ring round a
+  // horizontal limb collapses to a line.
+  const sweep = (path, wide) => {
+    for (let i = 0; i + 1 < path.length; i++) {
+      const a = path[i];
+      const b = path[i + 1];
+      const d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+      const dl = Math.hypot(d[0], d[1], d[2]) || 1;
+      for (let k = 0; k < 3; k++) d[k] /= dl;
+      const up = Math.abs(d[1]) > 0.9 ? [1, 0, 0] : [0, 1, 0];
+      const n1 = [d[1] * up[2] - d[2] * up[1], d[2] * up[0] - d[0] * up[2], d[0] * up[1] - d[1] * up[0]];
+      const n1l = Math.hypot(n1[0], n1[1], n1[2]) || 1;
+      for (let k = 0; k < 3; k++) n1[k] /= n1l;
+      const n2 = [d[1] * n1[2] - d[2] * n1[1], d[2] * n1[0] - d[0] * n1[2], d[0] * n1[1] - d[1] * n1[0]];
+      const ring = (ang, at, w) => [0, 1, 2].map((k) => at[k] + (Math.cos(ang) * n1[k] + Math.sin(ang) * n2[k]) * w);
+      const sides = 5;
+      for (let s = 0; s < sides; s++) {
+        const p = (s / sides) * Math.PI * 2;
+        const q = ((s + 1) / sides) * Math.PI * 2;
+        // Turned to the light like the trunks and the rock are.
+        const face = mid.clone().lerp(Math.cos(p + 0.6) > 0 ? light : dark, 0.4);
+        pushBark(ring(p, a, wide[i]), ring(q, a, wide[i]), ring(q, b, wide[i + 1]), face);
+        pushBark(ring(p, a, wide[i]), ring(q, b, wide[i + 1]), ring(p, b, wide[i + 1]), face);
+      }
+    }
+  };
+
+  const bead = new THREE.IcosahedronGeometry(1, 0);
+  const beadPos = bead.getAttribute('position');
+  const vertex = new THREE.Vector3();
+
+  // Where along a bough the fronds hang, and how the boughs are thrown. `off`
+  // is across the tree's span, `out` how far past the rim the tip reaches,
+  // `tip` the height it ends at and `reach` how much of the tree's full drop
+  // the longest frond on it takes.
+  // The boughs have to come out past the wood's own edge, or they are never
+  // seen: the crowns already carry from a fifth to seven tenths of a metre of
+  // leaf beyond the rim, and a bough that stops short of that is buried in
+  // them and the fronds appear to hang off nothing.
+  const ARMS = [
+    { off: -0.46, out: 0.13, tip: 0.06, reach: 0.66 },
+    { off: 0.09, out: 0.22, tip: -0.03, reach: 1.0 },
+    { off: 0.52, out: 0.11, tip: 0.02, reach: 0.80 },
+  ];
+  // Where along a bough the fronds hang: on its outer part only, past the
+  // lip, so a frond falls down the open face of the stone rather than through
+  // the garden it stands in.
+  const STATIONS = [0.64, 0.82, 1.0];
+
+  for (const tree of WILLOWS) {
+    const rim = rimRadius(tree.at);
+    const foot = pol(tree.at, rim * 0.84, -0.03);
+    const crotch = pol(tree.at, rim * 0.90, 0.30);
+    sweep([foot, crotch], [0.08, 0.052]);
+    // The head of leaf, in the canopy's own mesh and its own ramp, so a willow
+    // is a tree in this wood rather than a thing added beside it.
+    //
+    // It stands up in the wood rather than out over the lip. A head set low
+    // at the edge is one more crown leaning over the drop, which the wood
+    // already has eight of; what is wanted here is a tree of the wood whose
+    // boughs go out over it. Where the wood's edge falls is not affected
+    // either way - measured, moving this head in and up changed 3575 pixels
+    // of the picture and not one column of the boundary.
+    const head = pol(tree.at, rim * 0.87, 0.56);
+    masses.push({
+      x: head[0],
+      z: head[2],
+      r: 0.22 + dealt(tree.seed) * 0.05,
+      kind: 'broad',
+      y: head[1],
+      seed: tree.seed,
+    });
+
+    for (let a = 0; a < ARMS.length; a++) {
+      const arm = ARMS[a];
+      const armAt = tree.at + arm.off * tree.span;
+      const p1 = pol(tree.at + arm.off * tree.span * 0.5, rimRadius(tree.at + arm.off * tree.span * 0.5) * 0.97, 0.34);
+      const p2 = pol(armAt, rimRadius(armAt) * (1 + arm.out), arm.tip);
+      const path = [];
+      const wide = [];
+      for (let i = 0; i <= 5; i++) {
+        path.push(bez(crotch, p1, p2, i / 5));
+        wide.push(0.048 - 0.030 * (i / 5));
+      }
+      sweep(path, wide);
+
+      for (let f = 0; f < STATIONS.length; f++) {
+        const s = STATIONS[f];
+        const hang = bez(crotch, p1, p2, s);
+        const at = Math.atan2(hang[2], hang[0]);
+        const outAt = Math.hypot(hang[0], hang[2]);
+        const salt = tree.seed + a * 97 + f * 31;
+        // How far this one falls. The spread is wide on purpose: fronds all
+        // of a length give the curtain a hem, which is another level line.
+        const fall = tree.drop * arm.reach * (0.40 + 0.60 * s) * (0.70 + 0.55 * dealt(salt));
+        const turn = dealt(salt + 7) * 20;
+        // The step down the frond is the size of the clump it just placed, so
+        // the strand stays closed the whole way down and thins by its clumps
+        // getting finer rather than by breaking into separate beads. A chain
+        // of beads at a fixed step is a string of peas, not a willow.
+        for (let i = 0, fallen = 0; fallen < fall; i++) {
+          const v = clamp01(fallen / fall);
+          const y = hang[1] - fallen;
+          const deep = Math.max(-y, 0);
+          // In against the face over the first third of a metre of the fall,
+          // and down the face after that.
+          const swing = clamp01(deep / 0.35);
+          const r = outAt + (faceRadius(at, deep) - outAt) * swing;
+          const size = (0.095 - 0.066 * Math.pow(v, 0.75)) * (0.8 + 0.4 * dealt(salt + i * 29 + 5));
+          // The clumps close up as they go down, so the strand does not end in
+          // a bead on its own with daylight above it.
+          fallen += size * (1.25 - 0.35 * v);
+          // A slow sway across the face as it falls, and a shake per clump.
+          const drift = at + (dealt(salt + 3) - 0.5) * 0.12 * v + (dealt(salt + i * 13) - 0.5) * 0.05;
+          const cx = Math.cos(drift) * r;
+          const cz = Math.sin(drift) * r;
+          // Each clump is a flattened lozenge lying against the stone -
+          // half again as wide across the face as it is deep into it, and
+          // drawn out downward. A round clump makes the strand a rope of
+          // beads; leaf hanging against a cut lies flat on it.
+          const tallness = 1.25;
+          // Each clump is turned its own way about the strand. Without this
+          // every clump is the same solid at the same angle and a frond comes
+          // out as a stack of cones in register - a fir cone, not a willow.
+          const spin = dealt(salt + i * 41 + 17) * Math.PI * 2;
+          const cs = Math.cos(spin);
+          const sn = Math.sin(spin);
+          const across = [-Math.sin(drift), 0, Math.cos(drift)];
+          const into = [Math.cos(drift), 0, Math.sin(drift)];
+          const base = y - size * tallness;
+          const span = Math.max(size * tallness * 2, 0.05);
+          for (let t = 0; t < beadPos.count; t++) {
+            vertex.fromBufferAttribute(beadPos, t).normalize();
+            const wide = (vertex.x * cs - vertex.z * sn) * size * 1.5;
+            const deepIn = (vertex.x * sn + vertex.z * cs) * size * 0.75;
+            const px = cx + across[0] * wide + into[0] * deepIn;
+            const py = y + vertex.y * size * tallness;
+            const pz = cz + across[2] * wide + into[2] * deepIn;
+            positions.push(px, py, pz);
+            // The ramp is read on the bead's own body, as a crown's is, and
+            // then carried up it: the curtain is in the head's shade where it
+            // leaves the bough and in open light at its tips.
+            const rise = 0.55 * clamp01((py - base) / span) + 0.45 * (0.28 + 0.55 * v);
+            const col = leafColour(rise, leafGrain(px, py, pz, turn));
+            colors.push(col.r, col.g, col.b);
+          }
+        }
+      }
+    }
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(barkPositions, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(barkColors, 3));
   geometry.computeVertexNormals();
   return new THREE.Mesh(
     geometry,
