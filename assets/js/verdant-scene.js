@@ -1404,7 +1404,6 @@ function gardenerPose(t) {
   const ease = (a, b) => smoothstep(0, 1, (p - a) / (b - a));
   let k = ROUTINE.kIn;
   let walking = false;
-  let returning = false;
   if (p >= ROUTINE.out && p < ROUTINE.outDone) {
     k = ROUTINE.kIn + (ROUTINE.kOut - ROUTINE.kIn) * ease(ROUTINE.out, ROUTINE.outDone);
     walking = true;
@@ -1413,9 +1412,8 @@ function gardenerPose(t) {
   } else if (p >= ROUTINE.back && p < ROUTINE.backDone) {
     k = ROUTINE.kOut - (ROUTINE.kOut - ROUTINE.kIn) * ease(ROUTINE.back, ROUTINE.backDone);
     walking = true;
-    returning = true;
   }
-  return { k, walking, returning };
+  return { k, walking };
 }
 
 // ---- The engine's stacks ----
@@ -1944,10 +1942,20 @@ export function mount(banner) {
   let elapsed = 24;
 
   const spot = gardenerSpot();
-  // Facing out along her own walk, and then turned twenty degrees off it, so
-  // the camera gets her three quarters on and the chimney off her shoulder
-  // tells one side of her from the other.
-  const outward = Math.atan2(spot.x, spot.z) + 0.35;
+  // **She faces the viewer, and keeps facing him the whole way out and the
+  // whole way back** (Damian, 2026-08-30). She used to face out along her own
+  // walk and turn right around to come home, which showed the camera her back
+  // for the return.
+  //
+  // The angle is worked out rather than dialled in. The camera stands at
+  // (0, 0, 8.24) and she walks between (0.73, 0.78) and (0.60, 1.58), so the
+  // line from her to the camera lies 5.1 to 5.6 degrees to the left of
+  // straight out of the picture; the island's own tilt shortens that on her
+  // turntable to between 4.8 and 5.2 degrees. One angle covers the whole walk
+  // to within four tenths of a degree, so she is given the middle of it:
+  // 0.09 of a radian, 5.2 degrees, turned toward the middle of the picture.
+  // Her porthole then looks straight down the lens wherever she is standing.
+  const facing = -0.09;
 
   const step = () => {
     elapsed += clock.getDelta();
@@ -1957,7 +1965,7 @@ export function mount(banner) {
     const pose = gardenerPose(t);
     // The garden's floor is flat, so she keeps the one height throughout.
     gardener.position.set(spot.x * pose.k, 0, spot.z * pose.k);
-    gardener.rotation.y = outward + (pose.returning ? Math.PI : 0);
+    gardener.rotation.y = facing;
     gardener.rotation.z = pose.walking ? 0.05 * Math.sin(t * 9) : 0;
     smoke.update(t);
     gulls.update(t);
