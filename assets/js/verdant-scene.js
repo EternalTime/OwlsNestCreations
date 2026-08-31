@@ -1330,6 +1330,34 @@ function buildGardener() {
   const dome = make(new THREE.SphereGeometry(0.23, 8, 6), Palette.iron);
   dome.position.y = 0.74;
   dome.scale.y = 0.82;
+  // The porthole she looks out of, at the game's own proportions of the head:
+  // the glass is 0.393 of the head's radius across and 0.083 of it thick, and
+  // stands 0.028 of it proud of the face (radius 0.057, thickness 0.012, at
+  // bellRadius + 0.004 on a head of 0.145, Render/GardenerNode.swift). It
+  // carries the same lamp behind it, which burns whether she is working or
+  // not - and that glow is most of what registers, because the whole circle
+  // is ten pixels across on a 1600-wide banner.
+  //
+  // **Its height is the banner's, not the game's.** The game hangs it 0.172 of
+  // the head's radius BELOW the middle, to keep it under the overhang of the
+  // helmet's cap, because that camera looks down at fifty-six degrees. This
+  // camera looks UP at her by about eleven degrees, where the danger is the
+  // collar and not the cap: at the game's height a fifth of the circle is
+  // swallowed by the collar's near rim and she reads as having half a lamp.
+  // The disc's lower edge is therefore set on that rim, at 0.090 above the
+  // collar's top, and the whole circle is on the face of the head.
+  const porthole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.090, 0.090, 0.019, 10),
+    new THREE.MeshLambertMaterial({
+      color: colour(Palette.portholeGlass),
+      emissive: colour(Palette.portholeLamp),
+      flatShading: true,
+    })
+  );
+  porthole.position.set(0, 0.760, 0.236);
+  porthole.rotation.x = Math.PI / 2;
+  group.add(porthole);
+
   const finial = make(new THREE.CylinderGeometry(0.035, 0.05, 0.14, 6), Palette.brassBright);
   finial.position.y = 0.95;
   for (const side of [-1, 1]) {

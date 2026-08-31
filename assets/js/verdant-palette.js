@@ -42,6 +42,11 @@ export const Palette = {
   ironLight: '#565d68',
   hardwood: '#3a2415',
   lampGlow: '#ffd98a',
+  // The porthole she looks out of: the glass itself, and the warm lamp
+  // behind it that burns whether or not she is working (portholeGlass in
+  // Palette.swift, portholeLamp in Render/GardenerNode.swift).
+  portholeGlass: '#33453c',
+  portholeLamp: '#6b4a1e',
 
   // Banner-only stone, for the island's underside (not in the game). The
   // game looks down on its rock in full sun; this camera is level with it and
