@@ -1921,9 +1921,29 @@ export function mount(banner) {
   const smoke = buildSmoke(engineStacks.userData.tops);
   island.add(smoke.group);
   island.position.set(ISLAND.x, ISLAND.shoulderY, 0);
-  // Tilted five degrees toward the viewer, so the camera reads a sliver of
-  // the garden's top as well as its side.
-  island.rotation.x = (5 * Math.PI) / 180;
+  // Tilted twenty degrees toward the viewer (Damian, 2026-08-30), where it
+  // stood at five.
+  //
+  // **This turns up surfaces the stone was cut on the understanding nobody
+  // would see them.** The island's top sits 1.14 above the eye line and about
+  // 6.7 away, so it stands ten degrees above the camera: at five degrees
+  // every level surface on the island was still turned away, and the rock was
+  // cut for that - its whole read is its vertical and steeply sloping faces.
+  // Twenty degrees carries the top ten degrees past the eye line. Taken on
+  // the stone's own triangles at 1600 x 900, its level surfaces go from 3.6
+  // per cent of the rock to 15.4, from a median 2.9 degrees off edge on to
+  // 12.8, and from none facing the camera to all of them.
+  //
+  // What that costs is not what it looks like it should cost. Nearly every
+  // level surface here is the garden's floor, and the wood stands on it, so
+  // of the four and a half times more of it that now faces the camera only
+  // 2854 device pixels reach the picture against 1384 before. **The real
+  // price is the stone itself.** The crowns lean forward over the near rim as
+  // the island turns, and the flank foreshortens under them: the stone shows
+  // on 111455 device pixels where it showed on 167063, a third of the rock
+  // gone out of the picture, and the crust of earth with it, 22803 against
+  // 29700.
+  island.rotation.x = (20 * Math.PI) / 180;
   scene.add(island);
 
   const clouds = buildClouds();
