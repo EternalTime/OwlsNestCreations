@@ -5,7 +5,9 @@
 <title>Owl's Nest Creations - Facebook artwork source</title>
 <!--
   Source for assets/img/social/facebook-cover.png, facebook-profile.png and
-  voidflux-promo.png. Rendered headless, one board per run:
+  voidflux-promo.png. Rendered headless, one board per run.
+
+  The two cream boards are self-contained and render straight off disk:
 
     CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
     "$CHROME" --headless --disable-gpu --hide-scrollbars \
@@ -14,9 +16,16 @@
     "$CHROME" --headless --disable-gpu --hide-scrollbars \
       --screenshot=assets/img/social/facebook-profile.png --window-size=1080,1080 \
       "file://$PWD/assets/img/social/facebook-social.html#profile"
-    "$CHROME" --headless --disable-gpu --hide-scrollbars \
-      --screenshot=assets/img/social/voidflux-promo.png --window-size=1200,1200 \
-      "file://$PWD/assets/img/social/facebook-social.html#voidflux"
+
+  The VoidFlux board is the site's own live banner rather than a still, so it
+  cannot be shot with --screenshot. It has its own headless runner, which serves
+  the repo, waits for the scene to mount and stops everything again:
+
+    node assets/img/social/render-voidflux-promo.mjs
+
+  Read that file before changing anything here: it documents why the flag alone
+  fails, and how it fails - silently, with the grid drawn and the loops and gems
+  missing. Always look at the PNG after a render.
 -->
 <style>
   /* The face the site itself gives the VoidFlux title, loaded off disk so a
@@ -31,6 +40,10 @@
     --ink: #1c1a24;
     --accent: #1f7a4d;
     --amber: #f9b450;
+
+    /* The VoidFlux field's own palette, from _sass/voidflux.scss. */
+    --vf-void: #04040e;
+    --vf-teal-bright: #49ffe9;
 
     /* Facebook crops the cover hard on phones; everything lives in here. */
     --safe-width: 1092px;
@@ -58,7 +71,7 @@
   .board { display: none; overflow: hidden; background: var(--paper); }
   body[data-board="cover"] .board-cover { display: block; }
   body[data-board="profile"] .board-profile { display: block; }
-  body[data-board="voidflux"] .board-voidflux { display: flex; }
+  body[data-board="voidflux"] .board-voidflux { display: block; }
 
   /* ---- Cover: 1640x664 ---- */
 
@@ -128,33 +141,91 @@
     height: 1080px;
   }
 
-  /* ---- VoidFlux promo post: 1200x1200 ---- */
+  /* ---- VoidFlux promo post: 1200x1200 ----
+
+     The square is the site's home-page banner and nothing else: the same
+     `.vf-field` markup, the same two canvases, booted by the same
+     voidflux-banner.js. Everything below is copied from _sass/voidflux.scss so
+     the render is the banner rather than a lookalike; the one thing that is not
+     the site's is the layout, because the banner is a wide block with its copy
+     ranged left and this is a square with its copy centred.
+
+     The banner's `.vf-field::after` scrim is kept but re-aimed. On the site it
+     is a left-to-right ramp clearing a column for the headline, blurb, button
+     and badge; here the copy is a centred block, so the same voidBlack ramp is
+     centred on it and falls to nothing well before the edges. The loops have to
+     stay readable through it, so it tops out at the site's own 0.8. */
 
   .board-voidflux {
     width: 1200px;
     height: 1200px;
-    padding: 90px;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
+    position: relative;
+    isolation: isolate;
+    background: var(--vf-void);
+    color: #fff;
   }
 
-  .board-voidflux .wordmark { font-size: 68px; gap: 37px; }
+  .vf-grid,
+  .vf-scene {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+  }
 
-  .board-voidflux h1 {
-    margin-top: 74px;
+  .vf-grid { z-index: -2; }
+  /* The site fades the scene in over 0.6s; a still has nothing to fade from. */
+  .vf-scene { z-index: -1; opacity: 0; }
+  .board-voidflux[data-vf-ready] .vf-scene { opacity: 1; }
+
+  .board-voidflux::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: radial-gradient(
+      ellipse 54% 21% at 50% 46%,
+      rgba(4, 4, 14, 0.8) 0%,
+      rgba(4, 4, 14, 0.66) 44%,
+      rgba(4, 4, 14, 0) 100%
+    );
+  }
+
+  /* The copy sits on the horizon band, where the grid's own fade mask thins the
+     lines to almost nothing, so it lands on the calmest part of the field. That
+     band is a fixed pixel offset above centre (VANISHING_Y in
+     voidflux-banner.js) rather than a fraction of the height, which is why the
+     block is positioned instead of centred. */
+  .board-voidflux .game-blurb {
+    position: absolute;
+    z-index: 1;
+    left: 0;
+    right: 0;
+    top: 408px;
+    padding: 0 80px;
+    text-align: center;
+    text-shadow: 0 2px 18px rgba(4, 4, 14, 0.9);
+  }
+
+  .board-voidflux .game-title {
     font-family: 'Paytone One', sans-serif;
-    font-size: 200px;
+    font-size: 210px;
     font-weight: 400;
     line-height: 1;
+    color: #fff;
+    text-shadow:
+      0 0 22px rgba(55, 223, 255, 0.55),
+      0 0 60px rgba(255, 73, 201, 0.35);
   }
 
-  .board-voidflux p {
-    margin-top: 54px;
-    font-size: 40px;
-    font-weight: 500;
-    line-height: 1.4;
+  .board-voidflux .game-tag {
+    margin-top: 42px;
+    font-size: 45px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--vf-teal-bright);
   }
 </style>
 </head>
@@ -194,26 +265,30 @@
   </svg>
 </div>
 
-<div class="board board-voidflux">
-  <div class="wordmark">
-    <svg viewBox="0 0 34 34" aria-hidden="true">
-      <path d="M6 7 L11 2 L13 8 Z" fill="var(--ink)"/>
-      <path d="M28 7 L23 2 L21 8 Z" fill="var(--ink)"/>
-      <circle cx="17" cy="18" r="15" fill="var(--ink)"/>
-      <circle cx="11.5" cy="16" r="6" fill="var(--paper)"/>
-      <circle cx="22.5" cy="16" r="6" fill="var(--paper)"/>
-      <circle cx="11.5" cy="16" r="2.6" fill="var(--accent)"/>
-      <circle cx="22.5" cy="16" r="2.6" fill="var(--accent)"/>
-      <path d="M17 20 L14.8 23.5 L19.2 23.5 Z" fill="var(--amber)"/>
-    </svg>
-    <span class="wm-text">Owl's <span class="wm-accent">Nest</span></span>
+<!-- The home-page banner, square. The two canvases and `data-vf-banner` are
+     _includes/voidflux-field.html; the copy is _games/voidflux.md's own title
+     and tagline. -->
+<div class="board board-voidflux vf-field" data-vf-banner>
+  <canvas class="vf-grid" aria-hidden="true"></canvas>
+  <canvas class="vf-scene" aria-hidden="true"></canvas>
+  <div class="game-blurb">
+    <div class="game-title">VoidFlux</div>
+    <div class="game-tag">A puzzle in the depths of Electromagnetism.</div>
   </div>
-  <h1>VoidFlux</h1>
-  <p>A puzzle in the depths of Electromagnetism.</p>
 </div>
 
 <script>
-  document.body.dataset.board = location.hash.replace('#', '') || 'cover';
+  const board = location.hash.replace('#', '') || 'cover';
+  document.body.dataset.board = board;
+
+  // Only the VoidFlux board pulls in the scene, so the cream boards still
+  // render off `file://` with no module loader and no three.js fetch.
+  if (board === 'voidflux') {
+    const runtime = document.createElement('script');
+    runtime.type = 'module';
+    runtime.src = '../../js/voidflux-banner.js';
+    document.body.append(runtime);
+  }
 </script>
 </body>
 </html>
