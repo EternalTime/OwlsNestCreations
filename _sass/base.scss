@@ -74,31 +74,42 @@ body {
 }
 
 .footer-name { font-weight: 800; font-size: 1.3rem; }
-.footer-contact a { color: #fff; font-weight: 700; }
 .footer-fine { font-size: 0.85rem; opacity: 0.8; width: 100%; }
 
 // ---- Social links (footer + prose pages) ----
 
+// Links carry a 2.75rem tap target around a 1.4rem mark, so --social-inset is
+// the slack on every side; the negative margins spend it back so the marks sit
+// where plain text would have.
 .social-links {
+  --social-inset: 0.675rem;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.3rem 1.1rem;
+  gap: 0.3rem;
+  margin: calc(-1 * var(--social-inset));
 }
 
 .social-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0 var(--social-inset);
+  border-radius: 999px;
   font-weight: 700;
   text-underline-offset: 0.22em;
   transition: all 0.15s ease;
 }
 
-// Negative margin keeps the hover pill from shifting the row.
-.footer-social a {
-  color: #fff;
-  padding: 0.15rem 0.5rem;
-  margin: -0.15rem -0.5rem;
-  border-radius: 999px;
+.social-icon {
+  display: block;
+  width: 1.4rem;
+  height: 1.4rem;
 }
+
+.footer-social a { color: #fff; }
 
 .footer-social a:hover,
 .footer-social a:focus-visible {
@@ -108,7 +119,7 @@ body {
 }
 
 .prose-social {
-  margin-bottom: 1rem;
+  margin-bottom: calc(1rem - var(--social-inset));
   font-size: 1.1rem;
 }
 
