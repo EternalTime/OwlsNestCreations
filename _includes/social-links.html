@@ -1,0 +1,7 @@
+{%- if site.social and site.social.size > 0 -%}
+<nav class="social-links{% if include.class %} {{ include.class }}{% endif %}" aria-label="{{ site.title }} elsewhere">
+  {%- for account in site.social %}
+  <a href="{{ account.url }}" target="_blank" rel="noopener">{{ account.name }}</a>
+  {%- endfor %}
+</nav>
+{%- endif -%}

@@ -77,6 +77,44 @@ body {
 .footer-contact a { color: #fff; font-weight: 700; }
 .footer-fine { font-size: 0.85rem; opacity: 0.8; width: 100%; }
 
+// ---- Social links (footer + prose pages) ----
+
+.social-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 1.1rem;
+}
+
+.social-links a {
+  font-weight: 700;
+  text-underline-offset: 0.22em;
+  transition: all 0.15s ease;
+}
+
+// Negative margin keeps the hover pill from shifting the row.
+.footer-social a {
+  color: #fff;
+  padding: 0.15rem 0.5rem;
+  margin: -0.15rem -0.5rem;
+  border-radius: 999px;
+}
+
+.footer-social a:hover,
+.footer-social a:focus-visible {
+  background: #fff;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.prose-social {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.prose-social a:hover,
+.prose-social a:focus-visible { color: var(--ink); }
+
 // ---- Prose pages (About, 404) ----
 
 .prose {

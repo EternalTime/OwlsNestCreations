@@ -15,6 +15,8 @@ The games start from real physics - the same equations that show up in cutting e
 Questions, ideas, or just curious?
 Write to [hello@owlsnestcreations.com](mailto:hello@owlsnestcreations.com).
 
+{% include social-links.html class="prose-social" %}
+
 <a class="game-cta" href="/privacy/" style="--g-cta-bg: var(--accent); color: var(--paper);">Privacy Policy</a>
 
 </section>
