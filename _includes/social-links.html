@@ -1,7 +1,13 @@
 {%- if site.social and site.social.size > 0 -%}
+{%- comment -%}
+Liquid cannot ask whether an include exists and a missing one aborts the build,
+so every mark drawn in _includes/social/ has to be named here as well.
+{%- endcomment -%}
+{%- assign social_icons = "facebook" | split: "," -%}
 <nav class="social-links{% if include.class %} {{ include.class }}{% endif %}" aria-label="{{ site.title }} elsewhere">
   {%- for account in site.social %}
-  <a href="{{ account.url }}" target="_blank" rel="noopener">{{ account.name }}</a>
+  {%- assign icon = account.name | slugify %}
+  <a href="{{ account.url }}" target="_blank" rel="noopener" aria-label="{{ account.name }}">{% if social_icons contains icon %}{% include social/{{ icon }}.svg %}{% else %}{{ account.name }}{% endif %}</a>
   {%- endfor %}
 </nav>
 {%- endif -%}
