@@ -6,6 +6,12 @@ description: >-
 url: "https://owlsnestcreations.com"
 email: hello@owlsnestcreations.com
 
+# Rendered by _includes/social-links.html in the footer and on the about page.
+# Add a network by adding a name and url here; remove the list and nothing renders.
+social:
+  - name: Facebook
+    url: https://www.facebook.com/profile.php?id=61592827059872
+
 collections:
   games:
     output: true
