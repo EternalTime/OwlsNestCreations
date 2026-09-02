@@ -208,6 +208,21 @@
 
 .vf-prose a:hover { text-decoration-color: var(--vf-teal-bright); }
 
+// Display equations, rendered by the vendored KaTeX on pages carrying
+// `math: true`. A shade larger than the 1.08rem prose, because the maths
+// faces have the smaller x-height and would otherwise read as the quieter
+// thing on the page.
+.vf-prose .katex-display {
+  margin: 2.5rem 0;
+  // Full white, like `strong`, against the prose's softer grey.
+  color: #fff;
+  font-size: 1.2rem;
+  // A wide equation scrolls inside the column instead of widening the page.
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.4rem 0;
+}
+
 // A pulled-out line for the game's own voice, set like a story card.
 .vf-prose blockquote {
   margin: 2.25rem 0;

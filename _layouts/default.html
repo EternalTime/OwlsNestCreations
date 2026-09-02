@@ -15,6 +15,12 @@
   <link rel="icon" href="{{ '/assets/img/favicon-32.png' | relative_url }}" type="image/png" sizes="32x32">
   <link rel="icon" href="{{ '/assets/img/favicon-192.png' | relative_url }}" type="image/png" sizes="192x192">
   <link rel="apple-touch-icon" href="{{ '/assets/img/apple-touch-icon.png' | relative_url }}">
+  {% if page.math %}
+  <link rel="stylesheet" href="{{ '/assets/lib/katex/katex.min.css' | relative_url }}">
+  <script defer src="{{ '/assets/lib/katex/katex.min.js' | relative_url }}"></script>
+  <script defer src="{{ '/assets/lib/katex/contrib/auto-render.min.js' | relative_url }}"
+          onload="renderMathInElement(document.body);"></script>
+  {% endif %}
   {% if jekyll.environment == "production" %}
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-S0STX89NW6"></script>

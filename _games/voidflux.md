@@ -9,6 +9,7 @@ icon: /assets/img/voidflux-icon.png
 title_font: "'Paytone One', sans-serif"
 banner: voidflux
 appstore_url: https://apps.apple.com/us/app/voidflux/id6778287432
+math: true
 description: VoidFlux is a puzzle game built on Gauss' Law, out now for iPhone from Owl's Nest Creations.
 ---
 
@@ -53,6 +54,12 @@ Synthwave soundtrack, every sound effect a synth, no ads, nothing to buy.
 ## The physics
 
 Draw any closed surface you like, count how much electric field pokes out through it, and Gauss' Law says that number is the charge you enclosed, divided by a constant whose only job is to fix the units.
+
+<!-- Equation: raw TeX between a `$$` line and a `$$` line, blank line either side, and `math: true` in the front matter. -->
+
+$$
+\oint_{S} \mathbf{E} \cdot d\mathbf{A} = \frac{Q_{\text{enc}}}{\varepsilon_0}
+$$
 
 That's the whole law, and the fun of it is in everything it doesn't care about.
 Slide the charges around inside, dent the surface, stretch it, wrap it tight around one charge or bag all of them loosely (it is imaginary, nobody is stopping you), and the flux does not budge.
