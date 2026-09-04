@@ -53,14 +53,15 @@ Synthwave soundtrack, every sound effect a synth, no ads, nothing to buy.
 
 ## The physics
 
-Draw any closed surface you like, count how much electric field pokes out through it, and Gauss' Law says that number is the charge you enclosed, divided by a constant whose only job is to fix the units.
+Draw any closed surface, count how much electric field pokes through it, and Gauss' Law says that number is proportional to the charge enclosed,
 
 <!-- Equation: raw TeX between a `$$` line and a `$$` line, blank line either side, and `math: true` in the front matter. -->
 
 $$
-\oint_{S} \mathbf{E} \cdot d\mathbf{A} = \frac{Q_{\text{enc}}}{\varepsilon_0}
+\oint_{S} \boldsymbol{E} \cdot d\boldsymbol{A} = \frac{Q_{\text{enc}}}{\varepsilon_0}
 $$
 
+The constant of proportionality is called the permittivity of free space.
 That's the whole law, and the fun of it is in everything it doesn't care about.
 Slide the charges around inside, dent the surface, stretch it, wrap it tight around one charge or bag all of them loosely (it is imaginary, nobody is stopping you), and the flux does not budge.
 
