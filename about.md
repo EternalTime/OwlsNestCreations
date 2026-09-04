@@ -9,7 +9,7 @@ body_class: prose-page
 
 # About
 
-Owl’s Nest Creations is the design studio of Damian Sowinski, a research physicist, programmer, and polymath who solves differential equations for fun, simulates exotic spacetimes on the weekends, and designs games when the Moon is out.
+Owl’s Nest Creations is the design studio of a research physicist, programmer, and polymath who solves differential equations for fun, simulates exotic spacetimes on the weekends, and designs games when the Moon is out.
 The games start from real physics - the same equations that show up in cutting edge research - and end as visually stunning experiences of pure play.
 
 Questions, ideas, or just curious?
