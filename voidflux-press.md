@@ -13,7 +13,7 @@ body_class: prose-page
 
 - Title: VoidFlux
 - Developer: Owl's Nest Creations, the one-person studio of Damian Sowinski
-- Released: August 27, 2026
+- Released: September 4, 2026
 - Platform: iPhone and iPad, iOS 18 or later
 - Price: $3.99, no ads, no in-app purchases
 - Built with: SwiftUI and SceneKit, no third-party code
@@ -23,14 +23,15 @@ body_class: prose-page
 
 ## The pitch
 
-A research physicist built a puzzle game on Gauss's law, and the game never says so.
-Players cancel flux by placing charge, which means they are doing real electrostatics by thumb, with no equation ever shown.
+A research physicist built a puzzle game on Gauss's law. No equation appears anywhere in it.
+Players cancel flux by placing charge, which means they are doing real electrostatics by thumb.
 
 ## About the game
 
 VoidFlux is an electrostatics puzzle dressed up as a neon crystal toy from the 80s.
-Loops of light strung across a hex crystal, each humming with a flux value it wants gone, and a tray of charged gems; drop them so every loop's enclosed charge cancels its flux exactly.
-Empty the tray, silence every loop, and you've made a Void.
+Closed loops lie across a hex crystal board, each showing its flux, and a tray below holds charged gems.
+Place them so that the charge enclosed by every loop cancels its flux exactly.
+Use the whole tray, drive every flux to zero, and the board is solved.
 
 The campaign's 204 levels climb a difficulty curve that isn't guessed: every board's complete solution set is computed, and the levels are ordered by how scarce solutions get.
 Between rounds the game retells Wittgenstein's Tractatus in 80s arcade slang, one scene per round, in nine languages, Latin among them.
