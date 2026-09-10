@@ -1,0 +1,18 @@
+{%- comment -%}
+What a game's `released` switch decides inside a banner: a released game links
+to its own page and to the App Store, an unreleased one names when it is coming
+and links nowhere.
+
+`badge` picks which App Store artwork the banner's background needs, black or
+white. `release_attr` is any extra attribute the banner wants on the release
+pill, written with its leading space.
+{%- endcomment -%}
+{%- assign game = include.game -%}
+{%- if game.released -%}
+<a class="game-cta" href="{{ game.url | relative_url }}">More about {{ game.title }}</a>
+      {%- if game.appstore_url %}
+      <a class="appstore-badge" href="{{ game.appstore_url }}" target="_blank" rel="noopener"><img src="{{ '/assets/img/app_store_button_' | append: include.badge | append: '.svg' | relative_url }}" alt="Download on the App Store"></a>
+      {%- endif -%}
+{%- else -%}
+<span class="game-release"{{ include.release_attr }}>{{ game.release_note }}</span>
+{%- endif -%}

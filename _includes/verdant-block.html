@@ -1,0 +1,16 @@
+{%- comment -%}
+The Verdant Engine's home-page block. The section owns the box and carries
+`data-ve-banner`, which is what verdant-banner.js looks for; the words all come
+from `_games/verdant-engine.md`.
+{%- endcomment -%}
+  <section class="game-block ve-field" data-ve-banner>
+    {% include verdant-field.html %}
+    <div class="game-blurb">
+      <h2 class="game-title">{{ include.game.title }}</h2>
+      <div class="game-tag">{{ include.game.tagline }}</div>
+      {%- if include.game.teaser %}
+      <p class="game-desc">{{ include.game.teaser }}</p>
+      {%- endif %}
+      {% include game-links.html game=include.game badge="white" %}
+    </div>
+  </section>

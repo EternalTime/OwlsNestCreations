@@ -6,70 +6,23 @@ layout: default
   <p>{{ site.description | strip_newlines | strip }}</p>
 </section>
 
+{% comment %}
+Every game on this page is a file in `_games/`, drawn in the order its front
+matter sets. A game's `banner` key names its three pieces: the block that lays
+the section out, the field it draws in, and the runtime that boots it. Nothing
+about any game is written here.
+{% endcomment %}
+{%- assign games = site.games | sort: "order" -%}
 <div id="games">
-  {% assign published_games = site.games | where: "published_on_site", true | sort: "order" %}
-  {% for game in published_games %}
-  {% if game.banner == 'voidflux' %}
-  <section class="game-block vf-field vf-banner" data-vf-banner>
-    {% include voidflux-field.html %}
-    <div class="game-blurb">
-      <h2 class="game-title" style="font-family: {{ game.title_font }};">{{ game.title }}</h2>
-      <div class="game-tag">{{ game.tagline }}</div>
-      <p class="game-desc">{{ game.teaser }}</p>
-      <a class="game-cta" href="{{ game.url | relative_url }}">More about {{ game.title }}</a>
-      {% if game.appstore_url %}
-      <a class="appstore-badge" href="{{ game.appstore_url }}" target="_blank" rel="noopener"><img src="{{ '/assets/img/app_store_button_white.svg' | relative_url }}" alt="Download on the App Store"></a>
-      {% endif %}
-    </div>
-  </section>
-  {% else %}
-  <section class="game-block" style="--g-from: {{ game.gradient_from }}; --g-mid: {{ game.gradient_mid }}; --g-to: {{ game.gradient_to }}; --g-cta-bg: {{ game.cta_bg }}; --g-cta-text: {{ game.cta_text }};">
-    <img class="game-icon" src="{{ game.icon | relative_url }}" alt="{{ game.title }} icon">
-    <div class="game-blurb">
-      <h2 class="game-title" style="font-family: {{ game.title_font }};">{{ game.title }}</h2>
-      <div class="game-tag">{{ game.tagline }}</div>
-      <p class="game-desc">{{ game.teaser }}</p>
-      {% if game.appstore_url %}
-      <a class="appstore-badge" href="{{ game.appstore_url }}" target="_blank" rel="noopener"><img src="{{ '/assets/img/app_store_button_black.svg' | relative_url }}" alt="Download on the App Store"></a>
-      {% endif %}
-      <a class="game-cta" href="{{ game.url | relative_url }}">More about {{ game.title }}</a>
-    </div>
-  </section>
-  {% endif %}
-  {% endfor %}
-  {% comment %}
-  The Verdant Engine: announced as in development, home banner only - there is
-  no game page yet, so nothing here links anywhere (2026-08-28).
-  {% endcomment %}
-  <section class="game-block ve-field" data-ve-banner>
-    {% include verdant-field.html %}
-    <div class="game-blurb">
-      <h2 class="game-title">The Verdant Engine</h2>
-      <div class="game-tag">A serene Idle-RPG set in a world powered by Pattern&nbsp;Formation.</div>
-      <span class="game-release">Expected November release</span>
-    </div>
-  </section>
-  {% comment %}
-  My Favorite Spacetimes: the reference tool, home banner only - there is no
-  page for it on this site, so nothing here links anywhere. The title and the
-  control are anchors as well as copy: the ground reads their boxes and bends
-  around them, exactly as the grid on his own MFS page bends around its title.
-  {% endcomment %}
-  <section class="game-block mfs-field" data-mfs-banner>
-    {% include mfs-field.html %}
-    <div class="game-blurb">
-      <h2 class="game-title" data-mfs-title>My Favorite<br>Spacetimes</h2>
-      <div class="game-tag">A reference tool for general relativity.</div>
-      <p class="game-desc">Twenty-six exact solutions of Einstein's equations, with their metrics, curvature and histories.</p>
-      <span class="game-release" data-mfs-sheet="floating">In development</span>
-    </div>
-  </section>
-</div>
+{% for game in games %}  {% include {{ game.banner }}-block.html game=game %}
+{%- endfor %}</div>
 
-{% include voidflux-runtime.html %}
-{% include verdant-runtime.html %}
-{% include mfs-runtime.html %}
-
+{% comment %}
+Once per banner, not once per game: every runtime boots each of its banners on
+the page itself, and a second tag would run the initialiser twice.
+{% endcomment %}
+{%- assign banners = games | map: "banner" | uniq -%}
+{% for banner in banners %}{% include {{ banner }}-runtime.html %}{% endfor %}
 <section class="nest-section">
   <h2>More hatching in the nest</h2>
   <p>New experiments are incubating. Announcements when they're ready.</p>
