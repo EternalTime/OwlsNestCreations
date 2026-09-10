@@ -49,10 +49,26 @@ layout: default
       <span class="game-release">Expected November release</span>
     </div>
   </section>
+  {% comment %}
+  My Favorite Spacetimes: the reference tool, home banner only - there is no
+  page for it on this site, so nothing here links anywhere. The title and the
+  control are anchors as well as copy: the ground reads their boxes and bends
+  around them, exactly as the grid on his own MFS page bends around its title.
+  {% endcomment %}
+  <section class="game-block mfs-field" data-mfs-banner>
+    {% include mfs-field.html %}
+    <div class="game-blurb">
+      <h2 class="game-title" data-mfs-title>My Favorite Spacetimes</h2>
+      <div class="game-tag">A reference tool for general relativity.</div>
+      <p class="game-desc">Twenty-six exact solutions of Einstein's equations, with their metrics, Christoffel symbols, curvature tensors, histories and references.</p>
+      <span class="game-release" data-mfs-sheet="floating">In development</span>
+    </div>
+  </section>
 </div>
 
 {% include voidflux-runtime.html %}
 {% include verdant-runtime.html %}
+{% include mfs-runtime.html %}
 
 <section class="nest-section">
   <h2>More hatching in the nest</h2>

@@ -1,0 +1,33 @@
+{%- comment -%}
+The My Favorite Spacetimes scene surface. The including element owns the box and
+carries `data-mfs-banner`; the canvas fills it and the sheets stand on it.
+
+The sheets are real elements rather than drawings, because the ground reads their
+rectangles and bends around them the way the application's grid bends around its
+furniture and the way his own MFS page bends around its title. Each is a row of
+the application's list: a spacetime's short name and its tags, on clear glass.
+The names and the tags are the collection's own, from `metrics_index.json`.
+{%- endcomment -%}
+<canvas class="mfs-grid" aria-hidden="true"></canvas>
+<div class="mfs-stack" aria-hidden="true">
+  <div class="mfs-sheet" data-mfs-sheet="panel">
+    <span class="mfs-name">Schwarzschild &ndash; Exterior</span>
+    <span class="mfs-tags">vacuum &middot; static &middot; spherically symmetric</span>
+  </div>
+  <div class="mfs-sheet" data-mfs-sheet="panel">
+    <span class="mfs-name">Kerr</span>
+    <span class="mfs-tags">vacuum &middot; rotating &middot; frame dragging</span>
+  </div>
+  {%- comment -%}
+  The open one: pink rather than teal, standing higher off the ground, and the
+  only sheet in the banner with any colour behind it at all.
+  {%- endcomment -%}
+  <div class="mfs-sheet mfs-sheet-live" data-mfs-sheet="floating">
+    <span class="mfs-name">G&ouml;del</span>
+    <span class="mfs-tags">dust &middot; rotating &middot; closed timelike curves</span>
+  </div>
+  <div class="mfs-sheet" data-mfs-sheet="panel">
+    <span class="mfs-name">Alcubierre</span>
+    <span class="mfs-tags">warp drive &middot; faster-than-light &middot; exotic matter</span>
+  </div>
+</div>
