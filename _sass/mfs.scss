@@ -71,13 +71,21 @@
 .mfs-field .game-blurb {
   position: relative;
   z-index: 1;
-  max-width: 32rem;
+  // The column the other banners give their copy, held clear of the sheets
+  // where the frame is too narrow for both at their full width.
+  max-width: min(32rem, 46%);
 }
 
 // The application's name, which is the one thing in it that glows in the colour
 // it is written in. `Glow.Halo.name` is a 22 point shadow at 0.45.
+//
+// It is set smaller than the other two banners' titles because it is a
+// twenty-one character name in a monospace: every glyph is 0.6 of an em wide,
+// so "My Favorite" at the shared 5rem is wider than the column the copy stands
+// in and the line breaks in the wrong place.
 .mfs-field .game-title {
   font-family: var(--mfs-mono);
+  font-size: clamp(2.5rem, 5.6vw, 4rem);
   font-weight: 600;
   letter-spacing: 0.04em;
   line-height: 1.12;
@@ -229,8 +237,7 @@
 
   .mfs-field .game-blurb { max-width: none; }
 
-  // The copy stands at the foot of the frame, so the collection stands at its
-  // head rather than behind it.
+  // The copy takes the foot of the frame, so the collection takes its head.
   .mfs-stack {
     top: 6vw;
     left: 6vw;
@@ -238,4 +245,11 @@
     width: auto;
     transform: none;
   }
+
+  // One row rather than four. Four rows stand 316 pixels tall and the shortest
+  // phone leaves 117 above the headline, so the rest would be run through by
+  // the title; and a row cut off half way is not a sheet of glass. The one that
+  // stays is the open one, so the faint panel behind the glass is still there
+  // to be seen. Measured at 1440, 1024, 900, 860, 390 and 360 wide.
+  .mfs-sheet:not(.mfs-sheet-live) { display: none; }
 }
