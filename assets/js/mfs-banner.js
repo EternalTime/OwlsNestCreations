@@ -265,7 +265,7 @@ function displacement(x, y, sources, dimple) {
   let pushY = 0;
   let largest = 0;
   for (const source of sources) {
-    if (source.scale <= 0.0001) continue;
+    if (!source.bump || source.scale <= 0.0001) continue;
     if (!bumpPush(source.bump, source.scale, x, y, scratch)) continue;
     const size = scratch.dx * scratch.dx + scratch.dy * scratch.dy;
     if (size > largest) {
@@ -309,7 +309,7 @@ function displacement(x, y, sources, dimple) {
 function stepAt(x, y, sources, dimple) {
   const slack = COARSE_SAMPLE_LENGTH;
   for (const source of sources) {
-    if (source.scale <= 0.0001) continue;
+    if (!source.bump || source.scale <= 0.0001) continue;
     const bump = source.bump;
     if (
       x >= bump.reachLeft - slack &&
@@ -553,6 +553,13 @@ function init(banner) {
     const frameRect = banner.getBoundingClientRect();
     for (const source of sources) {
       const box = source.anchor.el.getBoundingClientRect();
+      // A sheet the narrow layout has taken away has no box, and nothing with
+      // no box may leave a region of fine sampling behind in the corner.
+      if (box.width < 1 || box.height < 1) {
+        source.bump = null;
+        source.lens = null;
+        continue;
+      }
       const rect = {
         left: box.left - frameRect.left,
         right: box.right - frameRect.left,
