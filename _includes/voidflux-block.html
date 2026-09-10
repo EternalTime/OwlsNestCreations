@@ -1,0 +1,16 @@
+{%- comment -%}
+VoidFlux's home-page block. The section owns the box and carries
+`data-vf-banner`, which is what voidflux-banner.js looks for; the words all
+come from `_games/voidflux.md`.
+{%- endcomment -%}
+  <section class="game-block vf-field vf-banner" data-vf-banner>
+    {% include voidflux-field.html %}
+    <div class="game-blurb">
+      <h2 class="game-title" style="font-family: {{ include.game.title_font }};">{{ include.game.title }}</h2>
+      <div class="game-tag">{{ include.game.tagline }}</div>
+      {%- if include.game.teaser %}
+      <p class="game-desc">{{ include.game.teaser }}</p>
+      {%- endif %}
+      {% include game-links.html game=include.game badge="white" %}
+    </div>
+  </section>

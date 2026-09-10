@@ -1,0 +1,21 @@
+{%- comment -%}
+My Favorite Spacetimes' home-page block. The section owns the box and carries
+`data-mfs-banner`, which is what mfs-banner.js looks for; the words all come
+from `_games/my-favorite-spacetimes.md`.
+
+The title and the release pill are anchors as well as copy: the ground reads
+their boxes through `getBoundingClientRect` and bends around them, exactly as
+the grid on the captain's own MFS page bends around its title. That is what
+`data-mfs-title` and `data-mfs-sheet` are for.
+{%- endcomment -%}
+  <section class="game-block mfs-field" data-mfs-banner>
+    {% include mfs-field.html %}
+    <div class="game-blurb">
+      <h2 class="game-title" data-mfs-title>{{ include.game.banner_title | default: include.game.title }}</h2>
+      <div class="game-tag">{{ include.game.tagline }}</div>
+      {%- if include.game.teaser %}
+      <p class="game-desc">{{ include.game.teaser }}</p>
+      {%- endif %}
+      {% include game-links.html game=include.game badge="white" release_attr=' data-mfs-sheet="floating"' %}
+    </div>
+  </section>

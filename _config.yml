@@ -17,12 +17,17 @@ collections:
     output: true
     permalink: /games/:name/
 
+# A game is unreleased and drawn as a plain card unless its own file says
+# otherwise. `released` is the switch: off, the banner links nowhere and the
+# game's page is not written; on, both links appear and the page is published.
 defaults:
   - scope:
       path: ""
       type: games
     values:
       layout: game
+      released: false
+      banner: card
 
 sass:
   style: compressed

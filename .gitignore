@@ -5,3 +5,25 @@ _site/
 vendor/
 Gemfile.lock
 .DS_Store
+AGENTS.md
+CLAUDE.md
+
+# An unreleased game's page never lives in this repository. There is one block
+# below per game whose `released` switch is off, listing everything that would
+# become its page, and the whole block comes out on the day that switch goes
+# on. `_games/<name>.md` is tracked either way: it holds only the banner words,
+# which the home page already shows in public.
+
+# The Verdant Engine
+_includes/verdant-page.html
+_includes/verdant-copy.md
+_includes/verdant-shot.html
+verdant-press.md
+assets/img/verdant-placeholder.html
+assets/img/verdant-placeholder-*.png
+
+# My Favorite Spacetimes
+_includes/mfs-page.html
+_includes/mfs-copy.md
+_includes/mfs-shot.html
+mfs-press.md
