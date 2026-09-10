@@ -1,0 +1,5 @@
+{%- comment -%}
+Boots every `[data-mfs-banner]` on the page. Include once per document: the
+module registers every banner it finds and a second tag would run it twice.
+{%- endcomment -%}
+<script type="module" src="{{ '/assets/js/mfs-banner.js' | relative_url }}"></script>
