@@ -8,7 +8,7 @@
 // from the application's port of it, `GridBackground.swift`. The light pools
 // are `Luminance.swift`.
 //
-// What bends that ground is a star and a gas giant in a bound Newtonian orbit,
+// What bends that ground is two stars in a bound Newtonian orbit,
 // and nothing else does: no element on the page is a source. Each body carries
 // the application's own well, `GridBackground.Dimple`, and the wells add, so
 // the pair digs one landscape between them rather than two that argue.
@@ -58,22 +58,14 @@ const BLOOM_STRENGTH = 0.28;
 // Where they are and how deeply each digs is `mfs-orbit.js`; this is only what
 // they look like.
 
-// The star: a white core in a teal halo, drawn additively, so it is the one
-// thing in the banner that makes its own light.
+// Both bodies are stars: a white core in a halo of the palette's own colour,
+// drawn additively, so they are the only things in the banner that make their
+// own light. The pair is told apart by colour rather than by size, the heavier
+// one teal and the lighter one pink.
 const STAR_CORE = 8;
 const STAR_HALO = 54;
-// The gas giant: a lit disc, banded, about the size of the star's core and
-// nowhere near its brightness.
-const PLANET_RADIUS = 9;
-// Where its bands begin and end, as a share of the disc from pole to pole. A
-// wide belt either side of the equator and narrower ones away from it, which is
-// what makes a banded planet read as one rather than as a striped ball.
-const PLANET_BANDS = [
-  [-0.86, -0.58],
-  [-0.4, -0.12],
-  [0.06, 0.46],
-  [0.62, 0.82],
-];
+const HEAVY_TONES = { core: Palette.tealLight, edge: Palette.cyan };
+const LIGHT_TONES = { core: Palette.pinkLight, edge: Palette.pinkDark };
 
 // ---- a sheet of glass ----
 
@@ -336,18 +328,17 @@ function drawLuminance(ctx, w, h, seconds) {
   ctx.restore();
 }
 
-// The star, which is the only thing here that is lit from inside: a white core
-// through the palette's own teal and out to nothing, added to what is under it
-// so the grid reads through its outskirts.
-function drawStar(ctx, body) {
+// A star, lit from inside: a white core through its own colour and out to
+// nothing, added to what is under it so the grid reads through its outskirts.
+function drawStar(ctx, body, tones) {
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
   const light = ctx.createRadialGradient(body.x, body.y, 0, body.x, body.y, STAR_HALO);
   light.addColorStop(0, rgba(Palette.bright, 1));
   light.addColorStop((STAR_CORE * 0.6) / STAR_HALO, rgba(Palette.bright, 0.85));
-  light.addColorStop(STAR_CORE / STAR_HALO, rgba(Palette.tealLight, 0.55));
-  light.addColorStop(0.34, rgba(Palette.tealLight, 0.16));
-  light.addColorStop(1, rgba(Palette.cyan, 0));
+  light.addColorStop(STAR_CORE / STAR_HALO, rgba(tones.core, 0.55));
+  light.addColorStop(0.34, rgba(tones.core, 0.16));
+  light.addColorStop(1, rgba(tones.edge, 0));
   ctx.fillStyle = light;
   ctx.fillRect(
     body.x - STAR_HALO,
@@ -358,64 +349,6 @@ function drawStar(ctx, body) {
   ctx.restore();
 }
 
-// The gas giant, which makes no light of its own. It is a banded disc with a
-// terminator across it, and the terminator is worked out from where the star
-// actually is, so the lit side turns with the orbit.
-function drawPlanet(ctx, body, star) {
-  const towardsX = star.x - body.x;
-  const towardsY = star.y - body.y;
-  const away = Math.hypot(towardsX, towardsY) || 1;
-  const litX = towardsX / away;
-  const litY = towardsY / away;
-
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(body.x, body.y, PLANET_RADIUS, 0, 2 * Math.PI);
-  ctx.clip();
-
-  // A dark ball first, so every band is a lightening of it and the gaps between
-  // the bands are the ball itself showing through.
-  ctx.fillStyle = rgba(Palette.panel, 0.96);
-  ctx.fill();
-
-  ctx.fillStyle = rgba(Palette.dim, 0.72);
-  for (const [from, to] of PLANET_BANDS) {
-    ctx.fillRect(
-      body.x - PLANET_RADIUS,
-      body.y + from * PLANET_RADIUS,
-      PLANET_RADIUS * 2,
-      (to - from) * PLANET_RADIUS
-    );
-  }
-
-  // Daylight, which falls on the bands and on the ball between them alike and
-  // so keeps the banding a shading rather than a set of stripes.
-  const day = ctx.createLinearGradient(
-    body.x + litX * PLANET_RADIUS,
-    body.y + litY * PLANET_RADIUS,
-    body.x - litX * PLANET_RADIUS,
-    body.y - litY * PLANET_RADIUS
-  );
-  day.addColorStop(0, rgba(Palette.mid, 0.5));
-  day.addColorStop(0.6, rgba(Palette.mid, 0.06));
-  day.addColorStop(1, rgba(Palette.mid, 0));
-  ctx.fillStyle = day;
-  ctx.fill();
-
-  // Day into night, along the line to the star.
-  const shade = ctx.createLinearGradient(
-    body.x + litX * PLANET_RADIUS,
-    body.y + litY * PLANET_RADIUS,
-    body.x - litX * PLANET_RADIUS,
-    body.y - litY * PLANET_RADIUS
-  );
-  shade.addColorStop(0, rgba(Palette.void, 0));
-  shade.addColorStop(0.45, rgba(Palette.void, 0.35));
-  shade.addColorStop(1, rgba(Palette.void, 0.92));
-  ctx.fillStyle = shade;
-  ctx.fill();
-  ctx.restore();
-}
 
 function drawGround(ctx, w, h, seconds, phase, pair, panes) {
   ctx.clearRect(0, 0, w, h);
@@ -439,8 +372,8 @@ function drawGround(ctx, w, h, seconds, phase, pair, panes) {
   ctx.stroke(lines);
 
   // The bodies stand on the ground they are bending, so they are drawn last.
-  drawPlanet(ctx, pair.light, pair.heavy);
-  drawStar(ctx, pair.heavy);
+  drawStar(ctx, pair.light, LIGHT_TONES);
+  drawStar(ctx, pair.heavy, HEAVY_TONES);
 }
 
 function init(banner) {

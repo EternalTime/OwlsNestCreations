@@ -3,8 +3,8 @@
 //
 // It draws nothing and knows nothing about canvases, so it can be imported and
 // sampled on its own, which is how all of it is checked: the barycentre holding
-// still, the three-to-one radii, the momenta cancelling, the period repeating
-// and the three-to-one wells are read off these functions rather than off a
+// still, the three-to-two radii, the momenta cancelling, the period repeating
+// and the three-to-two wells are read off these functions rather than off a
 // picture.
 // The mass ratio and the period are exported for the same reason, since a check
 // that writes them down a second time is checking itself.
@@ -13,10 +13,11 @@
 // equation for the separation, in the frame where the barycentre stands still
 // and the total momentum is zero.
 
-// The star is three of the gas giant. One number says all three of the things
-// that follow from it: the star orbits a third as far out, it sits exactly
-// opposite, and its well is three times as deep.
-export const MASS_RATIO = 3;
+// Both bodies are stars, and the heavier one is one and a half of the lighter.
+// One number says all three of the things that follow from it: the heavy star
+// orbits two thirds as far out, it sits exactly opposite, and its well is one
+// and a half times as deep.
+export const MASS_RATIO = 1.5;
 const HEAVY_SHARE = 1 / (1 + MASS_RATIO);
 const LIGHT_SHARE = MASS_RATIO / (1 + MASS_RATIO);
 
@@ -53,8 +54,8 @@ export function orbitFrom(banner, width, height) {
   const style = getComputedStyle(banner);
   const share = (name, of_) => (parseFloat(style.getPropertyValue(name)) / 100) * of_;
   const tilt = (parseFloat(style.getPropertyValue('--mfs-orbit-tilt')) * Math.PI) / 180;
-  // The stylesheet's swing is how far the gas giant gets from the barycentre at
-  // its furthest, and it carries that share of the separation, so the pair's
+  // The stylesheet's swing is how far the lighter star gets from the barycentre
+  // at its furthest, and it carries that share of the separation, so the pair's
   // own semi-major axis follows from it.
   const semiMajor = share('--mfs-orbit-swing', height) / (LIGHT_SHARE * (1 + ECCENTRICITY));
   return {
@@ -70,9 +71,9 @@ export function orbitFrom(banner, width, height) {
 // Where the two bodies are, seconds after the clock started, written into the
 // pair given rather than into anything new: this is called every frame.
 //
-// One Kepler ellipse is solved, for the vector from the star to the gas giant,
-// and each body is put on its own scaled copy of it either side of the
-// barycentre: the star a third as far out as the giant, and on the other side.
+// One Kepler ellipse is solved, for the vector between the two stars, and each
+// body is put on its own scaled copy of it either side of the barycentre: the
+// heavier star two thirds as far out as the lighter, and on the other side.
 // So the pair is always exactly opposite about a point that never moves, and
 // the momenta cancel at every instant rather than over a turn.
 export function placeBodies(orbit, seconds, pair) {
@@ -93,15 +94,15 @@ export function placeBodies(orbit, seconds, pair) {
 
 // ---- what each body does to the ground ----
 
-// The application's own well, whole, for the star: `GridBackground.Dimple`.
+// The application's own well, whole: `GridBackground.Dimple`.
 // A mass on a rubber sheet leaves the point under it where it was and draws
 // everything around it inward, hardest a reach out and fading smoothly to
 // nothing after that. There is no edge to it anywhere.
 //
-// In that well the mass is the depth and the reach is the shape, so the gas
-// giant digs a well of the same width and a third of the depth. That is the
+// In that well the mass is the depth and the reach is the shape, so the lighter
+// star digs a well of the same width and two thirds of the depth. That is the
 // only place the mass ratio enters the ground, and it is the same ratio that
-// puts the star a third as far from the barycentre.
+// puts the heavier star two thirds as far from the barycentre.
 const MASS_PULL = 52;
 export const MASS_REACH = 110;
 
