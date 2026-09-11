@@ -5,6 +5,8 @@
 // sampled on its own, which is how all of it is checked: the barycentre holding
 // still, the ten-to-one radii, the momenta cancelling, the period repeating and
 // the ten-to-one wells are read off these functions rather than off a picture.
+// The mass ratio and the period are exported for the same reason, since a check
+// that writes them down a second time is checking itself.
 //
 // The captain asked for a Newtonian orbit, so it is solved as one: Kepler's
 // equation for the separation, in the frame where the barycentre stands still
@@ -14,25 +16,25 @@
 // that follow from it: the star orbits a tenth as far out, it sits exactly
 // opposite, and its well is ten times as deep.
 export const MASS_RATIO = 10;
-export const HEAVY_SHARE = 1 / (1 + MASS_RATIO);
-export const LIGHT_SHARE = MASS_RATIO / (1 + MASS_RATIO);
+const HEAVY_SHARE = 1 / (1 + MASS_RATIO);
+const LIGHT_SHARE = MASS_RATIO / (1 + MASS_RATIO);
 
 // Bound and closed, so it repeats for ever. The eccentricity is modest on
 // purpose: a circle would hide the speeding up near closest approach, which is
 // the one thing about a Kepler orbit that can be seen without measuring it.
-export const ECCENTRICITY = 0.38;
+const ECCENTRICITY = 0.38;
 export const PERIOD_SECONDS = 26;
 
 // Where the pair stands when the clock starts, as a mean anomaly. A quarter
 // turn past closest approach: both bodies well apart and neither at rest, so
 // the first frame - which is also the frame a reader who asked for less
 // movement is left with - already reads as two.
-export const START_ANOMALY = Math.PI / 2;
+const START_ANOMALY = Math.PI / 2;
 
 // Kepler's equation, solved rather than faked. Newton from the usual first
 // guess is inside a float of the answer in three turns at this eccentricity,
 // and it is solved once a frame, not once a sample.
-export function eccentricAnomaly(mean, eccentricity) {
+function eccentricAnomaly(mean, eccentricity) {
   let anomaly = mean + eccentricity * Math.sin(mean);
   for (let turn = 0; turn < 4; turn += 1) {
     const slope = 1 - eccentricity * Math.cos(anomaly);
@@ -99,7 +101,7 @@ export function placeBodies(orbit, seconds, pair) {
 // giant digs a well of the same width and a tenth of the depth. That is the
 // only place the mass ratio enters the ground, and it is the same ratio that
 // puts the star a tenth as far from the barycentre.
-export const MASS_PULL = 26;
+const MASS_PULL = 26;
 export const MASS_REACH = 110;
 
 // Peaks at exactly one reach out, where the root of e puts it at the full pull.
@@ -115,7 +117,7 @@ export function makePair() {
 const scratch = { dx: 0, dy: 0 };
 const total = { dx: 0, dy: 0 };
 
-export function wellPush(body, x, y, out) {
+function wellPush(body, x, y, out) {
   const dx = x - body.x;
   const dy = y - body.y;
   // Past four reaches the pull is a thirtieth of a pixel.
