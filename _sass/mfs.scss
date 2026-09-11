@@ -31,12 +31,11 @@
 
   // The barycentre, as a share of the field's own width and height, and how far
   // the gas giant swings from it at its furthest, as a share of that height.
-  // Half way across is the clear channel the copy and the collection leave
-  // between them at every width this layout is used at.
+  // The pair is not held clear of anything: where the orbit carries it behind a
+  // sheet, the glass blurs it, which is what the glass is for.
   --mfs-orbit-x: 50%;
   --mfs-orbit-y: 50%;
   --mfs-orbit-swing: 33%;
-  // The orbit's long axis, turned up the channel rather than across it.
   --mfs-orbit-tilt: 90deg;
 
   position: relative;
@@ -126,11 +125,11 @@
   top: 50%;
   right: 5vw;
   transform: translateY(-50%);
-  width: min(30rem, 42%);
+  width: min(45rem, 48%);
   display: flex;
   flex-direction: column;
   // Layout.betweenRows.
-  gap: 8px;
+  gap: 12px;
   // Decoration, and the pointer has to reach the ground through them.
   pointer-events: none;
 }
@@ -142,12 +141,12 @@
   display: flex;
   flex-direction: column;
   // Layout.underRowName.
-  gap: 4px;
+  gap: 6px;
   // Layout.aboveRowName / belowRowTags / bodyInset.
-  padding: 13px 20px 14px;
+  padding: 20px 30px 21px;
   // PanelShape.card, which is also the corner the ground bends round: the
   // banner reads this value back off the element.
-  border-radius: 14px;
+  border-radius: 21px;
   // Depth.panel: 12 points up, so a shadow of radius 10.8 offset 6.6 at 0.321.
   box-shadow: 0 7px 22px rgba(4, 4, 14, 0.321);
 }
@@ -178,14 +177,14 @@
 
 // Font.listRowName: 16.5, medium.
 .mfs-name {
-  font-size: 1.03rem;
+  font-size: 1.55rem;
   font-weight: 500;
   color: var(--mfs-teal-light);
 }
 
 // Font.listRowTags: 11.5, light, on one line and cut off rather than wrapped.
 .mfs-tags {
-  font-size: 0.72rem;
+  font-size: 1.08rem;
   font-weight: 300;
   color: var(--mfs-dim);
   white-space: nowrap;
@@ -217,10 +216,10 @@
   z-index: 1;
   display: inline-block;
   margin-top: 2rem;
-  padding: 16px;
+  padding: 24px;
   border-radius: 999px;
   font-family: var(--mfs-mono);
-  font-size: 0.94rem;
+  font-size: 1.41rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--mfs-teal-light);
@@ -238,12 +237,6 @@
   .mfs-field {
     min-height: clamp(30rem, 82vh, 42rem);
     align-items: flex-end;
-
-    // The copy takes the foot of the frame here, so the pair takes the clear
-    // band above it and swings along it rather than up and down into it.
-    --mfs-orbit-y: 26%;
-    --mfs-orbit-swing: 16%;
-    --mfs-orbit-tilt: 0deg;
   }
 
   .mfs-field::after {
@@ -266,23 +259,10 @@
     transform: none;
   }
 
-  // One row rather than four. Four rows stand 316 pixels tall and the shortest
-  // phone leaves 117 above the headline, so the rest would be run through by
-  // the title; and a row cut off half way is not a sheet of glass. The one that
+  // One row rather than four. Four rows are taller than the room the copy
+  // leaves on the shortest phone, so the rest would be run through by the
+  // title; and a row cut off half way is not a sheet of glass. The one that
   // stays is the open one, so the faint panel behind the glass is still there
-  // to be seen. Measured at 1440, 1024, 900, 860, 390 and 360 wide.
+  // to be seen.
   .mfs-sheet:not(.mfs-sheet-live) { display: none; }
-}
-
-// A short phone leaves the pair nowhere to stand. The copy takes two thirds of
-// the field at 360 by 640 and the collection takes the head of it, so the clear
-// band between them is twenty-two pixels and the system has to lean into one of
-// them. It leans into the collection: glass is meant to have something behind
-// it, and a star behind the headline is a defect. Measured at 360 by 640,
-// 375 and 390 by 667, and 414 by 736.
-@media (max-width: 860px) and (max-height: 760px) {
-  .mfs-field {
-    --mfs-orbit-y: 16%;
-    --mfs-orbit-swing: 9%;
-  }
 }

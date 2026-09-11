@@ -220,22 +220,22 @@ function refraction(x, y, panes) {
 
 // ---- the ground the bodies bend ----
 
-// How far to the next piece of a line: finely across the star's well and across
+// How far to the next piece of a line: finely across either well and across
 // every pane's rim, and coarsely everywhere else.
 //
 // Only the middle of a well needs the fine sampling, where the pull turns over
-// and changes direction. The gas giant's middle does not, and that is measured
-// rather than assumed: how far a straight piece falls short of the curve it is
-// crossing scales with the depth of the well, and with pieces a whole spacing
-// long the star's well is followed to a tenth of a pixel and the giant's, ten
-// times shallower, to a hundredth. Away from both, a line is a sine five
-// hundred pixels long that a piece as long as the grid is wide falls short of
-// by two thousandths of a pixel.
+// and changes direction. How far a straight piece falls short of the curve it
+// is crossing scales with the depth of the well, and both wells are now deep
+// enough to chord away visibly at the coarse length. Away from both, a line is
+// a sine five hundred pixels long that a piece as long as the grid is wide
+// falls short of by two thousandths of a pixel.
 function stepAt(x, y, pair, panes) {
   const slack = COARSE_SAMPLE_LENGTH;
   const core = MASS_REACH + slack;
   const heavy = pair.heavy;
   if (Math.abs(x - heavy.x) <= core && Math.abs(y - heavy.y) <= core) return SAMPLE_LENGTH;
+  const light = pair.light;
+  if (Math.abs(x - light.x) <= core && Math.abs(y - light.y) <= core) return SAMPLE_LENGTH;
   // A rim turns over inside twenty-eight pixels, so a line crossing one has to
   // be sampled finely or the bend is chorded away. Each pane is widened by one
   // coarse piece, so a step never lands inside one without the step before it
