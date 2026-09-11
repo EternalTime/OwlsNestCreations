@@ -5,12 +5,5 @@ its file in `_games/`.
 {%- endcomment -%}
   <section class="game-block" style="--g-from: {{ include.game.gradient_from }}; --g-mid: {{ include.game.gradient_mid }}; --g-to: {{ include.game.gradient_to }}; --g-cta-bg: {{ include.game.cta_bg }}; --g-cta-text: {{ include.game.cta_text }};">
     {% include card-field.html game=include.game %}
-    <div class="game-blurb">
-      <h2 class="game-title" style="font-family: {{ include.game.title_font }};">{{ include.game.title }}</h2>
-      <div class="game-tag">{{ include.game.tagline }}</div>
-      {%- if include.game.teaser %}
-      <p class="game-desc">{{ include.game.teaser }}</p>
-      {%- endif %}
-      {% include game-links.html game=include.game badge="black" %}
-    </div>
+    {% include game-blurb.html game=include.game badge="black" %}
   </section>

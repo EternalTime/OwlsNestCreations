@@ -1,0 +1,24 @@
+{%- comment -%}
+The words beside a home-page banner, the same for every game. A banner owns
+its picture and nothing else: the name, the tagline, the teaser and the links
+are read here, from the game's own file, so no banner can decide which of a
+game's words it shows.
+
+  game         - the game document.
+  badge        - which App Store artwork this banner's background needs,
+                 `black` or `white`.
+  release_attr - any extra attribute the banner wants on the release pill,
+                 written with its leading space.
+
+The first line below is flush left because the block that includes it supplies
+that line's indentation.
+{%- endcomment -%}
+{%- assign game = include.game -%}
+<div class="game-blurb">
+      <h2 class="game-title"{% if game.title_font %} style="font-family: {{ game.title_font }};"{% endif %}>{{ game.banner_title }}</h2>
+      <div class="game-tag">{{ game.tagline }}</div>
+      {%- if game.teaser %}
+      <p class="game-desc">{{ game.teaser }}</p>
+      {%- endif %}
+      {% include game-links.html game=game badge=include.badge release_attr=include.release_attr %}
+    </div>

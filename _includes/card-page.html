@@ -1,12 +1,13 @@
 {%- comment -%}
 The default game page: the game's icon and words over its own gradient, for a
-game whose banner is the card.
+game whose banner is the card. `icon`, `status`, the gradient and the CTA
+colours are the card banner's own keys, on top of the set every game has.
 {%- endcomment -%}
 <article class="game-page" style="--g-from: {{ page.gradient_from }}; --g-mid: {{ page.gradient_mid }}; --g-to: {{ page.gradient_to }}; --g-cta-bg: {{ page.cta_bg }}; --g-cta-text: {{ page.cta_text }};">
   <section class="game-hero">
     <img class="game-icon" src="{{ page.icon | relative_url }}" alt="{{ page.title }} icon">
     <div class="game-hero-text">
-      <h1 class="game-title" style="font-family: {{ page.title_font }};">{{ page.title }}</h1>
+      <h1 class="game-title"{% if page.title_font %} style="font-family: {{ page.title_font }};"{% endif %}>{{ page.title }}</h1>
       <div class="game-tag">{{ page.tagline }}</div>
       {% if page.appstore_url %}
       <a class="game-status" href="{{ page.appstore_url }}" target="_blank" rel="noopener" style="text-decoration: none; display: inline-block;">{{ page.status }}</a>

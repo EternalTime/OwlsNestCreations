@@ -1,9 +1,11 @@
 ---
-# Unreleased: the page and its copy are not in this repository. See .gitignore.
 title: The Verdant Engine
-order: 2
-released: false
-banner: verdant
+banner_title: The Verdant Engine
 tagline: A serene Idle-RPG set in a world powered by Pattern&nbsp;Formation.
+order: 2
+banner: verdant
+released: false
 release_note: Expected November release
 ---
+
+{% include_optional {{ page.banner }}-copy.md -%}
