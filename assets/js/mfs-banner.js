@@ -17,7 +17,13 @@
 // VoidFlux and Verdant banners this module is the whole picture.
 
 import { Palette, rgba } from './mfs-palette.js';
-import { MASS_RATIO, orbitFrom, placeBodies } from './mfs-orbit.js';
+import {
+  MASS_REACH,
+  displacement,
+  makePair,
+  orbitFrom,
+  placeBodies,
+} from './mfs-orbit.js';
 
 // ---- the website's numbers ----
 
@@ -42,23 +48,25 @@ const BLOOM_STRENGTH = 0.28;
 
 // ---- the two bodies ----
 
-// Where they are is `mfs-orbit.js`; this is only what they do to the ground and
-// what they look like.
-
-// The application's own well, whole, for the heavier body; the lighter one gets
-// a tenth of its depth and the same width, because in `GridBackground.Dimple`
-// the mass is the depth and the reach is the shape.
-const MASS_PULL = 26;
-const MASS_REACH = 110;
+// Where they are and how deeply each digs is `mfs-orbit.js`; this is only what
+// they look like.
 
 // The star: a white core in a teal halo, drawn additively, so it is the one
 // thing in the banner that makes its own light.
-const STAR_CORE = 7;
+const STAR_CORE = 8;
 const STAR_HALO = 54;
 // The gas giant: a lit disc, banded, about the size of the star's core and
 // nowhere near its brightness.
 const PLANET_RADIUS = 9;
-const PLANET_BANDS = 5;
+// Where its bands begin and end, as a share of the disc from pole to pole. A
+// wide belt either side of the equator and narrower ones away from it, which is
+// what makes a banded planet read as one rather than as a striped ball.
+const PLANET_BANDS = [
+  [-0.86, -0.58],
+  [-0.4, -0.12],
+  [0.06, 0.46],
+  [0.62, 0.82],
+];
 
 // ---- how finely any of it is drawn ----
 
@@ -101,55 +109,6 @@ const POOLS = [
 
 // ---- the ground the bodies bend ----
 
-// Peaks at exactly one reach out, where the root of e puts it at the full pull.
-const ROOT_E = 1.6487212707001282;
-
-const scratch = { dx: 0, dy: 0 };
-const total = { dx: 0, dy: 0 };
-
-// A mass on a rubber sheet leaves the point under it where it was and draws
-// everything around it inward, hardest a reach out and fading smoothly to
-// nothing after that. There is no edge to it anywhere.
-function wellPush(body, x, y, out) {
-  const dx = x - body.x;
-  const dy = y - body.y;
-  // Past four reaches the pull is a thirtieth of a pixel.
-  const bound = 4 * MASS_REACH;
-  if (Math.abs(dx) > bound || Math.abs(dy) > bound) return false;
-  const distance = Math.hypot(dx, dy);
-  if (distance <= 0.0001) {
-    out.dx = 0;
-    out.dy = 0;
-    return true;
-  }
-  const spread = distance / MASS_REACH;
-  const strength = body.pull * spread * Math.exp((-spread * spread) / 2) * ROOT_E;
-  out.dx = (-dx / distance) * strength;
-  out.dy = (-dy / distance) * strength;
-  return true;
-}
-
-// How far the pair together moves the point under them.
-//
-// The wells add. The website's own rule for its panels is the largest push
-// rather than the sum, which is what keeps two sheets over the same place from
-// tearing the ground between them, but a gravitational well is not a sheet:
-// two masses make one landscape, and taking the larger of them would leave a
-// crease along the line half way between the bodies where the winner changes.
-function displacement(x, y, pair) {
-  total.dx = 0;
-  total.dy = 0;
-  if (wellPush(pair.heavy, x, y, scratch)) {
-    total.dx += scratch.dx;
-    total.dy += scratch.dy;
-  }
-  if (wellPush(pair.light, x, y, scratch)) {
-    total.dx += scratch.dx;
-    total.dy += scratch.dy;
-  }
-  return total;
-}
-
 // How far to the next piece of a line: finely where a body is bending the
 // ground, and coarsely everywhere else.
 //
@@ -158,16 +117,13 @@ function displacement(x, y, pair) {
 // lattice itself, and away from both bodies a line is a sine five hundred
 // pixels long that a piece as long as the grid is wide falls short of by two
 // thousandths of a pixel.
+function nearBody(body, x, y) {
+  const core = MASS_REACH + COARSE_SAMPLE_LENGTH;
+  return Math.abs(x - body.x) <= core && Math.abs(y - body.y) <= core;
+}
+
 function stepAt(x, y, pair) {
-  const slack = COARSE_SAMPLE_LENGTH;
-  for (const body of [pair.heavy, pair.light]) {
-    if (
-      Math.abs(x - body.x) <= MASS_REACH + slack &&
-      Math.abs(y - body.y) <= MASS_REACH + slack
-    ) {
-      return SAMPLE_LENGTH;
-    }
-  }
+  if (nearBody(pair.heavy, x, y) || nearBody(pair.light, x, y)) return SAMPLE_LENGTH;
   return COARSE_SAMPLE_LENGTH;
 }
 
@@ -289,16 +245,34 @@ function drawPlanet(ctx, body, star) {
   ctx.arc(body.x, body.y, PLANET_RADIUS, 0, 2 * Math.PI);
   ctx.clip();
 
-  ctx.fillStyle = rgba(Palette.dim, 0.9);
+  // A dark ball first, so every band is a lightening of it and the gaps between
+  // the bands are the ball itself showing through.
+  ctx.fillStyle = rgba(Palette.panel, 0.96);
   ctx.fill();
 
-  // The bands, across the disc and a little uneven, the way a banded planet is.
-  ctx.fillStyle = rgba(Palette.mid, 0.5);
-  const band = (2 * PLANET_RADIUS) / PLANET_BANDS;
-  for (let stripe = 0; stripe < PLANET_BANDS; stripe += 2) {
-    const top = body.y - PLANET_RADIUS + stripe * band;
-    ctx.fillRect(body.x - PLANET_RADIUS, top, PLANET_RADIUS * 2, band * 0.72);
+  ctx.fillStyle = rgba(Palette.dim, 0.72);
+  for (const [from, to] of PLANET_BANDS) {
+    ctx.fillRect(
+      body.x - PLANET_RADIUS,
+      body.y + from * PLANET_RADIUS,
+      PLANET_RADIUS * 2,
+      (to - from) * PLANET_RADIUS
+    );
   }
+
+  // Daylight, which falls on the bands and on the ball between them alike and
+  // so keeps the banding a shading rather than a set of stripes.
+  const day = ctx.createLinearGradient(
+    body.x + litX * PLANET_RADIUS,
+    body.y + litY * PLANET_RADIUS,
+    body.x - litX * PLANET_RADIUS,
+    body.y - litY * PLANET_RADIUS
+  );
+  day.addColorStop(0, rgba(Palette.mid, 0.5));
+  day.addColorStop(0.6, rgba(Palette.mid, 0.06));
+  day.addColorStop(1, rgba(Palette.mid, 0));
+  ctx.fillStyle = day;
+  ctx.fill();
 
   // Day into night, along the line to the star.
   const shade = ctx.createLinearGradient(
@@ -347,10 +321,7 @@ function init(banner) {
   const ctx = canvas.getContext('2d');
   const still = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  const pair = {
-    heavy: { x: 0, y: 0, pull: MASS_PULL },
-    light: { x: 0, y: 0, pull: MASS_PULL / MASS_RATIO },
-  };
+  const pair = makePair();
   let orbit = null;
   let pixels = { w: 0, h: 0, dpr: 0 };
   let frame = 0;
