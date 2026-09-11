@@ -3,10 +3,13 @@
 // Every colour is the captain's palette (`Palette.swift`, taken from his own
 // `assets/css/palette.css`); every size in the furniture is the application's
 // own, from `ScreenLayout.swift` and `Typeface.swift`. The bending of the grid
-// is drawn in `assets/js/mfs-banner.js` and nothing on this page bends it: the
-// ground is pinched by the two bodies orbiting over it and by nothing else.
-// Where that pair stands is a fact about the layout, so it is set here, beside
-// the width the layout changes at, and read back by the banner.
+// is drawn in `assets/js/mfs-banner.js` and nothing on this page has any weight:
+// the ground is pinched by the two bodies orbiting over it and by nothing else.
+// The panes still refract it at their rims, which is what they are made of
+// rather than what they weigh, and the corner it is carried round is this
+// stylesheet's own radius, read back off the element. Where the pair stands is
+// a fact about the layout too, so it is set here, beside the width the layout
+// changes at, and read back by the banner.
 
 .mfs-field {
   --mfs-void: #04040e;
