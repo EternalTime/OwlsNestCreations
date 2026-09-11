@@ -3,9 +3,12 @@ My Favorite Spacetimes' home-page block. The section owns the box and carries
 `data-mfs-banner`, which is what mfs-banner.js looks for; the words all come
 from `_games/my-favorite-spacetimes.md`.
 
-Nothing in here bends the ground. The title used to, the way the grid on the
+Nothing in here has any weight. The title used to, the way the grid on the
 captain's own MFS page bends around its title, and his instruction was that the
-two bodies orbiting over the field are to be the only thing that moves it.
+two bodies orbiting over the field are to be the only thing that digs a well in
+it. The release pill is still glass, so it still refracts the ground at its rim
+like any other pane, which is what `data-mfs-pane` marks and all it marks. The
+title is words rather than a pane and carries nothing.
 {%- endcomment -%}
   <section class="game-block mfs-field" data-mfs-banner>
     {% include mfs-field.html %}
@@ -15,6 +18,6 @@ two bodies orbiting over the field are to be the only thing that moves it.
       {%- if include.game.teaser %}
       <p class="game-desc">{{ include.game.teaser }}</p>
       {%- endif %}
-      {% include game-links.html game=include.game badge="white" %}
+      {% include game-links.html game=include.game badge="white" release_attr=' data-mfs-pane' %}
     </div>
   </section>
