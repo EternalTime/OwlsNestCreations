@@ -5,7 +5,7 @@ banner_title: My Favorite<br>Spacetimes
 order: 3
 released: false
 banner: mfs
-tagline: A reference tool for general relativity.
-teaser: Twenty-six exact solutions of Einstein's equations, with their metrics, curvature and histories.
-release_note: In development
+tagline: A reference tool for General Relativity.
+teaser: Collected solutions to Einstein's equations, with historical backgrounds and worked out differential geometries, suitable for advanced undergraduates.
+release_note: Coming in September
 ---
