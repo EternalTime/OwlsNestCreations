@@ -1,10 +1,10 @@
-// The two-body system the My Favorite Spacetimes banner's ground is pinched by.
+// The two-body system the My Favorite Spacetimes banner's ground is pinched by:
+// where the bodies are, and how deeply each one digs.
 //
-// This is only where the bodies are. It draws nothing and knows nothing about
-// canvases, so it can be imported and sampled on its own, which is how the
-// orbit is checked: the barycentre holding still, the ten-to-one radii, the
-// momenta cancelling and the period repeating are all read off these functions
-// rather than off a picture.
+// It draws nothing and knows nothing about canvases, so it can be imported and
+// sampled on its own, which is how all of it is checked: the barycentre holding
+// still, the ten-to-one radii, the momenta cancelling, the period repeating and
+// the ten-to-one wells are read off these functions rather than off a picture.
 //
 // The captain asked for a Newtonian orbit, so it is solved as one: Kepler's
 // equation for the separation, in the frame where the barycentre stands still
@@ -86,4 +86,71 @@ export function placeBodies(orbit, seconds, pair) {
   pair.light.x = orbit.x + across * LIGHT_SHARE;
   pair.light.y = orbit.y + down * LIGHT_SHARE;
   return pair;
+}
+
+// ---- what each body does to the ground ----
+
+// The application's own well, whole, for the star: `GridBackground.Dimple`.
+// A mass on a rubber sheet leaves the point under it where it was and draws
+// everything around it inward, hardest a reach out and fading smoothly to
+// nothing after that. There is no edge to it anywhere.
+//
+// In that well the mass is the depth and the reach is the shape, so the gas
+// giant digs a well of the same width and a tenth of the depth. That is the
+// only place the mass ratio enters the ground, and it is the same ratio that
+// puts the star a tenth as far from the barycentre.
+export const MASS_PULL = 26;
+export const MASS_REACH = 110;
+
+// Peaks at exactly one reach out, where the root of e puts it at the full pull.
+const ROOT_E = 1.6487212707001282;
+
+export function makePair() {
+  return {
+    heavy: { x: 0, y: 0, pull: MASS_PULL },
+    light: { x: 0, y: 0, pull: MASS_PULL / MASS_RATIO },
+  };
+}
+
+const scratch = { dx: 0, dy: 0 };
+const total = { dx: 0, dy: 0 };
+
+export function wellPush(body, x, y, out) {
+  const dx = x - body.x;
+  const dy = y - body.y;
+  // Past four reaches the pull is a thirtieth of a pixel.
+  const bound = 4 * MASS_REACH;
+  if (Math.abs(dx) > bound || Math.abs(dy) > bound) return false;
+  const distance = Math.hypot(dx, dy);
+  if (distance <= 0.0001) {
+    out.dx = 0;
+    out.dy = 0;
+    return true;
+  }
+  const spread = distance / MASS_REACH;
+  const strength = body.pull * spread * Math.exp((-spread * spread) / 2) * ROOT_E;
+  out.dx = (-dx / distance) * strength;
+  out.dy = (-dy / distance) * strength;
+  return true;
+}
+
+// How far the pair together moves the point under them.
+//
+// The wells add. The website's own rule for its panels is the largest push
+// rather than the sum, which is what keeps two sheets over the same place from
+// tearing the ground between them, but a gravitational well is not a sheet:
+// two masses make one landscape, and taking the larger of them would leave a
+// crease along the line half way between the bodies where the winner changes.
+export function displacement(x, y, pair) {
+  total.dx = 0;
+  total.dy = 0;
+  if (wellPush(pair.heavy, x, y, scratch)) {
+    total.dx += scratch.dx;
+    total.dy += scratch.dy;
+  }
+  if (wellPush(pair.light, x, y, scratch)) {
+    total.dx += scratch.dx;
+    total.dy += scratch.dy;
+  }
+  return total;
 }
