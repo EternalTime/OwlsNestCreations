@@ -17,17 +17,32 @@ collections:
     output: true
     permalink: /games/:name/
 
-# A game is unreleased and drawn as a plain card unless its own file says
-# otherwise. `released` is the switch: off, the banner links nowhere and the
-# game's page is not written; on, both links appear and the page is published.
+# Every game's file carries the same keys, and this block is where that shape
+# is written down: a key a game can leave out is a key with a default here, so
+# nothing about a game is ever missing, only defaulted. The keys with no
+# default are the game's own words, and every game states all of them:
+# `title`, `banner_title`, `tagline` and `order`, plus `release_note` while it
+# is unreleased and `appstore_url` once it is out. A banner may read keys of
+# its own on top of these; README's Structure section lists the card's.
 defaults:
   - scope:
       path: ""
       type: games
     values:
       layout: game
+      # The one switch, and the only thing a game may differ by. Off, the
+      # banner links nowhere and the game's page is not written; on, the
+      # "More about" and App Store links appear and the page is published.
       released: false
+      # Which set of pieces the game has. `card` is the icon-on-a-gradient
+      # banner, which needs no code of its own.
       banner: card
+      # The paragraph under the tagline, for a game that has one to say.
+      teaser:
+      # The page's meta description; the studio's own if the game has none.
+      description:
+      # Whether the game's page copy sets equations, which loads KaTeX.
+      math: false
 
 sass:
   style: compressed

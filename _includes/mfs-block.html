@@ -1,7 +1,7 @@
 {%- comment -%}
 My Favorite Spacetimes' home-page block. The section owns the box and carries
 `data-mfs-banner`, which is what mfs-banner.js looks for; the words all come
-from `_games/my-favorite-spacetimes.md`.
+from `_games/my-favorite-spacetimes.md`, through the blurb every banner shares.
 
 Nothing in here has any weight. The title used to, the way the grid on the
 captain's own MFS page bends around its title, and his instruction was that the
@@ -12,12 +12,5 @@ title is words rather than a pane and carries nothing.
 {%- endcomment -%}
   <section class="game-block mfs-field" data-mfs-banner>
     {% include mfs-field.html %}
-    <div class="game-blurb">
-      <h2 class="game-title">{{ include.game.banner_title | default: include.game.title }}</h2>
-      <div class="game-tag">{{ include.game.tagline }}</div>
-      {%- if include.game.teaser %}
-      <p class="game-desc">{{ include.game.teaser }}</p>
-      {%- endif %}
-      {% include game-links.html game=include.game badge="white" release_attr=' data-mfs-pane' %}
-    </div>
+    {% include game-blurb.html game=include.game badge="white" release_attr=' data-mfs-pane' %}
   </section>

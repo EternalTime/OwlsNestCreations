@@ -1,6 +1,7 @@
 {%- comment -%}
 VoidFlux's own page: the same live scene as the home-page banner, over the
-prose from `_games/voidflux.md`.
+game's page copy, which `_games/voidflux.md` includes from
+`_includes/voidflux-copy.md`.
 {%- endcomment -%}
 <article class="vf-page">
   <section class="vf-field vf-hero" data-vf-banner>
@@ -10,8 +11,6 @@ prose from `_games/voidflux.md`.
       <div class="game-tag">{{ page.tagline }}</div>
       {% if page.appstore_url %}
       <a class="appstore-badge" href="{{ page.appstore_url }}" target="_blank" rel="noopener"><img src="{{ '/assets/img/app_store_button_white.svg' | relative_url }}" alt="Download on the App Store"></a>
-      {% else %}
-      <div class="game-status">{{ page.status }}</div>
       {% endif %}
     </div>
   </section>
