@@ -109,21 +109,21 @@ const POOLS = [
 
 // ---- the ground the bodies bend ----
 
-// How far to the next piece of a line: finely where a body is bending the
-// ground, and coarsely everywhere else.
+// How far to the next piece of a line: finely across the star's well, and
+// coarsely everywhere else, which is everywhere else on the field.
 //
 // Only the middle of a well needs the fine sampling, where the pull turns over
-// and changes direction; the rest of its reach is five times coarser than the
-// lattice itself, and away from both bodies a line is a sine five hundred
-// pixels long that a piece as long as the grid is wide falls short of by two
-// thousandths of a pixel.
-function nearBody(body, x, y) {
-  const core = MASS_REACH + COARSE_SAMPLE_LENGTH;
-  return Math.abs(x - body.x) <= core && Math.abs(y - body.y) <= core;
-}
-
+// and changes direction. The gas giant's middle does not, and that is measured
+// rather than assumed: how far a straight piece falls short of the curve it is
+// crossing scales with the depth of the well, and with pieces a whole spacing
+// long the star's well is followed to a tenth of a pixel and the giant's, ten
+// times shallower, to a hundredth. Away from both, a line is a sine five
+// hundred pixels long that a piece as long as the grid is wide falls short of
+// by two thousandths of a pixel.
 function stepAt(x, y, pair) {
-  if (nearBody(pair.heavy, x, y) || nearBody(pair.light, x, y)) return SAMPLE_LENGTH;
+  const core = MASS_REACH + COARSE_SAMPLE_LENGTH;
+  const heavy = pair.heavy;
+  if (Math.abs(x - heavy.x) <= core && Math.abs(y - heavy.y) <= core) return SAMPLE_LENGTH;
   return COARSE_SAMPLE_LENGTH;
 }
 
