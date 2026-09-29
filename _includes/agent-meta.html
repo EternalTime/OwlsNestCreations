@@ -1,0 +1,22 @@
+{%- comment -%}
+What the page says to machines, and nothing a visitor sees: the index for
+language models, the text-and-data-mining reservation (W3C TDMRep, the same
+reservation as `/.well-known/tdmrep.json`), the copyright line, and schema.org
+JSON-LD. The home page describes the studio; a game's own page describes the
+game, from the same front matter the page and `/data/games.json` are drawn from.
+{%- endcomment -%}
+{%- capture rights -%}© {{ site.time | date: '%Y' }} {{ site.title }}. All rights reserved.{%- endcapture -%}
+{%- capture studio_ref -%}{"@type":"Organization","@id":{{ '/#organization' | absolute_url | jsonify }},"name":{{ site.title | jsonify }},"url":{{ '/' | absolute_url | jsonify }}}{%- endcapture %}
+  <link rel="alternate" type="text/plain" title="Site index for language models" href="{{ '/llms.txt' | absolute_url }}">
+  <link rel="alternate" type="application/json" title="Games as JSON" href="{{ '/data/games.json' | absolute_url }}">
+  <meta name="tdm-reservation" content="1">
+  <meta name="copyright" content="{{ rights }}">
+{%- if page.url == "/" %}
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"Organization","@id":{{ '/#organization' | absolute_url | jsonify }},"name":{{ site.title | jsonify }},"url":{{ '/' | absolute_url | jsonify }},"logo":{{ '/assets/img/favicon-192.png' | absolute_url | jsonify }},"description":{{ site.description | strip_newlines | strip | jsonify }},"email":{{ site.email | prepend: "mailto:" | jsonify }},"founder":{"@type":"Person","name":{{ site.founder.name | jsonify }},"url":{{ site.founder.url | jsonify }}},"sameAs":{{ site.social | map: "url" | jsonify }}}
+  </script>
+{%- elsif page.collection == "games" and page.released %}
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":["VideoGame","MobileApplication"],"name":{{ page.title | jsonify }},"description":{{ page.description | default: page.tagline | jsonify }},"url":{{ page.url | absolute_url | jsonify }}{% if page.icon %},"image":{{ page.icon | absolute_url | jsonify }}{% endif %},"applicationCategory":"GameApplication"{% if page.platforms.size > 0 %},"gamePlatform":{{ page.platforms | jsonify }}{% endif %}{% if page.release_date %},"datePublished":{{ page.release_date | date: '%Y-%m-%d' | jsonify }}{% endif %}{% if page.appstore_url %},"installUrl":{{ page.appstore_url | jsonify }},"sameAs":[{{ page.appstore_url | jsonify }}]{% endif %},"author":{{ studio_ref }},"publisher":{{ studio_ref }},"copyrightHolder":{{ studio_ref }},"copyrightNotice":{{ rights | jsonify }}}
+  </script>
+{%- endif %}
