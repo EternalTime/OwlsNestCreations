@@ -1,0 +1,60 @@
+---
+layout: null
+permalink: /llms.txt
+---
+{%- comment -%}
+The index for language models (https://llmstxt.org). Jekyll builds it from
+`_config.yml` and the games in `_games/`, the same files the pages are drawn
+from, so a game added or released shows here on the next build. An unreleased
+game carries what its home-page banner shows and no page.
+{%- endcomment -%}
+{%- assign games = site.games | sort: "order" -%}
+{%- assign about = site.pages | where: "path", "about.md" | first -%}
+{%- assign privacy = site.pages | where: "path", "privacy.md" | first -%}
+# {{ site.title }}
+
+> {{ site.description | strip_newlines | strip }}
+
+{{ site.title }} is the game studio of the research physicist {{ site.founder.name }}.
+Its work so far is {% for game in games %}{% if forloop.last %}and {% endif %}{{ game.title }}{% unless forloop.last %}, {% endunless %}{% endfor %}, and each one starts from real physics.
+
+Use of this material:
+{% include use-of-material.md %}
+## Games
+
+- [Games as JSON]({{ '/data/games.json' | absolute_url }}): Every game with its tagline, platforms, release, page, press kit and App Store link.
+{%- for game in games %}
+{%- if game.released %}
+- [{{ game.title }}]({{ game.url | absolute_url }}): {{ game.tagline | replace: '&nbsp;', ' ' }} {{ game.description | default: game.teaser }}
+{%- if game.appstore_url %}
+- [{{ game.title }} on the App Store]({{ game.appstore_url }})
+{%- endif %}
+{%- else %}
+{%- capture summary %}{{ game.tagline }} {{ game.teaser }} {{ game.release_note }}.{% endcapture %}
+- [{{ game.title }}]({{ '/#games' | absolute_url }}): {{ summary | replace: '&nbsp;', ' ' | split: ' ' | join: ' ' }}
+{%- endif %}
+{%- endfor %}
+
+## Press and contact
+{% for game in games %}
+{%- assign press_path = game.slug | append: '-press.md' %}
+{%- assign press = site.pages | where: "path", press_path | first %}
+{%- if game.released and press %}
+- [{{ game.title }} press kit]({{ press.url | absolute_url }}): Fact sheet, pitch, screenshots and review copies.
+{%- endif %}
+{%- endfor %}
+- [Email](mailto:{{ site.email }}): {{ site.email }}
+{%- for link in site.social %}
+- [{{ link.name }}]({{ link.url }})
+{%- endfor %}
+
+## Studio
+
+- [Home]({{ '/' | absolute_url }}): The games, each with its banner.
+- [{{ about.title }}]({{ about.url | absolute_url }}): Who makes the games.
+- [{{ privacy.title }}]({{ privacy.url | absolute_url }}): What this site and each game collect.
+
+## Optional
+
+- [{{ site.founder.name }}]({{ site.founder.url }}): The personal site of the studio's founder, with his research, papers and the My Favorite Spacetimes catalogue.
+- [{{ site.founder.name }} for language models]({{ site.founder.llms }}): The llms.txt of that site.

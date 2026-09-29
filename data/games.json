@@ -1,0 +1,42 @@
+---
+layout: null
+permalink: /data/games.json
+---
+{%- comment -%}
+Every game on the home page, drawn from `_games/` exactly as the banners are.
+An unreleased game carries what its banner already shows and no page.
+{%- endcomment -%}
+{%- assign games = site.games | sort: "order" -%}
+{%- capture rights -%}© {{ site.time | date: '%Y' }} {{ site.title }}. All rights reserved.{%- endcapture -%}
+{%- capture use -%}{% include use-of-material.md %}{%- endcapture -%}
+{
+  "name": {{ site.title | append: " games" | jsonify }},
+  "url": {{ '/data/games.json' | absolute_url | jsonify }},
+  "studio": {"name": {{ site.title | jsonify }}, "url": {{ '/' | absolute_url | jsonify }}, "email": {{ site.email | jsonify }}},
+  "copyrightHolder": {{ site.title | jsonify }},
+  "copyrightNotice": {{ rights | jsonify }},
+  "useOfMaterial": {{ use | strip | replace: '
+', ' ' | jsonify }},
+  "games": [
+{%- for game in games %}
+    {
+      "name": {{ game.title | jsonify }},
+      "tagline": {{ game.tagline | replace: '&nbsp;', ' ' | jsonify }},
+      "description": {{ game.description | default: game.teaser | jsonify }},
+      "released": {{ game.released | jsonify }},
+      {%- if game.released %}
+      "releaseDate": {{ game.release_date | date: '%Y-%m-%d' | jsonify }},
+      {%- else %}
+      "releaseNote": {{ game.release_note | jsonify }},
+      {%- endif %}
+      "platforms": {{ game.platforms | jsonify }},
+      "image": {% if game.icon %}{{ game.icon | absolute_url | jsonify }}{% else %}null{% endif %},
+      "pageUrl": {% if game.released %}{{ game.url | absolute_url | jsonify }}{% else %}null{% endif %},
+      {%- assign press_path = game.slug | append: '-press.md' %}
+      {%- assign press = site.pages | where: "path", press_path | first %}
+      "pressKitUrl": {% if game.released and press %}{{ press.url | absolute_url | jsonify }}{% else %}null{% endif %},
+      "appStoreUrl": {% if game.released and game.appstore_url %}{{ game.appstore_url | jsonify }}{% else %}null{% endif %}
+    }{% unless forloop.last %},{% endunless %}
+{%- endfor %}
+  ]
+}
