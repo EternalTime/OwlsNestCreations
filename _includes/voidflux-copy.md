@@ -1,5 +1,5 @@
 Rad! 
-You made it, and just in the knick of time.
+You made it, and just in the nick of time.
 There's, like, bright stuff everywhere.
 The Void has been disturbed, flux loops have appeared all around, and the dark matter is being drowned.
 I've trapped the charges you need in our remaining dark crystals; use them to cancel these fluxes.
