@@ -6,6 +6,13 @@ description: >-
 url: "https://owlsnestcreations.com"
 email: hello@owlsnestcreations.com
 
+# The person behind the studio, named in llms.txt and the studio's schema.org
+# data. `llms` is the index of his own site written for language models.
+founder:
+  name: Damian Sowinski
+  url: https://damiansowinski.com/
+  llms: https://damiansowinski.com/llms.txt
+
 # Rendered by _includes/social-links.html in the footer and on the about page.
 # Add a network by adding a name and url here; remove the list and nothing renders.
 social:
@@ -43,10 +50,19 @@ defaults:
       description:
       # Whether the game's page copy sets equations, which loads KaTeX.
       math: false
+      # What the game runs on and the day it came out, for the machine-readable
+      # copies of the game (`/data/games.json` and the page's schema.org data).
+      platforms: []
+      release_date:
 
 sass:
   style: compressed
   quiet_deps: true
+
+# Jekyll skips dot-directories unless told otherwise; this one holds the
+# text-and-data-mining reservation (W3C TDMRep).
+include:
+  - .well-known
 
 exclude:
   - Gemfile
