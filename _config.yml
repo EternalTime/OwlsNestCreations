@@ -37,10 +37,16 @@ defaults:
       type: games
     values:
       layout: game
-      # The one switch, and the only thing a game may differ by. Off, the
-      # banner links nowhere and the game's page is not written; on, the
-      # "More about" and App Store links appear and the page is published.
+      # The release switch, which with `page_unlisted` below is all a game may
+      # differ by. Off, the banner links nowhere and the game's page is not
+      # written; on, the "More about" and App Store links appear and the page
+      # is published.
       released: false
+      # A page published ahead of its game: on, an unreleased game's page is
+      # written and reachable by its URL, but the banner still links nowhere
+      # and nothing else on the site names it. It comes out when `released`
+      # goes on.
+      page_unlisted: false
       # Which set of pieces the game has. `card` is the icon-on-a-gradient
       # banner, which needs no code of its own.
       banner: card
