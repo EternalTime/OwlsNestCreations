@@ -1,0 +1,21 @@
+{%- comment -%}
+One picture from My Favorite Spacetimes. Parameters:
+  name    - stem under /assets/img, without the `mfs-` prefix or extension.
+            `mfs-<name>.png` must exist.
+  alt     - alt text describing what the picture actually shows.
+  caption - visible figcaption.
+
+Everything this shows today is a placeholder card from
+assets/img/mfs-placeholder.html, so there is no `<picture>` and no AVIF
+companion the way voidflux-shot.html has: a flat-colour card gains nothing
+from AVIF. When real captures land, take the VoidFlux include's `<picture>`
+with them.
+{%- endcomment -%}
+<figure class="mfs-shot">
+  <img class="mfs-shot-frame"
+       src="{{ '/assets/img/mfs-' | append: include.name | append: '.png' | relative_url }}"
+       alt="{{ include.alt | escape }}"
+       width="720" height="1200"
+       loading="lazy" decoding="async">
+  <figcaption class="mfs-shot-caption">{{ include.caption | escape }}</figcaption>
+</figure>

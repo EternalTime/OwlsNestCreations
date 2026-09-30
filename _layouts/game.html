@@ -5,6 +5,7 @@ layout: default
 A game's page comes from its banner, the same way its home-page block does.
 The guard is the second half of the `released` switch: an unreleased game's
 document is never written (see `_plugins/game_release.rb`), and if one ever
-were, it would carry none of the game's words.
+were, it would carry none of the game's words. `page_unlisted` is the one
+exception, a page published before its game is.
 {% endcomment %}
-{%- if page.released %}{% include {{ page.banner }}-page.html %}{% endif %}
+{%- if page.released or page.page_unlisted %}{% include {{ page.banner }}-page.html %}{% endif %}

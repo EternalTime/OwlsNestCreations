@@ -11,7 +11,10 @@
 // a fact about the layout too, so it is set here, beside the width the layout
 // changes at, and read back by the banner.
 
-.mfs-field {
+// `.mfs-field` is any element the ground is drawn in. `.mfs-page` is not
+// itself a field but needs the same palette and faces for its prose.
+.mfs-field,
+.mfs-page {
   --mfs-void: #04040e;
   --mfs-teal-dark: #23bbad;
   --mfs-teal-light: #25d9c8;
@@ -28,6 +31,9 @@
   // Prose takes a serif in the application, because a history that runs to six
   // thousand characters set in monospace is a terminal rather than a book.
   --mfs-serif: ui-serif, 'New York', Georgia, 'Times New Roman', serif;
+}
+
+.mfs-field {
 
   // The barycentre, as a share of the field's own width and height, and how far
   // the lighter star swings from it at its furthest, as a share of that height.
@@ -208,7 +214,8 @@
 
 // ---- The one control ----
 
-// Not a link: there is no page for this on the studio's site yet. It is the
+// Not a link: the app's page is published but unlisted until the captain
+// links it, which `released` does (see _includes/game-links.html). It is the
 // title screen's own glass control, cut to a pill that straddles its words with
 // Layout.insideControl on every side of them.
 .mfs-field .game-release {
@@ -231,6 +238,119 @@
     0 15px 50px rgba(4, 4, 14, 0.295);
 }
 
+// ---- The app's page ----
+
+.mfs-page {
+  background: var(--mfs-void);
+  color: var(--mfs-mid);
+}
+
+// The hero is the banner's own ground, cut a little shorter, with the name set
+// as the page's heading at the banner's size. On the home page `.game-block`
+// holds the copy off the edges; here the hero does it, by the same amount.
+.mfs-hero {
+  min-height: clamp(26rem, 58vh, 40rem);
+  padding: 10vh 5vw;
+}
+
+.mfs-prose {
+  position: relative;
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: clamp(3rem, 8vh, 5rem) 5vw clamp(4rem, 10vh, 7rem);
+  font-family: var(--mfs-serif);
+}
+
+// Headings are set like the application's row names: monospace, in teal.
+.mfs-prose h2 {
+  margin: 3.5rem 0 1.2rem;
+  padding-bottom: 0.7rem;
+  color: var(--mfs-teal-light);
+  font-family: var(--mfs-mono);
+  font-size: clamp(1.4rem, 3.6vw, 1.8rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  // Palette.separator, the hairline under a row, running out to nothing.
+  border-bottom: 1px solid transparent;
+  border-image: linear-gradient(
+      90deg,
+      rgba(42, 190, 217, 0.55),
+      rgba(42, 190, 217, 0)
+    ) 1;
+}
+
+.mfs-prose > h2:first-child { margin-top: 0; }
+
+.mfs-prose p {
+  font-size: 1.12rem;
+  line-height: 1.75;
+  margin-bottom: 1.15rem;
+}
+
+.mfs-prose strong { color: var(--mfs-bright); font-weight: 700; }
+
+.mfs-prose em { color: var(--mfs-dim); }
+
+.mfs-prose a {
+  color: var(--mfs-teal-light);
+  font-weight: 600;
+  text-decoration-color: rgba(37, 217, 200, 0.4);
+  text-underline-offset: 0.18em;
+}
+
+.mfs-prose a:hover { text-decoration-color: var(--mfs-teal-light); }
+
+// ---- Pictures ----
+
+// The same grid as the VoidFlux captures, shared by the page and the press kit.
+.mfs-shots {
+  --mfs-shot-aspect: 3 / 5;
+
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2.25rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  margin: 2.5rem 0 3rem;
+}
+
+.mfs-shot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin: 0;
+  min-width: 0;
+}
+
+.mfs-shot-frame {
+  display: block;
+  width: 100%;
+  // The intrinsic `height` attribute reserves layout space before the picture
+  // loads; it has to be released here or it beats `aspect-ratio`.
+  height: auto;
+  max-width: 21rem;
+  margin-inline: auto;
+  aspect-ratio: var(--mfs-shot-aspect);
+  object-fit: contain;
+  // PanelShape.card.
+  border-radius: 21px;
+  box-shadow: 0 7px 22px rgba(4, 4, 14, 0.321);
+}
+
+.mfs-shot-caption {
+  max-width: 23rem;
+  margin-inline: auto;
+  color: var(--mfs-dim);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  text-align: center;
+}
+
+// On light prose pages (the press kit) the caption reads in ink, not grey, and
+// the shadow is the page's rather than the ground's.
+.prose-page .mfs-shot-caption { color: var(--ink); }
+
+.prose-page .mfs-shot-frame { box-shadow: 0 12px 34px rgba(28, 26, 36, 0.14); }
+
 // ---- Narrow viewports ----
 
 @media (max-width: 860px) {
@@ -249,6 +369,13 @@
   }
 
   .mfs-field .game-blurb { max-width: none; }
+
+  // The page's hero is shorter than the banner, as VoidFlux's is: it has no
+  // teaser or release pill to hold room for, only the name and the tagline.
+  .mfs-hero {
+    min-height: clamp(24rem, 64vh, 34rem);
+    padding: 2.5rem 5vw;
+  }
 
   // The copy takes the foot of the frame, so the collection takes its head.
   .mfs-stack {

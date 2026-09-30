@@ -1,5 +1,8 @@
 # A game's `released` switch is also its page's publish switch: until the game
 # is out, its page sits in the repository and is never written to the site.
+# `page_unlisted` is the one exception, a page published ahead of the game:
+# written to the site and reachable by its URL, while the banner, still
+# unreleased, links nowhere.
 #
 # Jekyll's own `published: false` cannot do this alone. A document is tested
 # for it while the collection is being read, and an unpublished one is dropped
@@ -9,6 +12,6 @@
 # it, because that is decided later, in `Jekyll::Publisher#publish?`.
 Jekyll::Hooks.register :site, :post_read do |site|
   site.collections["games"].docs.each do |game|
-    game.data["published"] = false unless game.data["released"]
+    game.data["published"] = false unless game.data["released"] || game.data["page_unlisted"]
   end
 end

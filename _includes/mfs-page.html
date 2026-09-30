@@ -1,0 +1,24 @@
+{%- comment -%}
+My Favorite Spacetimes' own page: the same live ground as the home-page banner,
+bent by the same orbiting pair, over the page copy, which
+`_games/my-favorite-spacetimes.md` includes from `_includes/mfs-copy.md`.
+
+The title is the banner's own, `banner_title`, because the name set in the
+application's monospace breaks in the wrong place when the width decides where.
+{%- endcomment -%}
+<article class="mfs-page">
+  <section class="mfs-field mfs-hero" data-mfs-banner>
+    {% include mfs-field.html %}
+    <div class="game-blurb">
+      <h1 class="game-title">{{ page.banner_title }}</h1>
+      <div class="game-tag">{{ page.tagline }}</div>
+      {% if page.appstore_url %}
+      <a class="appstore-badge" href="{{ page.appstore_url }}" target="_blank" rel="noopener"><img src="{{ '/assets/img/app_store_button_white.svg' | relative_url }}" alt="Download on the App Store"></a>
+      {% endif %}
+    </div>
+  </section>
+  <div class="mfs-prose">
+    {{ content }}
+  </div>
+</article>
+{% include mfs-runtime.html %}
