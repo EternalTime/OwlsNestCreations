@@ -47,7 +47,8 @@ It collects spacetimes, the solutions of Einstein's equations, each with its met
 ## About the developer
 
 Damian Sowinski is a research physicist, programmer, and game designer.
-Owl's Nest Creations is his one-person studio.
+Owl's Nest Creations is his one-person studio: VoidFlux's code, levels, story, and translations are all his.
+The games start from real physics and turn it into something you can play.
 
 ## Screenshots
 
