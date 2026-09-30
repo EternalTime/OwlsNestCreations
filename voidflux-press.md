@@ -12,7 +12,7 @@ body_class: prose-page
 ## Fact sheet
 
 - Title: VoidFlux
-- Developer: Owl's Nest Creations, the one-person studio of Damian Sowinski
+- Developer: Owl's Nest Creations
 - Released: September 4, 2026
 - Platform: iPhone and iPad, iOS 18 or later
 - Price: $3.99, no ads, no in-app purchases
@@ -23,8 +23,8 @@ body_class: prose-page
 
 ## The pitch
 
-A research physicist built a puzzle game on Gauss's law. No equation appears anywhere in it.
-Players cancel flux by placing charge, which means they are doing real electrostatics by thumb.
+A research physicist built a puzzle game on Gauss's law that looks like retro neon candy with a synthwave soundtrack.
+Cancel flux by placing charge; who knew physics could be this much fun?
 
 ## About the game
 
@@ -33,17 +33,18 @@ Closed loops lie across a hex crystal board, each showing its flux, and a tray b
 Place them so that the charge enclosed by every loop cancels its flux exactly.
 Use the whole tray, drive every flux to zero, and the board is solved.
 
-The campaign's 204 levels climb a difficulty curve that isn't guessed: every board's complete solution set is computed, and the levels are ordered by how scarce solutions get.
-Between rounds the game retells Wittgenstein's Tractatus in 80s arcade slang, one scene per round, in nine languages, Latin among them.
-It ends where the Tractatus does: whereof one cannot speak, thereof one must be silent.
+The campaign's 204 levels climb a difficulty curve.
+Between rounds, the game retells Wittgenstein's Tractatus in 80s arcade slang, because philosophy and physics go hand in hand.
+It's translated into nine languages, Latin among them.
 
-Synthwave soundtrack with eight tracks in rotation, three color-blind palettes, a Game Center leaderboard, 25 achievements with their own neon artwork, and iCloud sync between iPhone and iPad.
+The game is accompanied by a synthwave soundtrack with eight tracks, three color-blind palettes, a Game Center leaderboard, 25 achievements with their own neon artwork, and iCloud sync.
+It plays on iPhone, iPad, Duo, your Mac, Apple TV, and the Vision Pro.
 
 ## About the developer
 
-Damian Sowinski is a research physicist, programmer, and game designer.
-Owl's Nest Creations is his one-person studio: VoidFlux's code, levels, story, and translations are all his.
-The games start from real physics and turn it into something you can play.
+I'm Damian Sowinski: a research physicist, programmer, artist, and game designer.
+Owl's Nest Creations is my game studio.
+Read more about my research at [DamianSowinski.com](https://damiansowinski.com).
 
 ## Screenshots
 

@@ -23,7 +23,7 @@ Every line below marked *placeholder* is waiting on a decision and is not a fact
 ## Fact sheet
 
 - Title: My Favorite Spacetimes
-- Developer: Owl's Nest Creations, the one-person studio of Damian Sowinski
+- Developer: Owl's Nest Creations
 - Release date: *placeholder*
 - Platform: iPhone, iPad, and Mac, with Vision Pro coming soon. Minimum OS version: *placeholder*
 - Price: *placeholder*
@@ -46,9 +46,9 @@ It collects spacetimes, the solutions of Einstein's equations, each with its met
 
 ## About the developer
 
-Damian Sowinski is a research physicist, programmer, and game designer.
-Owl's Nest Creations is his one-person studio: VoidFlux's code, levels, story, and translations are all his.
-The games start from real physics and turn it into something you can play.
+I'm Damian Sowinski: a research physicist, programmer, artist, and game designer.
+Owl's Nest Creations is my game studio.
+Read more about my research at [DamianSowinski.com](https://damiansowinski.com).
 
 ## Screenshots
 
