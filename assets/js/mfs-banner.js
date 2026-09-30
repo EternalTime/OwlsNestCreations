@@ -5,8 +5,10 @@
 // `damiansowinski.com/MFS` - a lattice of straight lines twenty pixels apart,
 // each carrying a quarter-pixel travelling sine - and every number in it is
 // either from the second inline script of `~/MyWebPage/_layouts/mfs.html` or
-// from the application's port of it, `GridBackground.swift`. The light pools
-// are `Luminance.swift`.
+// from the application's port of it, `GridBackground.swift`. Nothing on it
+// glows, as nothing in the application does since the captain's order of
+// 29 September 2026, "No glow anywhere": each line is drawn once at its own
+// width, with no bloom round it and no pool of light under it.
 //
 // What bends that ground is two stars in a bound Newtonian orbit,
 // and nothing else does: no element on the page is a source. Each body carries
@@ -43,29 +45,18 @@ const WAVE_ACROSS_LINES = 120;
 const SPACING = 20;
 const LINE_WIDTH = 2;
 const LINE_OPACITY = 0.28;
-// The website's own glow arithmetic at rest, with its flicker taken out: the
-// resting opacity, lifted off the floor the flicker could drop to, over the
-// whole range it could cover, times the eighteen pixels it blooms at full.
-const BLOOM_RADIUS = ((0.28 - 0.1) / (0.28 + 1.2 - 0.1)) * 18;
-// The bloom is a second, wider, fainter stroke rather than a canvas shadow.
-// A shadow is an offscreen blur of the whole banner every frame, and the
-// application measured that one call as costing more than all the rest of the
-// ground put together.
-const BLOOM_STRENGTH = 0.28;
 
 // ---- the two bodies ----
 
 // Where they are and how deeply each digs is `mfs-orbit.js`; this is only what
 // they look like.
 
-// Both bodies are stars: a white core in a halo of the palette's own colour,
-// drawn additively, so they are the only things in the banner that make their
-// own light. The pair is told apart by colour rather than by size, the heavier
-// one teal and the lighter one pink.
-const STAR_CORE = 8;
-const STAR_HALO = 54;
-const HEAVY_TONES = { core: Palette.tealLight, edge: Palette.cyan };
-const LIGHT_TONES = { core: Palette.pinkLight, edge: Palette.pinkDark };
+// Both bodies are plain discs in the palette's own colours, with nothing
+// round them. The pair is told apart by colour rather than by size, the
+// heavier one cyan and the lighter one pink.
+const BODY_RADIUS = 5;
+const HEAVY_TONE = Palette.cyanBright;
+const LIGHT_TONE = Palette.pinkLight;
 
 // ---- a sheet of glass ----
 
@@ -82,37 +73,6 @@ const SAMPLE_LENGTH = 4;
 const COARSE_SAMPLE_LENGTH = SPACING;
 const OVERHANG_LINES = 3;
 const MAX_DPR = 2;
-
-// The light in the room: a few broad pools drifting far more slowly than the
-// grid, so the two never read as one moving thing. Their pairs of periods are
-// deliberately in no small whole ratio, so the light never comes back to where
-// it was and never reads as a loop.
-const POOLS = [
-  {
-    tone: Palette.tealLight,
-    strength: 0.2,
-    reach: 0.62,
-    home: [0.18, 0.24],
-    wander: [0.16, 0.18],
-    seconds: [73, 97],
-  },
-  {
-    tone: Palette.cyan,
-    strength: 0.14,
-    reach: 0.55,
-    home: [0.84, 0.7],
-    wander: [0.18, 0.14],
-    seconds: [89, 61],
-  },
-  {
-    tone: Palette.pinkDark,
-    strength: 0.11,
-    reach: 0.42,
-    home: [0.62, 0.12],
-    wander: [0.22, 0.2],
-    seconds: [113, 79],
-  },
-];
 
 // ---- the panes standing on that ground ----
 
@@ -306,74 +266,33 @@ function field(w, h, phase, pair, panes) {
   return path;
 }
 
-// Light adds to light, so the pools are drawn on top of one another rather than
-// over one another. Two overlapping pools make a brighter place, which is what
-// a room with two lamps in it does.
-function drawLuminance(ctx, w, h, seconds) {
-  ctx.save();
-  ctx.globalCompositeOperation = 'lighter';
-  const longer = Math.max(w, h);
-  for (const pool of POOLS) {
-    const across = Math.sin((2 * Math.PI * seconds) / pool.seconds[0]);
-    const down = Math.cos((2 * Math.PI * seconds) / pool.seconds[1]);
-    const x = (pool.home[0] + pool.wander[0] * across) * w;
-    const y = (pool.home[1] + pool.wander[1] * down) * h;
-    const radius = pool.reach * longer;
-    const light = ctx.createRadialGradient(x, y, 0, x, y, radius);
-    light.addColorStop(0, rgba(pool.tone, pool.strength));
-    light.addColorStop(1, rgba(pool.tone, 0));
-    ctx.fillStyle = light;
-    ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-  }
-  ctx.restore();
+// A body: a disc in its own colour, drawn over the ground it is bending.
+function drawBody(ctx, body, tone) {
+  ctx.beginPath();
+  ctx.arc(body.x, body.y, BODY_RADIUS, 0, 2 * Math.PI);
+  ctx.fillStyle = rgba(tone, 1);
+  ctx.fill();
 }
 
-// A star, lit from inside: a white core through its own colour and out to
-// nothing, added to what is under it so the grid reads through its outskirts.
-function drawStar(ctx, body, tones) {
-  ctx.save();
-  ctx.globalCompositeOperation = 'lighter';
-  const light = ctx.createRadialGradient(body.x, body.y, 0, body.x, body.y, STAR_HALO);
-  light.addColorStop(0, rgba(Palette.bright, 1));
-  light.addColorStop((STAR_CORE * 0.6) / STAR_HALO, rgba(Palette.bright, 0.85));
-  light.addColorStop(STAR_CORE / STAR_HALO, rgba(tones.core, 0.55));
-  light.addColorStop(0.34, rgba(tones.core, 0.16));
-  light.addColorStop(1, rgba(tones.edge, 0));
-  ctx.fillStyle = light;
-  ctx.fillRect(
-    body.x - STAR_HALO,
-    body.y - STAR_HALO,
-    STAR_HALO * 2,
-    STAR_HALO * 2
-  );
-  ctx.restore();
-}
-
-
-function drawGround(ctx, w, h, seconds, phase, pair, panes) {
+function drawGround(ctx, w, h, phase, pair, panes) {
   ctx.clearRect(0, 0, w, h);
-  drawLuminance(ctx, w, h, seconds);
 
   const lines = field(w, h, phase, pair, panes);
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
 
-  ctx.strokeStyle = rgba(Palette.tealDark, LINE_OPACITY * BLOOM_STRENGTH);
-  ctx.lineWidth = LINE_WIDTH + BLOOM_RADIUS;
-  ctx.stroke(lines);
-
-  // The website's own gradient across the whole frame: the quiet teal at the
-  // top left running to the pink at the bottom right.
+  // The application's own gradient across the whole frame: the quiet cyan at
+  // the top left running to the pink at the bottom right.
   const run = ctx.createLinearGradient(0, 0, w, h);
-  run.addColorStop(0, rgba(Palette.tealDark, LINE_OPACITY));
+  run.addColorStop(0, rgba(Palette.cyanDark, LINE_OPACITY));
   run.addColorStop(1, rgba(Palette.pinkDark, LINE_OPACITY));
   ctx.strokeStyle = run;
   ctx.lineWidth = LINE_WIDTH;
   ctx.stroke(lines);
 
   // The bodies stand on the ground they are bending, so they are drawn last.
-  drawStar(ctx, pair.light, LIGHT_TONES);
-  drawStar(ctx, pair.heavy, HEAVY_TONES);
+  drawBody(ctx, pair.light, LIGHT_TONE);
+  drawBody(ctx, pair.heavy, HEAVY_TONE);
 }
 
 function init(banner) {
@@ -412,7 +331,7 @@ function init(banner) {
   // simply the same picture holding still.
   function drawStill() {
     if (pixels.w === 0 || !orbit) return;
-    drawGround(ctx, pixels.w, pixels.h, 0, 0, placeBodies(orbit, 0, pair), panes);
+    drawGround(ctx, pixels.w, pixels.h, 0, placeBodies(orbit, 0, pair), panes);
   }
 
   function tick(now) {
@@ -426,7 +345,6 @@ function init(banner) {
       ctx,
       pixels.w,
       pixels.h,
-      seconds,
       seconds * BASE_SPEED,
       placeBodies(orbit, seconds - began, pair),
       panes
@@ -451,7 +369,7 @@ function init(banner) {
 
   // The ground is redrawn thirty times a second, so it runs only while the
   // banner is on screen. Until then the field is the application's own
-  // near-black ground and nothing else, which is what the application shows
+  // dark blue ground and nothing else, which is what the application shows
   // behind everything anyway.
   new IntersectionObserver(
     (entries) => {
