@@ -35,8 +35,8 @@ It runs on iPhone, iPad, and Mac, and is coming soon to Vision Pro.
    caption="The equatorial plane (θ = π/2) of the Ellis-Bronnikov wormhole at one moment of t, a catenoid with its throat at r = 0." %}
 {% include mfs-shot.html
    name="cosmic-string-cone"
-   alt="The embedding diagram of the Vilenkin-Gott cosmic string in My Favorite Spacetimes: a cone seen from above its rim, with a straight cut drawn from its apex to its edge, labelled Δφ = 0°."
-   caption="The cone of an ideal Vilenkin-Gott cosmic string (4Gμ/c² = 0.1, δ = 36°), cut along φ = 0." %}
+   alt="The embedding diagram of the Vilenkin-Gott cosmic string in My Favorite Spacetimes: a cone cut from its apex to its rim and unrolled almost flat, the two edges of the cut standing apart across an open wedge, labelled Δφ = 35°."
+   caption="The cone of an ideal Vilenkin-Gott cosmic string (4Gμ/c² = 0.1, δ = 36°), cut along φ = 0 and unrolled to Δφ = 35°." %}
 </div>
 
 The collection is also online at [damiansowinski.com/MFS](https://damiansowinski.com/MFS/).
