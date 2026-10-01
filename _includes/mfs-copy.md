@@ -1,8 +1,8 @@
 {% comment %}
   Bare basics only, so the page stands while the captain writes the rest.
   Every section marked Placeholder is his to fill, and nothing else here should
-  grow a claim, a quote, a price or a date he has not settled. The screenshots
-  are placeholder cards, not captures; see assets/img/mfs-placeholder.html.
+  grow a claim, a quote, a price or a date he has not settled. The pictures are
+  iPhone captures of the app's diagrams, cropped as AGENTS.md says.
 {% endcomment %}
 
 My Favorite Spacetimes is a reference for general relativity.
@@ -15,13 +15,13 @@ It runs on iPhone, iPad, and Mac, and is coming soon to Vision Pro.
 
 <div class="mfs-shots" markdown="0">
 {% include mfs-shot.html
-   name="placeholder-1"
-   alt="A placeholder card in the studio's cream and green, stamped PLACEHOLDER, standing where a screenshot of My Favorite Spacetimes will go."
-   caption="Placeholder, not a screenshot." %}
+   name="kerr-conformal"
+   alt="The conformal diagram of the equatorial plane of Kerr spacetime in My Favorite Spacetimes: a tower of exterior, black hole and white hole regions, with the ring singularity r = 0 drawn as two jagged vertical edges."
+   caption="The conformal diagram of the equatorial plane (θ = π/2) of the maximally extended Kerr spacetime (a = 0.9 GM/c²), the ring singularity the jagged timelike edge r = 0." %}
 {% include mfs-shot.html
-   name="placeholder-2"
-   alt="A placeholder card in the studio's cream and green, stamped PLACEHOLDER, standing where a screenshot of My Favorite Spacetimes will go."
-   caption="Placeholder, not a screenshot." %}
+   name="mixmaster-embedding"
+   alt="The embedding diagram of a Mixmaster universe in My Favorite Spacetimes: a surface of revolution with two round lobes joined at a narrow waist, labelled cτ = 2.83 m."
+   caption="The great two sphere of a Mixmaster universe's three sphere (cτ = 2.83 m), two lobes joined at a narrow waist." %}
 </div>
 
 ## The physics
@@ -30,9 +30,13 @@ It runs on iPhone, iPad, and Mac, and is coming soon to Vision Pro.
 
 <div class="mfs-shots" markdown="0">
 {% include mfs-shot.html
-   name="placeholder-3"
-   alt="A placeholder card in the studio's cream and green, stamped PLACEHOLDER, standing where a screenshot of My Favorite Spacetimes will go."
-   caption="Placeholder, not a screenshot." %}
+   name="ellis-bronnikov-embedding"
+   alt="The embedding diagram of the Ellis-Bronnikov wormhole in My Favorite Spacetimes: two flared sheets joined through a throat marked r = 0, with circles marked 2ℓ and -2ℓ on either side."
+   caption="The equatorial plane (θ = π/2) of the Ellis-Bronnikov wormhole at one moment of t, a catenoid with its throat at r = 0." %}
+{% include mfs-shot.html
+   name="cosmic-string-cone"
+   alt="The embedding diagram of the Vilenkin-Gott cosmic string in My Favorite Spacetimes: a cone seen from above its rim, with a straight cut drawn from its apex to its edge, labelled Δφ = 0°."
+   caption="The cone of an ideal Vilenkin-Gott cosmic string (4Gμ/c² = 0.1, δ = 36°), cut along φ = 0." %}
 </div>
 
 The collection is also online at [damiansowinski.com/MFS](https://damiansowinski.com/MFS/).
