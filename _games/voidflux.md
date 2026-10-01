@@ -1,7 +1,7 @@
 ---
 title: VoidFlux
 banner_title: VoidFlux
-tagline: A puzzle in the depths of Electromagnetism.
+tagline: A Puzzle in the depths of Electrostatics.
 teaser: Place charges. Bend fields. Balance the flux. Out now on iPhone.
 description: VoidFlux is a puzzle game built on Gauss' Law, out now for iPhone from Owl's Nest Creations.
 order: 1

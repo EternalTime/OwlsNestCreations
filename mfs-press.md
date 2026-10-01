@@ -26,7 +26,7 @@ Every line below marked *placeholder* is waiting on a decision and is not a fact
 - Developer: Owl's Nest Creations
 - Release date: *placeholder*
 - Platform: iPhone, iPad, and Mac, with Vision Pro coming soon. Minimum OS version: *placeholder*
-- Price: *placeholder*
+- Price: Free
 - Built with: *placeholder*
 - Languages: *placeholder*
 - App Store: *placeholder*
