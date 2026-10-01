@@ -7,7 +7,7 @@ order: 3
 banner: mfs
 released: false
 page_unlisted: true
-release_note: Coming in September
+release_note: Coming Early October
 ---
 
 {% include_optional {{ page.banner }}-copy.md -%}
