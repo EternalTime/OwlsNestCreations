@@ -76,16 +76,26 @@
   opacity: 0.92;
 }
 
-.game-cta {
+// One pill for every banner, whether it is a released game's link or an
+// unreleased one's release window (see _includes/game-links.html). The shape
+// and the type are set here and nowhere else, so the banners' pills cannot
+// drift apart; a banner dresses its own only in colour. The rim is part of the
+// box even where a banner leaves it clear, so every pill stands the same height.
+.game-cta,
+.game-release {
   display: inline-block;
   margin-top: 2rem;
-  background: var(--g-cta-bg);
-  color: var(--g-cta-text);
   font-weight: 700;
   font-size: 1.05rem;
-  text-decoration: none;
   padding: 0.9rem 2rem;
+  border: 2px solid transparent;
   border-radius: 999px;
+}
+
+.game-cta {
+  background: var(--g-cta-bg);
+  color: var(--g-cta-text);
+  text-decoration: none;
   transition: transform 0.15s ease;
 }
 
