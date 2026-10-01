@@ -8,6 +8,7 @@ banner: mfs
 released: false
 page_unlisted: true
 release_note: Coming Early October
+math: true
 ---
 
 {% include_optional {{ page.banner }}-copy.md -%}

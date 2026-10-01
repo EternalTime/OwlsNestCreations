@@ -6,43 +6,44 @@ body_class: prose-page
 ---
 
 {% comment %}
-  Most of My Favorite Spacetimes' press facts are not settled yet.
-  Anything not settled is written here as a visible placeholder, because a
-  wrong date or a wrong price on a press page is worse than a blank one. Fill
-  a line in only when the captain has settled it; do not guess one from the
-  app's own repository.
+  Filled from known facts on 2026-10-01 for the captain to edit. The App Store
+  line waits for release, when the listing for app id 6810529195 goes live.
 {% endcomment %}
 
 <section class="prose" markdown="1">
 
 # My Favorite Spacetimes press kit
 
-**This kit is unfinished.**
-Every line below marked *placeholder* is waiting on a decision and is not a fact yet.
-
 ## Fact sheet
 
 - Title: My Favorite Spacetimes
 - Developer: Owl's Nest Creations
-- Release date: *placeholder*
-- Platform: iPhone, iPad, and Mac, with Vision Pro coming soon. Minimum OS version: *placeholder*
-- Price: Free
-- Built with: *placeholder*
-- Languages: *placeholder*
-- App Store: *placeholder*
+- Release date: early October 2026
+- Platform: iPhone, iPad, Mac, Apple TV, and Vision Pro; iOS, iPadOS, macOS, tvOS, and visionOS 26 or later
+- Price: Free, no ads, with an optional tip jar
+- Built with: SwiftUI and RealityKit, with the open-source SwiftMath library for typeset equations
+- Languages: English
+- App Store: link to follow at release
 - Website: [damiansowinski.com/MFS](https://damiansowinski.com/MFS/)
 - Press contact: [hello@owlsnestcreations.com](mailto:hello@owlsnestcreations.com)
 
 ## The pitch
 
-*Placeholder: to be written.*
+A research physicist packed the shapes of spacetime into one free app, from black holes and wormholes to warp drives and universes where time runs in circles.
+Every one comes with its history, its full metric, and diagrams you can spin in your hand; who knew a textbook could fit in your pocket and glow cyan?
 
 ## About the app
 
-My Favorite Spacetimes is a reference for general relativity.
-It collects spacetimes, the solutions of Einstein's equations, each with its metric, its diagrams, its history, and its references.
+My Favorite Spacetimes is a general relativity reference dressed up in a neon grid.
+Pick a spacetime, from Schwarzschild's black hole to Kerr's spinning one, Gödel's rotating universe, and Alcubierre's warp drive, and it opens in three parts.
+The History tells who found it and what happened next, every claim checked against its references.
+The Maths writes out the line element, the metric and its inverse, and the Christoffel symbols, typeset like a blackboard.
+The Graphs draw its spacetime, conformal, and embedding diagrams, some of them animated, and the three-dimensional ones turn under your finger with a light tap when you grab hold.
 
-*Placeholder: the rest to be written.*
+Search by name or by tag, star your favorites, and ask Siri to open one by name (everywhere but Apple TV).
+The app starts with Minkowski space and downloads the rest of the collection the first time you open each spacetime, then keeps it for when you are offline.
+It is written for advanced undergraduates, and it is free, with no ads and a tip jar for the author's coffee.
+It runs on iPhone, iPad, Duo, your Mac, Apple TV, and the Vision Pro.
 
 ## About the developer
 
@@ -73,7 +74,7 @@ Read more about my research at [DamianSowinski.com](https://damiansowinski.com).
 
 ## Review copies
 
-*Placeholder: to be written.*
-Write to [hello@owlsnestcreations.com](mailto:hello@owlsnestcreations.com) in the meantime.
+The app is free on the App Store, so no review code is needed.
+For anything else, write to [hello@owlsnestcreations.com](mailto:hello@owlsnestcreations.com).
 
 </section>

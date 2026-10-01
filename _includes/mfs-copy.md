@@ -1,32 +1,59 @@
 {% comment %}
-  Bare basics only, so the page stands while the captain writes the rest.
-  Every section marked Placeholder is his to fill, and nothing else here should
-  grow a claim, a quote, a price or a date he has not settled. The pictures are
-  iPhone captures of the app's diagrams, cropped as AGENTS.md says.
+  First draft of the app and physics sections, for the captain to edit. The
+  pictures are iPhone captures of the app's diagrams, cropped as AGENTS.md says.
 {% endcomment %}
 
-My Favorite Spacetimes is a reference for general relativity.
+My Favorite Spacetimes is a living reference for general relativity.
 It collects spacetimes, the solutions of Einstein's equations, each with its metric, its diagrams, its history, and its references.
-It runs on iPhone, iPad, and Mac, and is coming soon to Vision Pro.
+It runs on iPhone, iPad, Mac, Apple TV, and Vision Pro.
 
 ## The app
 
-*Placeholder: to be written.*
+Pick a spacetime from the list, or search for it by name or by tag (*vacuum*, *rotating*, *closed timelike curves*).
+The History section gives a comprehensive background on who discovered the spacetime, when, and what happened since, each claim referenced in a bibliography with external links.
+The Maths section lays out the different coordinate charts used for the spacetime, the line element and metric, Christoffel symbols, and various tensors common to GR calculations.
+A Graphs section draws out the spacetime: its spacetime diagrams for the various charts, as well as conformal and embedding diagrams. Several of these are animated, and the three-dimensional ones turn under your finger.
+
+Favorite the spacetimes you keep coming back to.
+On larger screens you can compare two spacetimes side by side.
+Ask Siri or search Spotlight for a spacetime by name and the app opens straight to it.
+Since it is a living reference, expect updates.
+If you're a researcher that wants their spacetime added to the list, contact me. 
+
+The app ships with Minkowski space and fetches the rest of the collection, which keeps growing, from the website the first time you open each one; after that it stays on your device.
+It is free, with no ads (but feel free to buy the author a coffee using the tip jar!).
 
 <div class="mfs-shots" markdown="0">
 {% include mfs-shot.html
    name="kerr-conformal"
-   alt="The conformal diagram of the equatorial plane of Kerr spacetime in My Favorite Spacetimes: a tower of exterior, black hole and white hole regions, with the ring singularity r = 0 drawn as two jagged vertical edges."
+   alt="The conformal diagram of the equatorial plane of Kerr spacetime: a tower of exterior, black hole and white hole regions, with the ring singularity r = 0 drawn as two jagged vertical edges."
    caption="The conformal diagram of the equatorial plane (θ = π/2) of the maximally extended Kerr spacetime (a = 0.9 GM/c²), the ring singularity the jagged timelike edge r = 0." %}
 {% include mfs-shot.html
    name="mixmaster-embedding"
-   alt="The embedding diagram of a Mixmaster universe in My Favorite Spacetimes: a surface of revolution with two round lobes joined at a narrow waist, labelled cτ = 2.83 m."
+   alt="The embedding diagram of a Mixmaster universe: a surface of revolution with two round lobes joined at a narrow waist, labelled cτ = 2.83 m."
    caption="The great two sphere of a Mixmaster universe's three sphere (cτ = 2.83 m), two lobes joined at a narrow waist." %}
 </div>
 
 ## The physics
 
-*Placeholder: to be written.*
+General relativity is Einstein's magnum opus: it says that gravity is geometry: matter and energy curve spacetime, and particles and light move along its straightest paths.
+Einstein wrote the whole theory as one tensor equation,
+
+$$
+G_{\mu\nu} + \Lambda g_{\mu\nu} = \frac{8\pi G}{c^4} T_{\mu\nu}
+$$
+
+ten coupled, nonlinear partial differential equations for the metric $$g_{\mu\nu}$$, the object that turns separations in coordinates into the times and distances clocks and rulers measure.
+A spacetime is a solution: a metric, together with the coordinates it is written in.
+
+Exact solutions are rare, and each one has a fascinating story behind it.
+Karl Schwarzschild found the first within weeks of Einstein's paper, while serving with the German army on the Russian front, and it took until 1963 for Roy Kerr to find the field of a rotating mass.
+The collection gathers many of them, from Minkowski's flat space to Gödel's rotating universe, Alcubierre's warp drive, and the chaotic collapse of the Mixmaster universe.
+
+A metric is hard to visualize, even for a physicist, so the app draws each spacetime three ways.
+A spacetime diagram plots light cones in the coordinates of the metric, showing where light can go from each event.
+A conformal diagram, the kind Roger Penrose and Brandon Carter introduced in the 1960s, squeezes all of spacetime, infinity included, onto a finite page while keeping light rays at 45 degrees, so horizons, singularities, and the regions an observer can and cannot reach are visible at once.
+An embedding diagram takes a slice of space and draws it as a surface in flat space, every distance along the surface the metric distance, and that is how the Ellis-Bronnikov wormhole's throat and the cosmic string's missing wedge appear below.
 
 <div class="mfs-shots" markdown="0">
 {% include mfs-shot.html
