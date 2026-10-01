@@ -1,8 +1,8 @@
 // My Favorite Spacetimes - the reference tool's own look, on the home page.
 //
 // Every colour is the application's own (`Palette.swift`): the two cyans the
-// captain moved it to from teal on 30 September 2026, its pink, and its dark
-// blue ground, none of them VoidFlux's. Nothing glows and no sheet casts a
+// captain moved it to from teal on 30 September 2026, its pink, and its
+// near-black ground, none of them VoidFlux's. Nothing glows and no sheet casts a
 // shadow, which is the application's rule since 29 September 2026: "No glow
 // anywhere". Every size in the furniture is the application's
 // own, from `ScreenLayout.swift` and `Typeface.swift`. The bending of the grid
@@ -30,9 +30,10 @@
 // itself a field but needs the same palette and faces for its prose.
 .mfs-field,
 .mfs-page {
-  // Palette.deep, the dark blue the application's panels stand in, rather than
-  // the near-black VoidFlux is set on.
-  --mfs-ground: #0f1a22;
+  // Palette.ground, which is Palette.void: the near-black `GridBackground`
+  // paints behind its lattice, so the banner is exactly as dark as the
+  // application. The scrims below are the same colour at their own strengths.
+  --mfs-ground: #04040e;
   --mfs-cyan-dark: #29a3c3;
   --mfs-cyan-bright: #37dfff;
   --mfs-pink-light: #ff6da2;
@@ -95,10 +96,10 @@
   pointer-events: none;
   background: linear-gradient(
     95deg,
-    rgba(15, 26, 34, 0.78) 0%,
-    rgba(15, 26, 34, 0.7) 24%,
-    rgba(15, 26, 34, 0.36) 40%,
-    rgba(15, 26, 34, 0) 56%
+    rgba(4, 4, 14, 0.78) 0%,
+    rgba(4, 4, 14, 0.7) 24%,
+    rgba(4, 4, 14, 0.36) 40%,
+    rgba(4, 4, 14, 0) 56%
   );
 }
 
@@ -367,9 +368,9 @@
   .mfs-field::after {
     background: linear-gradient(
       to top,
-      rgba(15, 26, 34, 0.96) 30%,
-      rgba(15, 26, 34, 0.8) 46%,
-      rgba(15, 26, 34, 0) 62%
+      rgba(4, 4, 14, 0.96) 30%,
+      rgba(4, 4, 14, 0.8) 46%,
+      rgba(4, 4, 14, 0) 62%
     );
   }
 
