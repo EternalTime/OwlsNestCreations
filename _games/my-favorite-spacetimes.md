@@ -8,6 +8,7 @@ banner: mfs
 released: false
 page_unlisted: true
 release_note: Coming Early October
+link_page: true
 math: true
 ---
 

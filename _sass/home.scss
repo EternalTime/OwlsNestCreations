@@ -101,6 +101,13 @@
 
 .game-cta:hover { transform: scale(1.06); }
 
+.game-release-link {
+  text-decoration: none;
+  transition: transform 0.15s ease;
+}
+
+.game-release-link:hover { transform: scale(1.06); }
+
 // Apple's own App Store badge (their marketing artwork in assets/img),
 // standing where the text pill stood and moving like one.
 .appstore-badge {
