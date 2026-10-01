@@ -369,7 +369,7 @@ function init(banner) {
 
   // The ground is redrawn thirty times a second, so it runs only while the
   // banner is on screen. Until then the field is the application's own
-  // dark blue ground and nothing else, which is what the application shows
+  // near-black ground and nothing else, which is what the application shows
   // behind everything anyway.
   new IntersectionObserver(
     (entries) => {
