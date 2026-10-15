@@ -67,5 +67,6 @@ An embedding diagram takes a slice of space and draws it as a surface in flat sp
 </div>
 
 The collection is also online at [damiansowinski.com/MFS](https://damiansowinski.com/MFS/).
+My Favorite Spacetimes is out now: <a href="https://apps.apple.com/us/app/my-favorite-spacetimes/id6810529195" target="_blank" rel="noopener">get it on the App Store</a>.
 Questions? [Write to us](mailto:hello@owlsnestcreations.com).
 Writing about My Favorite Spacetimes? Start with the [press kit](/games/my-favorite-spacetimes/press/).

@@ -5,11 +5,6 @@ permalink: /games/my-favorite-spacetimes/press/
 body_class: prose-page
 ---
 
-{% comment %}
-  Filled from known facts on 2026-10-01 for the captain to edit. The App Store
-  line waits for release, when the listing for app id 6810529195 goes live.
-{% endcomment %}
-
 <section class="prose" markdown="1">
 
 # My Favorite Spacetimes press kit
@@ -18,12 +13,12 @@ body_class: prose-page
 
 - Title: My Favorite Spacetimes
 - Developer: Owl's Nest Creations
-- Release date: early October 2026
+- Released: October 2, 2026
 - Platform: iPhone, iPad, Mac, Apple TV, and Vision Pro; iOS, iPadOS, macOS, tvOS, and visionOS 26 or later
 - Price: Free, no ads, with an optional tip jar
 - Built with: SwiftUI and RealityKit, with the open-source SwiftMath library for typeset equations
 - Languages: English
-- App Store: link to follow at release
+- App Store: [apps.apple.com/us/app/my-favorite-spacetimes/id6810529195](https://apps.apple.com/us/app/my-favorite-spacetimes/id6810529195)
 - Website: [damiansowinski.com/MFS](https://damiansowinski.com/MFS/)
 - Press contact: [hello@owlsnestcreations.com](mailto:hello@owlsnestcreations.com)
 

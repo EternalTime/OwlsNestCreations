@@ -5,12 +5,11 @@ and links nowhere, unless `link_page` is set, when that same pill links to the
 game's own page.
 
 `badge` picks which App Store artwork the banner's background needs, black or
-white. `release_attr` is any extra attribute the banner wants on the release
-pill, written with its leading space.
+white. `release_attr` is any extra attribute the banner wants on its pill, written with its leading space.
 {%- endcomment -%}
 {%- assign game = include.game -%}
 {%- if game.released -%}
-<a class="game-cta" href="{{ game.url | relative_url }}">More about {{ game.title }}</a>
+<a class="game-cta" href="{{ game.url | relative_url }}"{{ include.release_attr }}>More about {{ game.title }}</a>
       {%- if game.appstore_url %}
       <a class="appstore-badge" href="{{ game.appstore_url }}" target="_blank" rel="noopener"><img src="{{ '/assets/img/app_store_button_' | append: include.badge | append: '.svg' | relative_url }}" alt="Download on the App Store"></a>
       {%- endif -%}

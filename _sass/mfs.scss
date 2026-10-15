@@ -222,12 +222,13 @@
 
 // ---- The one control ----
 
-// Not a link: the app's page is published but unlisted until the captain
-// links it, which `released` does (see _includes/game-links.html). It is the
-// title screen's own glass control in the app's cyan, but its shape and type
-// are the shared banner pill's (`.game-release` in _sass/home.scss), so it
-// stands exactly like the other two banners' pills.
+// The "More about" link (see _includes/game-links.html) is the title screen's
+// own glass control in the app's cyan, but its shape and type are the shared
+// banner pill's (`.game-cta` in _sass/home.scss), so it stands exactly like the
+// other banners' pills.
+.mfs-field .game-cta,
 .mfs-field .game-release {
+  background: transparent;
   position: relative;
   z-index: 1;
   border-color: rgba(41, 163, 195, 0.2);
