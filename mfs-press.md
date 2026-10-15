@@ -24,21 +24,20 @@ body_class: prose-page
 
 ## The pitch
 
-A research physicist packed the shapes of spacetime into one free app, from black holes and wormholes to warp drives and universes where time runs in circles.
-Every one comes with its history, its full metric, and diagrams you can spin in your hand; who knew a textbook could fit in your pocket and glow cyan?
+A research physicist packed solutions to Einstein's equations into a free app, from black holes and wormholes to warp drives and universes where time runs in circles.
+Every one comes with its history, differential geometry, and diagrams; who knew a textbook could fit in your pocket and look so good?
 
 ## About the app
 
-My Favorite Spacetimes is a general relativity reference dressed up in a neon grid.
-Pick a spacetime, from Schwarzschild's black hole to Kerr's spinning one, Gödel's rotating universe, and Alcubierre's warp drive, and it opens in three parts.
-The History tells who found it and what happened next, every claim checked against its references.
-The Maths writes out the line element, the metric and its inverse, and the Christoffel symbols, typeset like a blackboard.
-The Graphs draw its spacetime, conformal, and embedding diagrams, some of them animated, and the three-dimensional ones turn under your finger with a light tap when you grab hold.
+My Favorite Spacetimes is the only research level general relativity reference.
+Pick a spacetime, from Schwarzschild's black hole to Kerr's spinning one, Gödel's rotating universe, and Alcubierre's warp drive.
+Its history section tells who found it and what happened next, every claim linked to external references in peer reviewed journals.
+The maths section spells out the line element, the metric, Christoffel symbols, and various other geometric quantities.
+A graphs section adds conformal and embedding diagrams, some of them animated, and the three-dimensional ones turn under your finger with a light tap when you grab hold.
 
-Search by name or by tag, star your favorites, and ask Siri to open one by name (everywhere but Apple TV).
+Search by name or by tag, star your favorites, and ask Siri to open one by name.
 The app starts with Minkowski space and downloads the rest of the collection the first time you open each spacetime, then keeps it for when you are offline.
-It is written for advanced undergraduates, and it is free, with no ads and a tip jar for the author's coffee.
-It runs on iPhone, iPad, Duo, your Mac, Apple TV, and the Vision Pro.
+It's written for advanced undergraduates and is free with no ads, running on iPhone, iPad, Duo, your Mac, Apple TV, and the Vision Pro.
 
 ## About the developer
 
