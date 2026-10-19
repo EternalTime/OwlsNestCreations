@@ -2,14 +2,14 @@
 title: VoidFlux
 banner_title: VoidFlux
 tagline: A Puzzle in the depths of Electrostatics.
-teaser: Place charges. Bend fields. Balance the flux. Out now on iPhone.
-description: VoidFlux is a puzzle game built on Gauss' Law, out now for iPhone from Owl's Nest Creations.
+teaser: Place charges. Bend fields. Balance the flux. Out now on iPhone, iPad, Mac, Apple TV, and Vision Pro.
+description: VoidFlux is a puzzle game built on Gauss' Law, out now for iPhone, iPad, Mac, Apple TV, and Vision Pro from Owl's Nest Creations.
 order: 1
 banner: voidflux
 icon: /assets/img/voidflux-icon.png
 title_font: "'Paytone One', sans-serif"
 released: true
-platforms: [iPhone, iPad]
+platforms: [iPhone, iPad, Mac, Apple TV, Vision Pro]
 release_date: 2026-09-04
 appstore_url: https://apps.apple.com/us/app/voidflux/id6778287432
 math: true
