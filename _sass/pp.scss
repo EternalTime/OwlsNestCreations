@@ -1,15 +1,222 @@
 // Physics+ uses the app's Look.swift and Applets/PhysicsPlus/colours.css.
+@font-face {
+  font-family: 'PP Pump';
+  src: url('../fonts/pp-PumpOpti-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Pump';
+  src: url('../fonts/pp-PumpOpti-DemiBold.otf') format('opentype');
+  font-weight: 600;
+  font-display: swap;
+}
+
+.pp-field,
+.pp-page {
+  --pp-ink: #160125;
+  --pp-light: #cfc2b8;
+  --pp-hot: #f66298;
+  --pp-rim: #fbfffc;
+  --pp-frame-ring: #3d005c;
+  --pp-outer: #1a0032;
+  --pp-band: #5a0370;
+  --pp-band-deep: #890088;
+}
+
+// Straight mixed-width panels, with the app's own sunset colours.
 .pp-field {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  background: #160125;
-  color: #cfc2b8;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: clamp(30rem, 62vh, 44rem);
+  background: var(--pp-outer);
+  color: var(--pp-rim);
+  text-align: left;
+  font-family: 'Avenir Next', 'Nunito', 'Helvetica Neue', Arial, sans-serif;
 }
 
-.pp-ground {
+.pp-panels {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(#1c002c, #160125 62%, #0d0018);
+  display: grid;
+  grid-template-columns: 1.1fr 1.65fr 1.4fr 1.2fr;
+  grid-template-rows: 1fr 1fr;
+  grid-template-areas: 'fa gas ising sl' 'fa tb vicsek sl';
+  gap: 8px;
+  padding: 8px;
+  background: var(--pp-outer);
+  pointer-events: none;
+}
+
+.pp-panel {
+  overflow: hidden;
+  isolation: isolate;
+  min-width: 0;
+  min-height: 0;
+}
+
+.pp-panel img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) contrast(0.8) brightness(1.1);
+  mix-blend-mode: luminosity;
+  opacity: 0.9;
+}
+
+.pp-panel-fa { grid-area: fa; background: linear-gradient(#375ec3, #6b3ebe); }
+.pp-panel-gas { grid-area: gas; background: linear-gradient(#6b3ebe, #b43fc7); }
+.pp-panel-ising { grid-area: ising; background: linear-gradient(#d830a8, #e9429e); }
+.pp-panel-sl { grid-area: sl; background: linear-gradient(#ff706f, #ffa342); }
+.pp-panel-tb { grid-area: tb; background: linear-gradient(#e9429e, #ff80a1); }
+.pp-panel-vicsek { grid-area: vicsek; background: linear-gradient(#fb7a63, #ff9360); }
+
+.pp-field::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(95deg, #1a0032c7 0%, #1a0032b3 24%, #1a00325c 40%, #1a003200 56%);
+}
+
+.pp-field .game-blurb { position: relative; z-index: 1; }
+.pp-field .game-title { text-shadow: none; }
+
+// Look.wordmark: outer 20, band 13, rim 6 at a 46-point face.
+// These spans only paint the text; the shared heading owns size and placement.
+.pp-field .game-title-outline {
+  display: inline-block;
+  position: relative;
+  isolation: isolate;
+}
+
+.pp-field .game-title-outline::before,
+.pp-field .game-title-outline::after,
+.pp-field .game-title-ink::before {
+  content: attr(data-title);
+  position: absolute;
+  inset: 0;
+  background: none;
+  paint-order: stroke fill;
+  pointer-events: none;
+}
+
+.pp-field .game-title-outline::before {
+  z-index: -3;
+  -webkit-text-fill-color: var(--pp-outer);
+  -webkit-text-stroke: 0.434783em var(--pp-outer);
+}
+
+.pp-field .game-title-outline::after {
+  z-index: -2;
+  -webkit-text-fill-color: var(--pp-band);
+  -webkit-text-stroke: 0.282609em var(--pp-band);
+}
+
+.pp-field .game-title-ink::before {
+  z-index: -1;
+  clip-path: inset(62% 0 0);
+  -webkit-text-fill-color: var(--pp-band-deep);
+  -webkit-text-stroke: 0.282609em var(--pp-band-deep);
+}
+
+.pp-field .game-title-ink {
+  background: linear-gradient(to bottom,
+    #375ec3 0%, #3a43c0 12%, #6b3ebe 20%, #b43fc7 30%,
+    #d830a8 40%, #e9429e 50%, #ff80a1 60%, #ff706f 70%,
+    #fb7a63 75%, #ff9360 85%, #fd963e 90%, #ffa342 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 0.130435em var(--pp-rim);
+  paint-order: stroke fill;
+}
+
+.pp-field .game-tag { color: var(--pp-rim); }
+.pp-field .game-desc { color: var(--pp-rim); opacity: 1; }
+
+.pp-field .game-release,
+.pp-field .game-cta {
+  background: transparent;
+  border-color: var(--pp-hot);
+  color: var(--pp-rim);
+  box-shadow: none;
+}
+
+.pp-page {
+  font-family: 'PP Pump', sans-serif;
+  font-weight: 500;
+  background: var(--pp-ink);
+  color: var(--pp-light);
+}
+
+.pp-hero { min-height: clamp(26rem, 58vh, 40rem); padding: 10vh 5vw; }
+
+.pp-prose {
+  max-width: 52rem;
+  margin-inline: auto;
+  padding: clamp(3rem, 8vh, 5rem) 5vw;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.pp-prose a {
+  color: var(--pp-hot);
+  text-underline-offset: 0.18em;
+}
+
+.pp-shots {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2.25rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  margin: 2.5rem 0 3rem;
+}
+
+.pp-shot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin: 0;
+  min-width: 0;
+}
+
+.pp-shot-frame {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border: 2px solid var(--pp-rim, #fbfffc);
+  border-radius: 3px;
+  // Look.heroFrame: solid rings, with no blur or glow.
+  box-shadow: 0 0 0 7px var(--pp-frame-ring, #3d005c), 0 0 0 13px var(--pp-outer, #1a0032);
+}
+
+.pp-shot-caption {
+  color: var(--pp-light, inherit);
+  font-family: 'PP Pump', sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+@media (max-width: 860px) {
+  .pp-field { min-height: clamp(30rem, 82vh, 42rem); align-items: flex-end; }
+  .pp-field::after { background: linear-gradient(to top, #1a0032f5 30%, #1a0032cc 46%, #1a003200 68%); }
+  .pp-panels {
+    grid-template-columns: 1.15fr 1fr;
+    grid-template-rows: repeat(3, 1fr);
+    grid-template-areas: 'fa gas' 'ising sl' 'tb vicsek';
+    gap: 4px;
+    padding: 4px;
+  }
+  .pp-prose { padding-inline: 7vw; }
 }

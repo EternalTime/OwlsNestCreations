@@ -15,7 +15,7 @@ that line's indentation.
 {%- endcomment -%}
 {%- assign game = include.game -%}
 <div class="game-blurb">
-      <h2 class="game-title"{% if game.title_font %} style="font-family: {{ game.title_font }};"{% endif %}>{{ game.banner_title }}</h2>
+      <h2 class="game-title" aria-label="{{ game.title | escape }}"{% if game.title_font %} style="font-family: {{ game.title_font }};"{% endif %}><span class="game-title-outline" data-title="{{ game.banner_title | strip_html | escape }}"><span class="game-title-ink" data-title="{{ game.banner_title | strip_html | escape }}">{{ game.banner_title }}</span></span></h2>
       <div class="game-tag">{{ game.tagline }}</div>
       {%- if game.teaser %}
       <p class="game-desc">{{ game.teaser }}</p>
