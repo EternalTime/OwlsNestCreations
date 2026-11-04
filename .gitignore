@@ -22,3 +22,11 @@ _includes/verdant-shot.html
 assets/img/verdant-placeholder.html
 assets/img/verdant-placeholder-*.png
 verdant-press.md
+
+# Physics+
+_includes/pp-page.html
+_includes/pp-copy.md
+_includes/pp-shot.html
+assets/img/pp-*.avif
+assets/img/pp-*.jpg
+pp-press.md

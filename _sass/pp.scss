@@ -1,0 +1,15 @@
+// Physics+ uses the app's Look.swift and Applets/PhysicsPlus/colours.css.
+.pp-field {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #160125;
+  color: #cfc2b8;
+}
+
+.pp-ground {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(#1c002c, #160125 62%, #0d0018);
+}
