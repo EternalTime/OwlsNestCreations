@@ -187,8 +187,17 @@
   // The collage fills the banner behind the copy; each still crops with cover.
   #games .pp-panels { --pp-gap: clamp(2px, 0.56vw, 4px); }
 
-  // Dim the pictures across the reading column, as on desktop.
-  #games .pp-field::after {
+  // Keep the pictures bright outside the reading block.
+  #games .pp-field::after { display: none; }
+
+  #games .pp-field .game-blurb::before {
+    content: '';
+    position: absolute;
+    inset: -1.5rem -5vw;
+    z-index: -1;
+    pointer-events: none;
     background: linear-gradient(95deg, #1a0032c7, #1a0032b3);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 1.5rem, #000 calc(100% - 1.5rem), transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 1.5rem, #000 calc(100% - 1.5rem), transparent);
   }
 }
