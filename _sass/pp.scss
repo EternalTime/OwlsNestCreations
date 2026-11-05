@@ -184,11 +184,11 @@
   .pp-field::after { background: linear-gradient(to top, #1a0032f5 30%, #1a0032cc 46%, #1a003200 68%); }
   .pp-panels { --pp-gap: 4px; }
 
-  // Keep the wide collage above the copy instead of stretching its panels
-  // through the full portrait banner. The stills continue to crop with cover.
-  #games .pp-panels {
-    --pp-gap: clamp(2px, 0.56vw, 4px);
-    bottom: auto;
-    aspect-ratio: 2 / 1;
+  // The collage fills the banner behind the copy; each still crops with cover.
+  #games .pp-panels { --pp-gap: clamp(2px, 0.56vw, 4px); }
+
+  // Dim the pictures across the reading column, as on desktop.
+  #games .pp-field::after {
+    background: linear-gradient(95deg, #1a0032c7, #1a0032b3);
   }
 }

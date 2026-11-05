@@ -385,6 +385,21 @@
     transform: none;
   }
 
+  // Reserve the card's own height above the title on the home page.
+  #games .mfs-field {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    justify-content: flex-end;
+    padding-top: 6vw;
+    gap: 2rem;
+  }
+
+  #games .mfs-stack {
+    position: relative;
+    inset: auto;
+  }
+
   // One row rather than four. Four rows are taller than the room the copy
   // leaves on the shortest phone, so the rest would be run through by the
   // title; and a row cut off half way is not a sheet of glass. The one that
