@@ -183,4 +183,12 @@
   .pp-field { min-height: clamp(30rem, 82vh, 42rem); align-items: flex-end; }
   .pp-field::after { background: linear-gradient(to top, #1a0032f5 30%, #1a0032cc 46%, #1a003200 68%); }
   .pp-panels { --pp-gap: 4px; }
+
+  // Keep the wide collage above the copy instead of stretching its panels
+  // through the full portrait banner. The stills continue to crop with cover.
+  #games .pp-panels {
+    --pp-gap: clamp(2px, 0.56vw, 4px);
+    bottom: auto;
+    aspect-ratio: 2 / 1;
+  }
 }
