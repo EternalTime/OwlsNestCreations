@@ -3,7 +3,7 @@ title: My Favorite Spacetimes
 banner_title: My Favorite<br>Spacetimes
 tagline: A reference tool for General Relativity.
 teaser: Collected solutions to Einstein's equations, with historical backgrounds and worked out differential geometries, suitable for advanced undergraduates. Out now on iPhone, iPad, Mac, Apple TV, and Vision Pro.
-order: 3
+order: 2
 banner: mfs
 released: true
 platforms: [iPhone, iPad, Mac, Apple TV, Vision Pro]

@@ -4,7 +4,7 @@ banner_title: Physics+
 tagline: Computational Applets
 teaser: A collection of simulations ranging across multiple subfields, from solid-state to biophysics and beyond.
 description: A collection of simulations ranging across multiple subfields, from solid-state to biophysics and beyond.
-order: 4
+order: 1
 banner: pp
 title_font: "'PP Pump', sans-serif"
 released: false
