@@ -1,14 +1,19 @@
 {%- comment -%}
-One capture of My Favorite Spacetimes. Parameters:
-  name    - stem under /assets/img, without the `mfs-` prefix or extension.
-            Both `mfs-<name>.avif` and `mfs-<name>.jpg` must exist.
+One app capture. Parameters:
+  name    - stem under /assets/img, without the prefix or extension.
+            AVIF and JPEG companions are required unless jpeg_only is set.
+  prefix  - asset prefix, defaulting to mfs.
+  jpeg_only - omit the optional AVIF source.
   alt     - alt text describing what the capture actually shows.
   caption - visible figcaption.
 {%- endcomment -%}
-{%- assign mfs_shot_base = '/assets/img/mfs-' | append: include.name -%}
+{%- assign shot_prefix = include.prefix | default: 'mfs' -%}
+{%- assign mfs_shot_base = '/assets/img/' | append: shot_prefix | append: '-' | append: include.name -%}
 <figure class="mfs-shot">
   <picture>
+    {% unless include.jpeg_only %}
     <source srcset="{{ mfs_shot_base | append: '.avif' | relative_url }}" type="image/avif">
+    {% endunless %}
     <img class="mfs-shot-frame"
          src="{{ mfs_shot_base | append: '.jpg' | relative_url }}"
          alt="{{ include.alt | escape }}"

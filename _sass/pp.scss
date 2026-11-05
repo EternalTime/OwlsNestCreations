@@ -45,14 +45,25 @@
   inset: 0;
   z-index: -1;
   display: grid;
-  grid-template-columns: 1.1fr 1.65fr 1.4fr 1.2fr;
-  grid-template-rows: 1fr 1fr;
-  grid-template-areas: 'fa gas ising sl' 'fa tb vicsek sl';
-  gap: 8px;
-  padding: 8px;
+  --pp-gap: 8px;
+  grid-template-columns: 364fr 1171fr 394fr;
+  grid-template-rows: minmax(0, 1fr);
+  gap: var(--pp-gap);
+  padding: var(--pp-gap);
   background: var(--pp-outer);
   pointer-events: none;
 }
+
+.pp-middle,
+.pp-row {
+  display: grid;
+  gap: var(--pp-gap);
+  min-width: 0;
+  min-height: 0;
+}
+.pp-middle { grid-template-rows: repeat(2, minmax(0, 1fr)); overflow: hidden; }
+.pp-row-top { grid-template-columns: 601fr 570fr; }
+.pp-row-bottom { grid-template-columns: 432fr 376fr 346fr; }
 
 .pp-panel {
   overflow: hidden;
@@ -71,12 +82,13 @@
   opacity: 0.9;
 }
 
-.pp-panel-fa { grid-area: fa; background: linear-gradient(#375ec3, #6b3ebe); }
-.pp-panel-gas { grid-area: gas; background: linear-gradient(#6b3ebe, #b43fc7); }
-.pp-panel-ising { grid-area: ising; background: linear-gradient(#d830a8, #e9429e); }
-.pp-panel-sl { grid-area: sl; background: linear-gradient(#ff706f, #ffa342); }
-.pp-panel-tb { grid-area: tb; background: linear-gradient(#e9429e, #ff80a1); }
-.pp-panel-vicsek { grid-area: vicsek; background: linear-gradient(#fb7a63, #ff9360); }
+.pp-panel-fa { background: linear-gradient(#375ec3, #6b3ebe); }
+.pp-panel-gas { background: linear-gradient(#6b3ebe, #b43fc7); }
+.pp-panel-ising { background: linear-gradient(#d830a8, #e9429e); }
+.pp-panel-gs { background: linear-gradient(#b43fc7, #e9429e); }
+.pp-panel-km { background: linear-gradient(#ff6a83, #ff9360); }
+.pp-panel-tb { background: linear-gradient(#e9429e, #ff80a1); }
+.pp-panel-vicsek { background: linear-gradient(#fb7a63, #ff9360); }
 
 .pp-field::after {
   content: '';
@@ -100,7 +112,8 @@
 
 .pp-field .game-title-outline::before,
 .pp-field .game-title-outline::after,
-.pp-field .game-title-ink::before {
+.pp-field .game-title-ink::before,
+.pp-field .game-title-ink::after {
   content: attr(data-title);
   position: absolute;
   inset: 0;
@@ -128,6 +141,12 @@
   -webkit-text-stroke: 0.282609em var(--pp-band-deep);
 }
 
+.pp-field .game-title-ink::after {
+  z-index: -1;
+  -webkit-text-fill-color: var(--pp-rim);
+  -webkit-text-stroke: 0.130435em var(--pp-rim);
+}
+
 .pp-field .game-title-ink {
   background: linear-gradient(to bottom,
     #375ec3 0%, #3a43c0 12%, #6b3ebe 20%, #b43fc7 30%,
@@ -136,7 +155,7 @@
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  -webkit-text-stroke: 0.130435em var(--pp-rim);
+  -webkit-text-stroke: calc(0.130435em / 3) transparent;
   paint-order: stroke fill;
 }
 
@@ -152,71 +171,16 @@
 }
 
 .pp-page {
-  font-family: 'PP Pump', sans-serif;
-  font-weight: 500;
-  background: var(--pp-ink);
-  color: var(--pp-light);
-}
-
-.pp-hero { min-height: clamp(26rem, 58vh, 40rem); padding: 10vh 5vw; }
-
-.pp-prose {
-  max-width: 52rem;
-  margin-inline: auto;
-  padding: clamp(3rem, 8vh, 5rem) 5vw;
-  font-size: 1.1rem;
-  line-height: 1.6;
-}
-
-.pp-prose a {
-  color: var(--pp-hot);
-  text-underline-offset: 0.18em;
-}
-
-.pp-shots {
-  display: grid;
-  gap: clamp(1.25rem, 3vw, 2.25rem);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
-  margin: 2.5rem 0 3rem;
-}
-
-.pp-shot {
-  display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
-  margin: 0;
-  min-width: 0;
-}
-
-.pp-shot-frame {
-  display: block;
-  width: 100%;
-  height: auto;
-  aspect-ratio: 1;
-  object-fit: contain;
-  border: 2px solid var(--pp-rim, #fbfffc);
-  border-radius: 3px;
-  // Look.heroFrame: solid rings, with no blur or glow.
-  box-shadow: 0 0 0 7px var(--pp-frame-ring, #3d005c), 0 0 0 13px var(--pp-outer, #1a0032);
-}
-
-.pp-shot-caption {
-  color: var(--pp-light, inherit);
-  font-family: 'PP Pump', sans-serif;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  text-align: center;
+  --mfs-ground: var(--pp-ink);
+  --mfs-mid: var(--pp-light);
+  --mfs-dim: var(--pp-light);
+  --mfs-bright: var(--pp-rim);
+  --mfs-cyan-bright: var(--pp-hot);
+  --mfs-mono: 'PP Pump', sans-serif;
 }
 
 @media (max-width: 860px) {
   .pp-field { min-height: clamp(30rem, 82vh, 42rem); align-items: flex-end; }
   .pp-field::after { background: linear-gradient(to top, #1a0032f5 30%, #1a0032cc 46%, #1a003200 68%); }
-  .pp-panels {
-    grid-template-columns: 1.15fr 1fr;
-    grid-template-rows: repeat(3, 1fr);
-    grid-template-areas: 'fa gas' 'ising sl' 'tb vicsek';
-    gap: 4px;
-    padding: 4px;
-  }
-  .pp-prose { padding-inline: 7vw; }
+  .pp-panels { --pp-gap: 4px; }
 }
