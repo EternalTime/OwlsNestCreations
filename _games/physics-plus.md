@@ -6,7 +6,7 @@ teaser: A collection of simulations ranging across multiple subfields, from soli
 description: A collection of simulations ranging across multiple subfields, from solid-state to biophysics and beyond.
 order: 1
 banner: pp
-title_font: "'PP Pump', sans-serif"
+title_font: "'Paytone One', sans-serif"
 released: false
 release_note: In development
 ---

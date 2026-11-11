@@ -1,20 +1,7 @@
 // Physics+ uses the app's Look.swift and Applets/PhysicsPlus/colours.css.
-@font-face {
-  font-family: 'PP Pump';
-  src: url('../fonts/pp-PumpOpti-Medium.otf') format('opentype');
-  font-weight: 500;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'PP Pump';
-  src: url('../fonts/pp-PumpOpti-DemiBold.otf') format('opentype');
-  font-weight: 600;
-  font-display: swap;
-}
-
 .pp-field,
 .pp-page {
+  font-synthesis: none;
   --pp-ink: #160125;
   --pp-light: #cfc2b8;
   --pp-hot: #f66298;
@@ -100,7 +87,7 @@
 }
 
 .pp-field .game-blurb { position: relative; z-index: 1; }
-.pp-field .game-title { text-shadow: none; }
+.pp-field .game-title { font-weight: 400; text-shadow: none; }
 
 // Look.wordmark: outer 20, band 13, rim 6 at a 46-point face.
 // These spans only paint the text; the shared heading owns size and placement.
@@ -176,8 +163,12 @@
   --mfs-dim: var(--pp-light);
   --mfs-bright: var(--pp-rim);
   --mfs-cyan-bright: var(--pp-hot);
-  --mfs-mono: 'PP Pump', sans-serif;
+  --mfs-mono: 'Paytone One', sans-serif;
 }
+
+.pp-page .mfs-prose h2,
+.pp-page .mfs-name,
+.pp-page .mfs-tags { font-weight: 400; }
 
 @media (max-width: 860px) {
   .pp-field { min-height: clamp(30rem, 82vh, 42rem); align-items: flex-end; }
