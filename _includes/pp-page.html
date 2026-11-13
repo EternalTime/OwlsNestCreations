@@ -1,0 +1,14 @@
+<article class="mfs-page pp-page">
+  <section class="game-block pp-field mfs-hero" data-pp-banner>
+    {% include pp-field.html %}
+    <div class="game-blurb">
+      <h1 class="game-title" aria-label="{{ page.title | escape }}" style="font-family: {{ page.title_font }};"><span class="game-title-outline" data-title="{{ page.banner_title | strip_html | escape }}"><span class="game-title-ink" data-title="{{ page.banner_title | strip_html | escape }}">{{ page.banner_title }}</span></span></h1>
+      <div class="game-tag">{{ page.tagline }}</div>
+      {% include game-links.html game=page badge="white" %}
+    </div>
+  </section>
+  <div class="mfs-prose">
+    {{ content }}
+  </div>
+</article>
+{% include pp-runtime.html %}
